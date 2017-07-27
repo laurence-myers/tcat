@@ -1,0 +1,36 @@
+{
+  "name": "tcat",
+  "version": "0.0.1",
+  "description": "Type Checker for AngularJS Templates",
+  "main": "build/src/main.js",
+  "scripts": {
+    "main": "node build/src/main.js",
+    "test": "mocha --require source-map-support/register --recursive build",
+    "tsc": "tsc",
+    "tscw": "tsc -w"
+  },
+  "author": "Laurence Dougal Myers",
+  "license": "ISC",
+  "engines": {
+    "node": "6.9.1",
+    "npm": "3.10.10"
+  },
+  "dependencies": {
+    "@types/cheerio": "^0.22.2",
+    "@types/htmlparser2": "^3.7.29",
+    "@types/jade": "0.0.30",
+    "angular-expressions": "github:peerigon/angular-expressions",
+    "cheerio": "^1.0.0-rc.2",
+    "domlike": "^0.2.0",
+    "htmlparser2": "^3.9.2",
+    "jade": "1.11.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "2.2.39",
+    "@types/node": "6.0.63",
+    "mocha": "3.2.0",
+    "source-map-support": "0.4.11",
+    "tslint": "4.4.2",
+    "typescript": "2.4.2"
+  }
+}

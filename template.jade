@@ -1,0 +1,21 @@
+include ./card
+
++card('template-thumbnail', "{ 'faded': ctrl.isFaded }")
+    a(ng-href="{{ ctrl.thumbnail.templateUrl }}")
+        .thumbnail-container(ng-if="ctrl.thumbnail.thumbnailUrl")
+            img.img-responsive.center-block(ng-src="{{ ctrl.thumbnail.thumbnailUrl }}", width="256", height="256")
+
+        div.img-responsive.center-block.template-placeholder(ng-if="!ctrl.thumbnail.thumbnailUrl")
+            i.fa.fa-file-image-o
+
+    div.caption
+        h4 {{ ctrl.thumbnail.title }}
+
+        .icon(ng-repeat="category in ctrl.thumbnail.categories")
+            span.fa(ng-class="category.className" title="{{ category.title }}")
+
+        div(ng-if="ctrl.tagClick")
+            a.label.label-default.label-spacer.trythis-tag(ng-repeat="tagLabel in ctrl.thumbnail.tagLabels", ng-click="ctrl.tagClick({ tagLabel })") {{ tagLabel }}
+
+        div(ng-if="!ctrl.tagClick")
+            span.label.label-default.label-spacer.trythis-tag(ng-repeat="tagLabel in ctrl.thumbnail.tagLabels") {{ tagLabel }}
