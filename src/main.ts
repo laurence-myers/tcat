@@ -9,6 +9,7 @@ const expressions = require('angular-expressions');
 
 const KNOWN_EXPRESSION_ATTRIBUTES = [
     'ng-if',
+    'ng-click'
     // 'ng-repeat'
 ];
 
@@ -32,7 +33,7 @@ async function processNode(node : CheerioElement) {
 
 async function start() : Promise<void> {
     // const contents = jade.renderFile("template.jade");
-    const contents = `<div ng-if="ctrl.isLoading"></div>`;
+    const contents = `<div ng-if="ctrl.isLoading" ng-click="ctrl.tagClick({ tagLabel })"></div>`;
     console.log(contents);
     const handler = new domlike.Handler();
     const parser = new htmlparser.Parser(handler);

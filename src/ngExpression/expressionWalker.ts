@@ -1,10 +1,12 @@
 import {
-    AstNode, ExpressionStatementNode, IdentifierNode, MemberExpressionExpressionNode, MemberExpressionNode,
+    AstNode, CallExpressionNode, ExpressionStatementNode, IdentifierNode, MemberExpressionExpressionNode,
+    MemberExpressionNode,
     ProgramNode
 } from "./ast";
 // import {assertNever} from "../core";
 
 abstract class BaseWalker {
+    protected abstract walkCallExpressionNode(node : CallExpressionNode) : void;
     protected abstract walkExpressionStatementNode(node : ExpressionStatementNode) : void;
     protected abstract walkIdentifierNode(node : IdentifierNode) : void;
     protected abstract walkMemberExpressionNode(node : MemberExpressionNode) : void;
@@ -16,6 +18,8 @@ abstract class BaseWalker {
 
     protected dispatch(node : AstNode) : void {
         switch (node.type) {
+            case "CallExpression":
+                return this.walkCallExpressionNode(node);
             case "ExpressionStatement":
                 return this.walkExpressionStatementNode(node);
             case "Identifier":
@@ -36,7 +40,13 @@ abstract class BaseWalker {
 }
 
 export class SkippingWalker extends BaseWalker {
+    protected walkCallExpressionNode(node : CallExpressionNode) : void {
+        this.dispatch(node.callee);
+        this.dispatchAll(node.arguments);
+    }
+
     protected walkExpressionStatementNode(node : ExpressionStatementNode) : void {
+        console.log(node);
         this.dispatch(node.expression);
     }
 
@@ -54,10 +64,18 @@ export class SkippingWalker extends BaseWalker {
 }
 
 export class AstWalker extends SkippingWalker {
-    identifiers : IdentifierNode[] = [];
+    identifiers : string[] = [];
+    currentMemberExpression : string[];
+
+    protected walkMemberExpressionNode(node : MemberExpressionExpressionNode) : void {
+        this.currentMemberExpression = [];
+        this.dispatch(node.object);
+        this.dispatch(node.property);
+        this.identifiers.push(this.currentMemberExpression.join('.'));
+    }
 
     protected walkIdentifierNode(node : IdentifierNode) : void {
-        this.identifiers.push(node);
+        this.currentMemberExpression.push(node.name);
     }
 
     public walk(node : ProgramNode) : void {

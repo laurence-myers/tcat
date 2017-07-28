@@ -11,8 +11,6 @@ export interface LiteralNode {
 export interface IdentifierNode {
     type : 'Identifier';
     name : string;
-    constant? : boolean;
-    toWatch? : Array<any>;
 }
 
 export interface ConstantNode {
