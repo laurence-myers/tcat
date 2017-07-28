@@ -2,20 +2,27 @@
 import * as cheerio from "cheerio";
 import * as htmlparser from "htmlparser2";
 import * as domlike from "domlike";
+import {ProgramNode} from "./ngExpression/ast";
+import {AstWalker} from "./ngExpression/expressionWalker";
 
 const expressions = require('angular-expressions');
 
 const KNOWN_EXPRESSION_ATTRIBUTES = [
-    'ng-if'
+    'ng-if',
+    // 'ng-repeat'
 ];
+
+// const ComplexExpressionMap = new Map<string, (value : string) => string>();
+// ComplexExpressionMap.set('ng-repeat', parseNgRepeat);
 
 async function processNode(node : CheerioElement) {
     for (const key in node.attribs) {
         console.log(key);
         if (KNOWN_EXPRESSION_ATTRIBUTES.indexOf(key) > -1) {
             const value = node.attribs[key];
-            const result = expressions.compile(value);
-            console.log(result.ast.body[0].expression);
+            const result : { ast : ProgramNode } = expressions.compile(value);
+            const walker = new AstWalker();
+            walker.walk(result.ast);
         }
     }
     for (const child of node.children) {
