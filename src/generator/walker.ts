@@ -1,8 +1,9 @@
-import {ExpressionNode, GeneratorAstNode} from "./ast";
+import {ExpressionNode, GeneratorAstNode, RootNode} from "./ast";
 import {assertNever} from "../core";
 
 export abstract class BaseWalker {
     protected abstract walkExpressionNode(node : ExpressionNode) : void;
+    protected abstract walkRootNode(node : RootNode) : void;
 
     protected dispatchAll(nodes : GeneratorAstNode[]) : void {
         return nodes.forEach((node) => this.dispatch(node));
@@ -12,8 +13,10 @@ export abstract class BaseWalker {
         switch (node.type) {
             case 'ExpressionNode':
                 return this.walkExpressionNode(node);
+            case 'RootNode':
+                return this.walkRootNode(node);
             default:
-                assertNever(node.type);
+                assertNever(node);
                 break;
         }
     }
@@ -22,6 +25,10 @@ export abstract class BaseWalker {
 export class SkippingWalker extends BaseWalker {
     protected walkExpressionNode(_ : ExpressionNode) {
 
+    }
+
+    protected walkRootNode(node : RootNode) {
+        this.dispatchAll(node.expressions);
     }
 }
 
@@ -40,4 +47,9 @@ export class TypeScriptGenerator extends SkippingWalker {
         this.dispatch(node);
         return this.output;
     }
+}
+
+export function generateTypeScript(node : GeneratorAstNode) : string {
+    const generator = new TypeScriptGenerator();
+    return generator.generate(node);
 }

@@ -1,13 +1,15 @@
 import {Either} from 'monet';
 import {ParserError} from "./core";
+import {expr} from "./generator/dsl";
+import {GeneratorNonRootAstNode} from "./generator/ast";
 
-export type ParserResult = Either<ParserError, string[]>;
+export type ParserResult = Either<ParserError, GeneratorNonRootAstNode[]>;
 
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
 export function defaultParser(attrib : string) : ParserResult {
-    return Either.Right([attrib]);
+    return Either.Right([expr(attrib)]);
 }
 
 /**
@@ -37,5 +39,5 @@ export function parseNgRepeat(expression : string) : ParserResult {
             /^(null|undefined|this|\$index|\$first|\$middle|\$last|\$even|\$odd|\$parent|\$root|\$id)$/.test(aliasAs))) {
         return Either.Left(new ParserError(`alias \'{${ aliasAs }}\' is invalid --- must be a valid JS identifier which is not a reserved name.`));
     }
-    return Either.Right([lhs, rhs, aliasAs, trackByExp, valueIdentifier, keyIdentifier]);
+    return Either.Right([expr(lhs), expr(rhs), expr(aliasAs), expr(trackByExp), expr(valueIdentifier), expr(keyIdentifier)]);
 }

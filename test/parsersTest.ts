@@ -1,8 +1,9 @@
 import {parseNgRepeat} from "../src/parsers";
 import * as assert from "assert";
 import {ParserError} from "../src/core";
+import {GeneratorNonRootAstNode} from "../src/generator/ast";
 
-function testExpression(expression : string) : string[] {
+function testExpression(expression : string) : GeneratorNonRootAstNode[] {
     const result = parseNgRepeat(expression);
     assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
     return result.right();
