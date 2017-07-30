@@ -29,7 +29,7 @@ abstract class BaseWalker {
             case "Program":
                 return this.walkProgramNode(node);
             default:
-                // assertNever(node);
+                // assertNever(node.type);
                 break;
         }
     }
