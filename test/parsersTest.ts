@@ -1,6 +1,6 @@
 import {NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat} from "../src/parsers";
 import * as assert from "assert";
-import {ParserError} from "../src/core";
+import {AttributeParserError} from "../src/core";
 import {GeneratorAstNode} from "../src/generator/ast";
 import {arrayIteration, assign, objectIteration, scopedBlock} from "../src/generator/dsl";
 
@@ -26,7 +26,7 @@ describe(`Parsers`, function() {
             return result.right();
         }
 
-        function testParseFailure(expression : string) : ParserError {
+        function testParseFailure(expression : string) : AttributeParserError {
             const result = parseNgRepeat(expression);
             assert.ok(result.isLeft(), `Expected expression to fail parsing: ${ expression }`);
             return result.left();

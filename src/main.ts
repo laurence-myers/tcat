@@ -1,6 +1,7 @@
 import * as jade from "jade";
 import {parseHtml} from "./parser/templateParser";
 import {generateTypeScript} from "./generator/walker";
+import {compileTypeScript} from "./tsc/compiler";
 
 async function start() : Promise<void> {
     const contents = jade.renderFile("template.jade");
@@ -15,6 +16,7 @@ async function start() : Promise<void> {
             (ast) => {
                 const output = generateTypeScript(ast);
                 console.log(output);
+                return compileTypeScript(output);
             }
         );
 }

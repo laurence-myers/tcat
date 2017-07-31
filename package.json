@@ -19,7 +19,8 @@
     "angular-expressions": "github:peerigon/angular-expressions",
     "cheerio": "^1.0.0-rc.2",
     "jade": "1.11.0",
-    "monet": "0.8.10"
+    "monet": "0.8.10",
+    "typescript": "2.4.2"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.2",
@@ -28,7 +29,6 @@
     "@types/node": "6.0.63",
     "mocha": "3.4.2",
     "source-map-support": "0.4.11",
-    "tslint": "4.4.2",
-    "typescript": "2.4.2"
+    "tslint": "4.4.2"
   }
 }

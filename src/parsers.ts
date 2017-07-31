@@ -1,9 +1,9 @@
 import {Either} from 'monet';
-import {ParserError} from "./core";
+import {AttributeParserError} from "./core";
 import {arrayIteration, assign, objectIteration, scopedBlock} from "./generator/dsl";
 import {GeneratorAstNode} from "./generator/ast";
 
-export type ParserResult = Either<ParserError, GeneratorAstNode[]>;
+export type ParserResult = Either<AttributeParserError, GeneratorAstNode[]>;
 
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
@@ -51,7 +51,7 @@ export function parseNgRepeat(expression : string) : ParserResult {
     let match = expression.match(/^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*$/);
 
     if (!match) {
-        return Either.Left(new ParserError(`Expected expression in form of '_item_ in _collection_[ track by _id_]' but got '{${ expression }}'.`));
+        return Either.Left(new AttributeParserError(`Expected expression in form of '_item_ in _collection_[ track by _id_]' but got '{${ expression }}'.`));
     }
 
     const lhs = match[1];
@@ -65,14 +65,14 @@ export function parseNgRepeat(expression : string) : ParserResult {
     match = lhs.match(/^(?:(\s*[$\w]+)|\(\s*([$\w]+)\s*,\s*([$\w]+)\s*\))$/);
 
     if (!match) {
-        return Either.Left(new ParserError(`'_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got '{${ lhs }}'.`));
+        return Either.Left(new AttributeParserError(`'_item_' in '_item_ in _collection_' should be an identifier or '(_key_, _value_)' expression, but got '{${ lhs }}'.`));
     }
     const valueIdentifier = match[3] || match[1];
     const keyIdentifier = match[2];
 
     if (aliasAs && (!/^[$a-zA-Z_][$a-zA-Z0-9_]*$/.test(aliasAs) ||
             /^(null|undefined|this|\$index|\$first|\$middle|\$last|\$even|\$odd|\$parent|\$root|\$id)$/.test(aliasAs))) {
-        return Either.Left(new ParserError(`alias \'{${ aliasAs }}\' is invalid --- must be a valid JS identifier which is not a reserved name.`));
+        return Either.Left(new AttributeParserError(`alias \'{${ aliasAs }}\' is invalid --- must be a valid JS identifier which is not a reserved name.`));
     }
 
     const containingNode = scopedBlock();

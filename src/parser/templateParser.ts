@@ -3,12 +3,13 @@ import * as jade from "jade";
 import {directiveMap} from "../directives";
 import {GeneratorAstNode, ScopedBlockNode} from "../generator/ast";
 import {Either} from "monet";
-import {ParserError} from "../core";
+import {AttributeParserError, TcatError, TemplateParserError} from "../core";
 import {scopedBlock} from "../generator/dsl";
 
-function processNode(node : CheerioElement) : Either<ParserError[], GeneratorAstNode[]> {
-    const errors : ParserError[] = [];
+function processNode(node : CheerioElement) : Either<AttributeParserError[], GeneratorAstNode[]> {
+    const errors : AttributeParserError[] = [];
     const output : GeneratorAstNode[] = [];
+    let scopedBlock : ScopedBlockNode | undefined;
     // Parse element directives
     const tagLookup = directiveMap.get(node.tagName);
     if (tagLookup && tagLookup.canBeElement) {
@@ -21,7 +22,15 @@ function processNode(node : CheerioElement) : Either<ParserError[], GeneratorAst
             const value = node.attribs[key];
             console.log(value);
             const result = attribLookup.parser(value);
-            result.bimap((err) => errors.push(err), (astNodes) => output.push(...astNodes));
+            result.bimap((err) => errors.push(err), (astNodes) => {
+                if (astNodes && astNodes.length == 1) {
+                    const firstNode = astNodes[0];
+                    if (firstNode.type == "ScopedBlockNode") {
+                        scopedBlock = firstNode;
+                    }
+                }
+                output.push(...astNodes)
+            });
         }
     }
     // Parse children
@@ -30,7 +39,13 @@ function processNode(node : CheerioElement) : Either<ParserError[], GeneratorAst
             processNode(child)
                 .bimap(
                     (errs) => errors.push(...errs),
-                        (nodes) => output.push(...nodes)
+                        (nodes) => {
+                            if (scopedBlock) {
+                                scopedBlock.children.push(...nodes);
+                            } else {
+                                output.push(...nodes)
+                            }
+                        }
                 );
         }
     }
@@ -41,17 +56,22 @@ function processNode(node : CheerioElement) : Either<ParserError[], GeneratorAst
     }
 }
 
-export function parseJade(contents : string) : Either<ParserError[], ScopedBlockNode> {
+export function parseJade(contents : string) : Either<TcatError[], ScopedBlockNode> {
     try {
         jade.render(contents);
     } catch (err) {
-        return Either.Left([new ParserError(err)]);
+        return Either.Left([new TemplateParserError(err)]);
     }
     return parseHtml(contents);
 }
 
-export function parseHtml(html : string) : Either<ParserError[], ScopedBlockNode> {
-    const $ = cheerio.load(html);
+export function parseHtml(html : string) : Either<TcatError[], ScopedBlockNode> {
+    let $;
+    try {
+        $ = cheerio.load(html);
+    } catch (err) {
+        return Either.Left([new TemplateParserError(err)]);
+    }
     const result = processNode($.root().get(0));
     return result.map((nodes) => scopedBlock(nodes));
 }
