@@ -1,9 +1,11 @@
-import {ExpressionNode, GeneratorAstNode, RootNode} from "./ast";
+import {ArrayIterationNode, AssignmentNode, GeneratorAstNode, ObjectIterationNode, ScopedBlockNode} from "./ast";
 import {assertNever} from "../core";
 
 export abstract class BaseWalker {
-    protected abstract walkExpressionNode(node : ExpressionNode) : void;
-    protected abstract walkRootNode(node : RootNode) : void;
+    protected abstract walkArrayIterationNode(node : ArrayIterationNode) : void;
+    protected abstract walkAssignmentNode(node : AssignmentNode) : void;
+    protected abstract walkObjectIterationNode(node : ObjectIterationNode) : void;
+    protected abstract walkScopedBlockNode(node : ScopedBlockNode) : void;
 
     protected dispatchAll(nodes : GeneratorAstNode[]) : void {
         return nodes.forEach((node) => this.dispatch(node));
@@ -11,10 +13,14 @@ export abstract class BaseWalker {
 
     protected dispatch(node : GeneratorAstNode) : void {
         switch (node.type) {
-            case 'ExpressionNode':
-                return this.walkExpressionNode(node);
-            case 'RootNode':
-                return this.walkRootNode(node);
+            case 'ArrayIterationNode':
+                return this.walkArrayIterationNode(node);
+            case 'AssignmentNode':
+                return this.walkAssignmentNode(node);
+            case 'ObjectIterationNode':
+                return this.walkObjectIterationNode(node);
+            case 'ScopedBlockNode':
+                return this.walkScopedBlockNode(node);
             default:
                 assertNever(node);
                 break;
@@ -23,24 +29,38 @@ export abstract class BaseWalker {
 }
 
 export class SkippingWalker extends BaseWalker {
-    protected walkExpressionNode(_ : ExpressionNode) {
+    protected walkArrayIterationNode(node : ArrayIterationNode) : void {
+        return this.dispatchAll(node.children);
+    }
+
+    protected walkAssignmentNode(_ : AssignmentNode) {
 
     }
 
-    protected walkRootNode(node : RootNode) {
-        this.dispatchAll(node.expressions);
+    protected walkObjectIterationNode(node : ObjectIterationNode) : void {
+        return this.dispatchAll(node.children);
+    }
+
+    protected walkScopedBlockNode(node : ScopedBlockNode) {
+        this.dispatchAll(node.children);
     }
 }
 
 export class TypeScriptGenerator extends SkippingWalker {
     protected counters = {
-        expressions: 0
+        expressions: 0,
+        blocks: 0
     };
     protected output = '';
 
-    protected walkExpressionNode(node : ExpressionNode) : void {
-        // language=TypeScript
-        this.output += `const expr_${ ++this.counters.expressions } = ${ node.expression };\n`;
+    protected walkAssignmentNode(node : AssignmentNode) : void {
+        this.output += `${ node.variableType } expr_${ ++this.counters.expressions }${ node.typeAnnotation ? ' : ' + node.typeAnnotation : '' } = ${ node.expression };\n`;
+    }
+
+    protected walkScopedBlockNode(node : ScopedBlockNode) : void {
+        this.output += `function block_${ ++this.counters.blocks }() {\n`;
+        super.walkScopedBlockNode(node);
+        this.output += `}\n`;
     }
 
     public generate(node : GeneratorAstNode) : string {

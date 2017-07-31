@@ -1,4 +1,4 @@
-import {AttributeParser, defaultParser} from "./parsers";
+import {AttributeParser, defaultParser, parseNgRepeat} from "./parsers";
 
 export function singleAttribute(name : string, parser : AttributeParser = defaultParser) : DirectiveData {
     return {
@@ -30,4 +30,4 @@ export const directiveMap : Map<string, DirectiveData> = new Map<string, Directi
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES) {
     directiveMap.set(name, singleAttribute(name));
 }
-// directiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
+directiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));

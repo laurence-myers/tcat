@@ -1,14 +1,14 @@
 import * as cheerio from "cheerio";
 import * as jade from "jade";
 import {directiveMap} from "../directives";
-import {GeneratorNonRootAstNode, RootNode} from "../generator/ast";
-import {root} from "../generator/dsl";
+import {GeneratorAstNode, ScopedBlockNode} from "../generator/ast";
 import {Either} from "monet";
 import {ParserError} from "../core";
+import {scopedBlock} from "../generator/dsl";
 
-function processNode(node : CheerioElement) : Either<ParserError[], GeneratorNonRootAstNode[]> {
+function processNode(node : CheerioElement) : Either<ParserError[], GeneratorAstNode[]> {
     const errors : ParserError[] = [];
-    const output : GeneratorNonRootAstNode[] = [];
+    const output : GeneratorAstNode[] = [];
     // Parse element directives
     const tagLookup = directiveMap.get(node.tagName);
     if (tagLookup && tagLookup.canBeElement) {
@@ -41,7 +41,7 @@ function processNode(node : CheerioElement) : Either<ParserError[], GeneratorNon
     }
 }
 
-export function parseJade(contents : string) : Either<ParserError[], RootNode> {
+export function parseJade(contents : string) : Either<ParserError[], ScopedBlockNode> {
     try {
         jade.render(contents);
     } catch (err) {
@@ -50,8 +50,8 @@ export function parseJade(contents : string) : Either<ParserError[], RootNode> {
     return parseHtml(contents);
 }
 
-export function parseHtml(html : string) : Either<ParserError[], RootNode> {
+export function parseHtml(html : string) : Either<ParserError[], ScopedBlockNode> {
     const $ = cheerio.load(html);
     const result = processNode($.root().get(0));
-    return result.map((nodes) => root(...nodes));
+    return result.map((nodes) => scopedBlock(nodes));
 }

@@ -1,15 +1,48 @@
-import {ExpressionNode, RootNode} from "./ast";
+import {
+    ArrayIterationNode,
+    AssignmentNode,
+    GeneratorAstNode,
+    ObjectIterationNode,
+    ScopedBlockNode
+} from "./ast";
 
-export function expr(expression : string) : ExpressionNode {
+interface AssignOptions {
+    name? : string;
+    variableType? : 'let' | 'const';
+    typeAnnotation? : string;
+}
+export function assign(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
     return {
-        type: "ExpressionNode",
-        expression
+        type: "AssignmentNode",
+        expression,
+        variableType: options.variableType || 'const',
+        typeAnnotation: options.typeAnnotation,
+        name : options.name
     };
 }
 
-export function root(...expressions : ExpressionNode[]) : RootNode {
+export function arrayIteration(valueName : string, iterable : string, children : GeneratorAstNode[] = []) : ArrayIterationNode {
     return {
-        type: "RootNode",
-        expressions
+        type: "ArrayIterationNode",
+        valueName,
+        iterable,
+        children
+    };
+}
+
+export function objectIteration(keyName : string, valueName : string, iterable : string, children : GeneratorAstNode[] = []) : ObjectIterationNode {
+    return {
+        type: "ObjectIterationNode",
+        keyName,
+        valueName,
+        iterable,
+        children
+    };
+}
+
+export function scopedBlock(children : GeneratorAstNode[] = []) : ScopedBlockNode {
+    return {
+        type : 'ScopedBlockNode',
+        children
     };
 }

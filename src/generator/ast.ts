@@ -1,12 +1,36 @@
-export interface ExpressionNode {
-    type : 'ExpressionNode';
+// export interface PrimitiveNode {
+//     type : 'PrimitiveNode';
+//     name : string;
+//     primitiveType : 'boolean' | 'string' | 'number';
+//     value? : string;
+// }
+
+export interface AssignmentNode {
+    type : 'AssignmentNode';
+    name? : string;
+    variableType : 'let' | 'const';
+    typeAnnotation? : string;
     expression : string;
 }
 
-export interface RootNode {
-    type : 'RootNode';
-    expressions : ExpressionNode[];
+export interface ArrayIterationNode {
+    type : 'ArrayIterationNode';
+    valueName : string;
+    iterable : string;
+    children : GeneratorAstNode[];
 }
 
-export type GeneratorNonRootAstNode = ExpressionNode;
-export type GeneratorAstNode = GeneratorNonRootAstNode | RootNode;
+export interface ObjectIterationNode {
+    type : 'ObjectIterationNode';
+    keyName : string;
+    valueName : string;
+    iterable : string;
+    children : GeneratorAstNode[];
+}
+
+export interface ScopedBlockNode {
+    type : 'ScopedBlockNode';
+    children : GeneratorAstNode[];
+}
+
+export type GeneratorAstNode = AssignmentNode | ArrayIterationNode | ObjectIterationNode | ScopedBlockNode;

@@ -1,42 +1,92 @@
-import {parseNgRepeat} from "../src/parsers";
+import {NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat} from "../src/parsers";
 import * as assert from "assert";
 import {ParserError} from "../src/core";
-import {GeneratorNonRootAstNode} from "../src/generator/ast";
-
-function testExpression(expression : string) : GeneratorNonRootAstNode[] {
-    const result = parseNgRepeat(expression);
-    assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
-    return result.right();
-}
-
-function testParseFailure(expression : string) : ParserError {
-    const result = parseNgRepeat(expression);
-    assert.ok(result.isLeft(), `Expected expression to fail parsing: ${ expression }`);
-    return result.left();
-}
+import {GeneratorAstNode} from "../src/generator/ast";
+import {arrayIteration, assign, objectIteration, scopedBlock} from "../src/generator/dsl";
 
 describe(`Parsers`, function() {
     describe(`parseNgRepeat`, function() {
+        function specialProperties() : GeneratorAstNode[] {
+            const output : GeneratorAstNode[] = [];
+            for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
+                output.push(assign(
+                    specialProperty.value,
+                    {
+                        typeAnnotation: specialProperty.primitiveType,
+                        name: specialProperty.name
+                    }
+                ));
+            }
+            return output;
+        }
+
+        function testExpression(expression : string) : GeneratorAstNode[] {
+            const result = parseNgRepeat(expression);
+            assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
+            return result.right();
+        }
+
+        function testParseFailure(expression : string) : ParserError {
+            const result = parseNgRepeat(expression);
+            assert.ok(result.isLeft(), `Expected expression to fail parsing: ${ expression }`);
+            return result.left();
+        }
+
         it(`should iterate over an array of objects`, function () {
-            testExpression('item in items');
+            const actual = testExpression('item in items');
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'items')
+                ])
+            ];
+            assert.deepEqual(actual, expected);
         });
 
         it(`should be possible to use one-time bindings on the collection`, function () {
-            // TODO: strip the one-time binding literals.
-            // (In AngularJS, this is done by the $parse service, not the parser itself.)
-            testExpression('item in ::items');
+            const actual = testExpression('item in ::items');
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'items')
+                ])
+            ];
+            assert.deepEqual(actual, expected);
         });
 
         it(`should iterate over on object/map`, function () {
-            testExpression('(key, value) in items');
+            const actual = testExpression('(key, value) in items');
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    objectIteration('key', 'value', 'items')
+                ])
+            ];
+            assert.deepEqual(actual, expected);
         });
 
         it(`should iterate over on object/map where (key,value) contains whitespaces`, function () {
-            testExpression(`(  key ,  value  ) in items`);
+            const actual = testExpression(`(  key ,  value  ) in items`);
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    objectIteration('key', 'value', 'items')
+                ])
+            ];
+            assert.deepEqual(actual, expected);
         });
 
         it(`should track using expression function`, function () {
-            testExpression(`item in items track by item.id`);
+            const actual = testExpression(`item in items track by item.id`);
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'items', [
+                        assign('item.id')
+                    ]),
+                ])
+            ];
+            assert.deepEqual(actual, expected);
         });
 
         it(`should track using build in $id function`, function () {
