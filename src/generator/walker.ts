@@ -53,8 +53,23 @@ export class TypeScriptGenerator extends SkippingWalker {
     };
     protected output = '';
 
+    protected walkArrayIterationNode(node : ArrayIterationNode) : void {
+        this.output += `for (const ${ node.valueName } of ${ node.iterable }) {\n`;
+        super.walkArrayIterationNode(node);
+        this.output += `}\n`;
+    }
+
     protected walkAssignmentNode(node : AssignmentNode) : void {
-        this.output += `${ node.variableType } expr_${ ++this.counters.expressions }${ node.typeAnnotation ? ' : ' + node.typeAnnotation : '' } = ${ node.expression };\n`;
+        const name = node.name || 'expr_' + ++this.counters.expressions;
+        const typeAnnotation = node.typeAnnotation ? ' : ' + node.typeAnnotation : '';
+        this.output += `${ node.variableType } ${ name }${ typeAnnotation } = ${ node.expression };\n`;
+    }
+
+    protected walkObjectIterationNode(node : ObjectIterationNode) : void {
+        this.output += `for (const ${ node.keyName } in ${ node.iterable }) {\n`;
+        this.output += `const ${ node.valueName } = ${ node.iterable }[${ node.keyName }];\n`;
+        super.walkObjectIterationNode(node);
+        this.output += `}\n`;
     }
 
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
