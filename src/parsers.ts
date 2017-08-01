@@ -1,15 +1,28 @@
 import {Either} from 'monet';
 import {AttributeParserError} from "./core";
 import {arrayIteration, assign, objectIteration, scopedBlock} from "./generator/dsl";
-import {GeneratorAstNode} from "./generator/ast";
+import {GeneratorAstNode, HasChildrenAstNode} from "./generator/ast";
 
-export type ParserResult = Either<AttributeParserError, GeneratorAstNode[]>;
+export interface ScopeData {
+    isStart : boolean;
+    isEnd : boolean;
+    root : HasChildrenAstNode;
+    childParent : HasChildrenAstNode;
+}
+
+export interface SuccessfulParserResult {
+    nodes : GeneratorAstNode[];
+    scopeData? : ScopeData;
+}
+export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
 export function defaultParser(attrib : string) : ParserResult {
-    return Either.Right([assign(attrib)]);
+    return Either.Right({
+        nodes: [assign(attrib)]
+    });
 }
 
 export const NG_REPEAT_SPECIAL_PROPERTIES = [
@@ -104,5 +117,13 @@ export function parseNgRepeat(expression : string) : ParserResult {
     }
     containingNode.children.push(iteratorNode);
 
-    return Either.Right([containingNode]);
+    return Either.Right({
+        nodes: [containingNode],
+        scopeData: {
+            isStart: true,
+            isEnd: true,
+            root: containingNode,
+            childParent: iteratorNode
+        }
+    });
 }

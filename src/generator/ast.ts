@@ -33,4 +33,5 @@ export interface ScopedBlockNode {
     children : GeneratorAstNode[];
 }
 
+export type HasChildrenAstNode = ScopedBlockNode | ObjectIterationNode | ArrayIterationNode;
 export type GeneratorAstNode = AssignmentNode | ArrayIterationNode | ObjectIterationNode | ScopedBlockNode;

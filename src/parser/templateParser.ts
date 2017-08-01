@@ -5,49 +5,56 @@ import {GeneratorAstNode, ScopedBlockNode} from "../generator/ast";
 import {Either} from "monet";
 import {AttributeParserError, TcatError, TemplateParserError} from "../core";
 import {scopedBlock} from "../generator/dsl";
+import {ScopeData} from "../parsers";
 
 function processNode(node : CheerioElement) : Either<AttributeParserError[], GeneratorAstNode[]> {
     const errors : AttributeParserError[] = [];
-    const output : GeneratorAstNode[] = [];
-    let scopedBlock : ScopedBlockNode | undefined;
-    // Parse element directives
-    const tagLookup = directiveMap.get(node.tagName);
-    if (tagLookup && tagLookup.canBeElement) {
-        throw new Error(`TODO`);
-    }
-    // Parse attribute directives
-    for (const key in node.attribs) {
-        const attribLookup = directiveMap.get(key);
-        if (attribLookup && attribLookup.canBeAttribute) {
-            const value = node.attribs[key];
-            console.log(value);
-            const result = attribLookup.parser(value);
-            result.bimap((err) => errors.push(err), (astNodes) => {
-                if (astNodes && astNodes.length == 1) {
-                    const firstNode = astNodes[0];
-                    if (firstNode.type == "ScopedBlockNode") {
-                        scopedBlock = firstNode;
-                    }
-                }
-                output.push(...astNodes)
-            });
-        }
-    }
+    const siblings : GeneratorAstNode[] = [];
+    const children : GeneratorAstNode[] = [];
     // Parse children
     if (node.children) {
         for (const child of node.children) {
             processNode(child)
                 .bimap(
                     (errs) => errors.push(...errs),
-                        (nodes) => {
-                            if (scopedBlock) {
-                                scopedBlock.children.push(...nodes);
-                            } else {
-                                output.push(...nodes)
-                            }
-                        }
+                    (nodes) => {
+                        children.push(...nodes);
+                    }
                 );
         }
+    }
+    // Parse element directives
+    const tagLookup = directiveMap.get(node.tagName);
+    if (tagLookup && tagLookup.canBeElement) {
+        throw new Error(`TODO`);
+    }
+    // Parse attribute directives
+    let scopeData : ScopeData | undefined;
+    for (const key in node.attribs) {
+        const attribLookup = directiveMap.get(key);
+        if (attribLookup && attribLookup.canBeAttribute) {
+            const value = node.attribs[key];
+            console.log(value);
+            const either = attribLookup.parser(value);
+            either.bimap((err) => errors.push(err), (result) => {
+                if (result.scopeData) {
+                    scopeData = result.scopeData;
+                    const siblingsToAdd = result.nodes.slice();
+                    siblingsToAdd.splice(siblingsToAdd.indexOf(scopeData.root), 1);
+                } else {
+                    siblings.push(...result.nodes);
+                }
+            });
+        }
+    }
+    let output = [];
+    if (scopeData) {
+        output.push(scopeData.root);
+        scopeData.childParent.children.push(...siblings);
+        scopeData.childParent.children.push(...children);
+    } else {
+        output.push(...siblings);
+        output.push(...children);
     }
     if (errors.length > 0) {
         return Either.Left(errors);

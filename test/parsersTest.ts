@@ -1,4 +1,4 @@
-import {NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat} from "../src/parsers";
+import {NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat, SuccessfulParserResult} from "../src/parsers";
 import * as assert from "assert";
 import {AttributeParserError} from "../src/core";
 import {GeneratorAstNode} from "../src/generator/ast";
@@ -20,7 +20,7 @@ describe(`Parsers`, function() {
             return output;
         }
 
-        function testExpression(expression : string) : GeneratorAstNode[] {
+        function testExpression(expression : string) : SuccessfulParserResult {
             const result = parseNgRepeat(expression);
             assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
             return result.right();
@@ -33,14 +33,22 @@ describe(`Parsers`, function() {
         }
 
         it(`should iterate over an array of objects`, function () {
+            const iterationNode = arrayIteration('item', 'items');
+            const rootNode = scopedBlock([
+                ...specialProperties(),
+                iterationNode
+            ]);
             const actual = testExpression('item in items');
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
-                    arrayIteration('item', 'items')
-                ])
+                rootNode
             ];
-            assert.deepEqual(actual, expected);
+            assert.deepEqual(actual.nodes, expected);
+            assert.deepEqual(actual.scopeData, {
+                isStart: true,
+                isEnd: true,
+                root: rootNode,
+                childParent: iterationNode
+            });
         });
 
         it(`should be possible to use one-time bindings on the collection`, function () {
@@ -51,7 +59,7 @@ describe(`Parsers`, function() {
                     arrayIteration('item', 'items')
                 ])
             ];
-            assert.deepEqual(actual, expected);
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it(`should iterate over on object/map`, function () {
@@ -62,7 +70,7 @@ describe(`Parsers`, function() {
                     objectIteration('key', 'value', 'items')
                 ])
             ];
-            assert.deepEqual(actual, expected);
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it(`should iterate over on object/map where (key,value) contains whitespaces`, function () {
@@ -73,7 +81,7 @@ describe(`Parsers`, function() {
                     objectIteration('key', 'value', 'items')
                 ])
             ];
-            assert.deepEqual(actual, expected);
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it(`should track using expression function`, function () {
@@ -86,7 +94,7 @@ describe(`Parsers`, function() {
                     ]),
                 ])
             ];
-            assert.deepEqual(actual, expected);
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it(`should track using build in $id function`, function () {

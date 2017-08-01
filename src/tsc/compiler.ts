@@ -1,5 +1,6 @@
 import * as ts from "typescript";
 import {TcatError} from "../core";
+import {CompilerOptions} from "typescript";
 
 // Derived from: https://github.com/nwolverson/blog-typescript-api/blob/d3bea8d3b4fdca40b5f75b6d96abfa2cf116faf5/src/MemoryCompilerHost.ts
 class MemoryCompilerHost implements ts.CompilerHost {
@@ -7,6 +8,7 @@ class MemoryCompilerHost implements ts.CompilerHost {
 
     getSourceFile(filename: string, languageVersion: ts.ScriptTarget, _?: (message: string) => void): ts.SourceFile {
         var text = this.files[filename];
+        console.log(filename);
         return ts.createSourceFile(filename, text || '', languageVersion);
     }
     getDefaultLibFileName = (_: ts.CompilerOptions) => 'lib.d.ts';
@@ -42,11 +44,11 @@ function logErrors(program : ts.Program) {
     });
 }
 
-export function compileTypeScript(input : string) : TcatError[] {
+export function compileTypeScript(input : string, tsConfig : CompilerOptions) : TcatError[] {
     const fileName = 'temp.ts';
     const compilerHost = new MemoryCompilerHost();
     compilerHost.files[fileName] = input;
-    const result = ts.createProgram([fileName], {}, compilerHost);
+    const result = ts.createProgram([fileName], tsConfig, compilerHost);
     logErrors(result);
     return [];
 }

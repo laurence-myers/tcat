@@ -2,9 +2,15 @@ import * as jade from "jade";
 import {parseHtml} from "./parser/templateParser";
 import {generateTypeScript} from "./generator/walker";
 import {compileTypeScript} from "./tsc/compiler";
+import {readFileSync} from "fs";
+import * as ts from "typescript";
 
 async function start() : Promise<void> {
-    const contents = jade.renderFile("template.jade");
+    const tsConfigFile = "examples/templateThumbnailDirective/tsconfig.json";
+    const tsConfig = ts.readConfigFile(tsConfigFile, (path) => readFileSync(path, 'utf8'));
+    const templateName = "examples/templateThumbnailDirective/template.jade";
+    const templateInterface = templateName + ".ts";
+    const contents = jade.renderFile("examples/templateThumbnailDirective/template.jade");
     // const contents = `<div ng-if="ctrl.isLoading" ng-click="ctrl.tagClick({ tagLabel })"></div>`;
     console.log(contents);
     parseHtml(contents)
@@ -15,8 +21,9 @@ async function start() : Promise<void> {
             },
             (ast) => {
                 const output = generateTypeScript(ast);
+                const base = readFileSync(templateInterface);
                 console.log(output);
-                return compileTypeScript(output);
+                return compileTypeScript(base + '\n' + output, tsConfig.config);
             }
         );
 }
