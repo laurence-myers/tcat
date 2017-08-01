@@ -16,6 +16,8 @@ function isTextHtmlNode(node : CheerioElement) : node is TextHtmlNode {
     return node.type == 'text';
 }
 
+const interpolationStartSymbol = '{{'; // TODO: make this configurable
+
 function processNode(node : CheerioElement) : Either<AttributeParserError[], GeneratorAstNode[]> {
     const errors : AttributeParserError[] = [];
     const siblings : GeneratorAstNode[] = [];
@@ -37,12 +39,12 @@ function processNode(node : CheerioElement) : Either<AttributeParserError[], Gen
     if (tagLookup && tagLookup.canBeElement) {
         throw new Error(`TODO`);
     }
-    // Parse attribute directives
+    // Parse attributes: directives and interpolated text
     let scopeData : ScopeData | undefined;
     for (const key in node.attribs) {
         const attribLookup = directiveMap.get(key);
+        const value = node.attribs[key];
         if (attribLookup && attribLookup.canBeAttribute) {
-            const value = node.attribs[key];
             // console.log(value);
             const either = attribLookup.parser(value);
             either.bimap((err) => errors.push(err), (result) => {
@@ -53,6 +55,11 @@ function processNode(node : CheerioElement) : Either<AttributeParserError[], Gen
                 } else {
                     siblings.push(...result.nodes);
                 }
+            });
+        } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
+            const either = parseInterpolatedText(value)
+            either.bimap((err) => errors.push(err), (result) => {
+                siblings.push(...result.nodes);
             });
         }
     }
