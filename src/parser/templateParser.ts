@@ -5,7 +5,16 @@ import {GeneratorAstNode, ScopedBlockNode} from "../generator/ast";
 import {Either} from "monet";
 import {AttributeParserError, TcatError, TemplateParserError} from "../core";
 import {scopedBlock} from "../generator/dsl";
-import {ScopeData} from "../parsers";
+import {parseInterpolatedText, ScopeData} from "../parsers";
+
+interface TextHtmlNode extends CheerioElement {
+    type : 'text';
+    data : string;
+}
+
+function isTextHtmlNode(node : CheerioElement) : node is TextHtmlNode {
+    return node.type == 'text';
+}
 
 function processNode(node : CheerioElement) : Either<AttributeParserError[], GeneratorAstNode[]> {
     const errors : AttributeParserError[] = [];
@@ -34,7 +43,7 @@ function processNode(node : CheerioElement) : Either<AttributeParserError[], Gen
         const attribLookup = directiveMap.get(key);
         if (attribLookup && attribLookup.canBeAttribute) {
             const value = node.attribs[key];
-            console.log(value);
+            // console.log(value);
             const either = attribLookup.parser(value);
             either.bimap((err) => errors.push(err), (result) => {
                 if (result.scopeData) {
@@ -47,6 +56,14 @@ function processNode(node : CheerioElement) : Either<AttributeParserError[], Gen
             });
         }
     }
+    // Parse interpolated text
+    if (isTextHtmlNode(node)) {
+        const either = parseInterpolatedText(node.data);
+        either.bimap((err) => errors.push(err), (result) => {
+            children.push(...result.nodes);
+        });
+    }
+
     let output = [];
     if (scopeData) {
         output.push(scopeData.root);

@@ -64,3 +64,4 @@ typings/
 *.iml
 .idea/
 build/
+**/*.typeview.ts

@@ -52,30 +52,46 @@ export class TypeScriptGenerator extends SkippingWalker {
         blocks: 0
     };
     protected output = '';
+    protected indentLevel = 0;
+    protected indentString = '    ';
+
+    protected writeLine(value : string) : void {
+        for (let i = 0; i < this.indentLevel; i++) {
+            this.output += this.indentString;
+        }
+        this.output += value;
+        this.output += '\n';
+    }
 
     protected walkArrayIterationNode(node : ArrayIterationNode) : void {
-        this.output += `for (const ${ node.valueName } of ${ node.iterable }) {\n`;
+        this.writeLine(`for (const ${ node.valueName } of ${ node.iterable }) {`);
+        this.indentLevel++;
         super.walkArrayIterationNode(node);
-        this.output += `}\n`;
+        this.indentLevel--;
+        this.writeLine(`}`);
     }
 
     protected walkAssignmentNode(node : AssignmentNode) : void {
         const name = node.name || 'expr_' + ++this.counters.expressions;
         const typeAnnotation = node.typeAnnotation ? ' : ' + node.typeAnnotation : '';
-        this.output += `${ node.variableType } ${ name }${ typeAnnotation } = ${ node.expression };\n`;
+        this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ node.expression };`);
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
-        this.output += `for (const ${ node.keyName } in ${ node.iterable }) {\n`;
-        this.output += `const ${ node.valueName } = ${ node.iterable }[${ node.keyName }];\n`;
+        this.writeLine(`for (const ${ node.keyName } in ${ node.iterable }) {`);
+        this.indentLevel++;
+        this.writeLine(`const ${ node.valueName } = ${ node.iterable }[${ node.keyName }];`);
+        this.indentLevel--;
         super.walkObjectIterationNode(node);
-        this.output += `}\n`;
+        this.writeLine(`}`);
     }
 
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
-        this.output += `function block_${ ++this.counters.blocks }() {\n`;
+        this.writeLine(`function block_${ ++this.counters.blocks }() {`);
+        this.indentLevel++;
         super.walkScopedBlockNode(node);
-        this.output += `}\n`;
+        this.indentLevel--;
+        this.writeLine(`}`);
     }
 
     public generate(node : GeneratorAstNode) : string {

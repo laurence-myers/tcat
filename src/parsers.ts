@@ -127,3 +127,36 @@ export function parseNgRepeat(expression : string) : ParserResult {
         }
     });
 }
+
+// Derived from: https://github.com/angular/angular.js/blob/aee5d02cb789e178f3f80f95cdabea38e0090501/src/ng/interpolate.js#L240
+export function parseInterpolatedText(text : string, symbols = {
+    startSymbol: '{{',
+    endSymbol: '}}'
+}) : ParserResult {
+    const startSymbolLength = symbols.startSymbol.length;
+    const endSymbolLength = symbols.endSymbol.length;
+    let startIndex;
+    let endIndex;
+    let index = 0;
+    const expressions = [];
+    let textLength = text.length;
+    let exp;
+
+    while (index < textLength) {
+        if (((startIndex = text.indexOf(symbols.startSymbol, index)) !== -1) &&
+            ((endIndex = text.indexOf(symbols.endSymbol, startIndex + startSymbolLength)) !== -1)) {
+            exp = text.substring(startIndex + startSymbolLength, endIndex).trim();
+            if (exp.startsWith('::')) {
+                exp = exp.substring(2).trim();
+            }
+            expressions.push(exp);
+            index = endIndex + endSymbolLength;
+        } else {
+            break;
+        }
+    }
+
+    return Either.Right({
+        nodes: expressions.map((value) => assign(value))
+    });
+}

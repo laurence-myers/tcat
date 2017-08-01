@@ -23,7 +23,9 @@ export interface DirectiveData {
 const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ng-if',
     'ng-click',
-    'ng-class'
+    'ng-class',
+    'ng-show',
+    'ng-hide'
 ];
 
 export const directiveMap : Map<string, DirectiveData> = new Map<string, DirectiveData>();
