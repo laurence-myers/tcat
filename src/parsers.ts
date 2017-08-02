@@ -19,6 +19,12 @@ export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
+export function expressionParser(attrib : string) : ParserResult {
+    return Either.Right({
+        nodes: [assign(attrib)]
+    });
+}
+
 export function defaultParser(attrib : string) : ParserResult {
     return Either.Right({
         nodes: [assign(attrib)]

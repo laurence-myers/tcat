@@ -4,10 +4,11 @@ import {generateTypeScript} from "./generator/walker";
 import {readFileSync, writeFileSync} from "fs";
 
 async function start() : Promise<void> {
-    const templateName = "examples/templateThumbnailDirective/template.jade";
+    // const templateName = "examples/templateThumbnailDirective/template.jade";
+    const templateName = "examples/smorgasbord/template.jade";
     const templateInterface = templateName + ".ts";
     const outputTypeView = templateName + '.typeview.ts';
-    const contents = jade.renderFile("examples/templateThumbnailDirective/template.jade");
+    const contents = jade.renderFile(templateName);
     // const contents = `<div ng-if="ctrl.isLoading" ng-click="ctrl.tagClick({ tagLabel })"></div>`;
     parseHtml(contents)
         .bimap(

@@ -57,7 +57,7 @@ function processNode(node : CheerioElement) : Either<AttributeParserError[], Gen
                 }
             });
         } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
-            const either = parseInterpolatedText(value)
+            const either = parseInterpolatedText(value);
             either.bimap((err) => errors.push(err), (result) => {
                 siblings.push(...result.nodes);
             });

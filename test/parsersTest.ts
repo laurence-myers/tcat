@@ -5,6 +5,13 @@ import {GeneratorAstNode} from "../src/generator/ast";
 import {arrayIteration, assign, objectIteration, scopedBlock} from "../src/generator/dsl";
 
 describe(`Parsers`, function() {
+    describe(`expressions with filters`, function () {
+        it(`can invoke a filter`, function () {
+            const expression = `'SOME.KEY' | translate`;
+
+        });
+    });
+
     describe(`parseNgRepeat`, function() {
         function specialProperties() : GeneratorAstNode[] {
             const output : GeneratorAstNode[] = [];
