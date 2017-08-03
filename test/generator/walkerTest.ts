@@ -24,7 +24,10 @@ describe(`Walker`, function () {
                 assign(expression),
                 assign(expression)
             ]));
-            const expected = `function block_1() {\nconst expr_1 = !ctrl.tagClick;\nconst expr_2 = !ctrl.tagClick;\n}\n`;
+            const expected = `function block_1() {
+    const expr_1 = !ctrl.tagClick;
+    const expr_2 = !ctrl.tagClick;
+}\n`;
             assert.equal(actual, expected);
         });
 
@@ -49,14 +52,14 @@ describe(`Walker`, function () {
                     arrayIteration('item', 'items')
                 ]));
                 const expected = `function block_1() {
-const $index : number = 0;
-const $first : boolean = false;
-const $last : boolean = false;
-const $middle : boolean = false;
-const $even : boolean = false;
-const $odd : boolean = false;
-for (const item of items) {
-}
+    const $index : number = 0;
+    const $first : boolean = false;
+    const $last : boolean = false;
+    const $middle : boolean = false;
+    const $even : boolean = false;
+    const $odd : boolean = false;
+    for (const item of items) {
+    }
 }
 `;
                 assert.equal(actual, expected);
@@ -68,15 +71,15 @@ for (const item of items) {
                     objectIteration('key', 'value', 'items')
                 ]));
                 const expected = `function block_1() {
-const $index : number = 0;
-const $first : boolean = false;
-const $last : boolean = false;
-const $middle : boolean = false;
-const $even : boolean = false;
-const $odd : boolean = false;
-for (const key in items) {
-const value = items[key];
-}
+    const $index : number = 0;
+    const $first : boolean = false;
+    const $last : boolean = false;
+    const $middle : boolean = false;
+    const $even : boolean = false;
+    const $odd : boolean = false;
+    for (const key in items) {
+        const value = items[key];
+    }
 }
 `;
                 assert.equal(actual, expected);

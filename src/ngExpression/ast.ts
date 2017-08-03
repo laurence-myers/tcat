@@ -1,4 +1,4 @@
-export interface ArrayDeclarationNode {
+export interface ArrayExpressionNode {
     type : 'ArrayExpression';
     elements : StartPrecedence<ExpressionPrecedence>[];
 }
@@ -6,6 +6,7 @@ export interface ArrayDeclarationNode {
 export interface LiteralNode {
     type : 'Literal';
     value : string | number;
+    isString? : boolean;
 }
 
 export interface IdentifierNode {
@@ -13,10 +14,7 @@ export interface IdentifierNode {
     name : string;
 }
 
-export interface ConstantNode {
-    type : 'Literal',
-    value : string | number;
-}
+export type ConstantNode = LiteralNode;
 
 export interface PropertyNode {
     type : 'Property';
@@ -66,7 +64,7 @@ export type MemberExpressionNode = MemberExpressionExpressionNode | MemberExpres
 
 type BasePrimaryType =
     // FilterChainPrecedence
-    ArrayDeclarationNode
+    ArrayExpressionNode
     | ObjectExpressionNode
     | SelfReferentialNode
     | LiteralNode
@@ -115,6 +113,12 @@ export interface BinaryExpressionEqualityNode {
     right : StartPrecedence<RelationalPrecedence>;
 }
 
+export type BinaryExpressionNode =
+    BinaryExpressionMultiplicativeNode
+    | BinaryExpressionAdditiveNode
+    | BinaryExpressionRelationalNode
+    | BinaryExpressionEqualityNode;
+
 export interface LogicalExpressionAndNode {
     type : 'LogicalExpression';
     operator : '&&';
@@ -128,6 +132,10 @@ export interface LogicalExpressionOrNode {
     left : StartPrecedence<LogicalAndPrecedence>;
     right : StartPrecedence<LogicalAndPrecedence>;
 }
+
+export type LogcalExpressionNode =
+    LogicalExpressionAndNode
+    | LogicalExpressionOrNode;
 
 export interface ConditionalExpressionNode {
     type : 'ConditionalExpression';

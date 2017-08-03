@@ -19,36 +19,6 @@ export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
-function peek(str : string, start : number) : string {
-    return (str && str[start + 1]) || '';
-}
-
-function parseFilters(filters : string) {
-    const firstArgDelim = filters.indexOf(':');
-    // Args
-    // Skip over quoted or "ORed" expressions.
-}
-
-export function expressionParser(attrib : string) : ParserResult {
-    // Assume an expression can be modified by one or more filters. Do some naive parsing to split it up.
-    if (attrib) {
-        for (let i = 0; i < attrib.length; i++) {
-            let c = attrib[i];
-            // Skip strings
-            if (c == `'` || c == `"`) {
-                i = attrib.indexOf(c, i + 1);
-            } else if (c == '|' && peek(attrib, i) != '|') {
-                parseFilters(attrib.substring(i + 1));
-            }
-        }
-    } else {
-        return Either.Right({
-            nodes: [assign(attrib)]
-        });
-    }
-
-}
-
 export function defaultParser(attrib : string) : ParserResult {
     return Either.Right({
         nodes: [assign(attrib)]
