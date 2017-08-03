@@ -278,3 +278,12 @@ export class ExpressionToStringWalker extends SkippingWalker {
         return this.sb;
     }
 }
+
+export class ExpressionFilterRectifier extends ExpressionToStringWalker {
+    protected walkCallExpressionNode(node : CallExpressionNode) : void {
+        this.dispatch(node.callee);
+        this.sb += '(';
+        this.dispatchAll(node.arguments, ', ');
+        this.sb += ')';
+    }
+}
