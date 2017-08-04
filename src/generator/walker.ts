@@ -1,9 +1,13 @@
-import {ArrayIterationNode, AssignmentNode, GeneratorAstNode, ObjectIterationNode, ScopedBlockNode} from "./ast";
+import {
+    ArrayIterationNode, AssignmentNode, DeclarationNode, GeneratorAstNode, ObjectIterationNode,
+    ScopedBlockNode
+} from "./ast";
 import {assertNever} from "../core";
 
 export abstract class BaseWalker {
     protected abstract walkArrayIterationNode(node : ArrayIterationNode) : void;
     protected abstract walkAssignmentNode(node : AssignmentNode) : void;
+    protected abstract walkDeclarationNode(node : DeclarationNode) : void;
     protected abstract walkObjectIterationNode(node : ObjectIterationNode) : void;
     protected abstract walkScopedBlockNode(node : ScopedBlockNode) : void;
 
@@ -17,6 +21,8 @@ export abstract class BaseWalker {
                 return this.walkArrayIterationNode(node);
             case 'AssignmentNode':
                 return this.walkAssignmentNode(node);
+            case 'DeclarationNode':
+                return this.walkDeclarationNode(node);
             case 'ObjectIterationNode':
                 return this.walkObjectIterationNode(node);
             case 'ScopedBlockNode':
@@ -37,6 +43,9 @@ export class SkippingWalker extends BaseWalker {
 
     }
 
+    protected walkDeclarationNode(_ : DeclarationNode) : void {
+    }
+
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
         return this.dispatchAll(node.children);
     }
@@ -48,6 +57,7 @@ export class SkippingWalker extends BaseWalker {
 
 export class TypeScriptGenerator extends SkippingWalker {
     protected counters = {
+        declarations: 0,
         expressions: 0,
         blocks: 0
     };
@@ -75,6 +85,12 @@ export class TypeScriptGenerator extends SkippingWalker {
         const name = node.name || 'expr_' + ++this.counters.expressions;
         const typeAnnotation = node.typeAnnotation ? ' : ' + node.typeAnnotation : '';
         this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ node.expression };`);
+    }
+
+    protected walkDeclarationNode(node : DeclarationNode) : void {
+        const name = node.name || 'decl_' + ++this.counters.declarations;
+        const typeAnnotation = node.typeAnnotation;
+        this.writeLine(`let ${ name } : ${ typeAnnotation };`);
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {

@@ -1,7 +1,9 @@
 import {Either} from 'monet';
 import {AttributeParserError} from "./core";
-import {arrayIteration, assign, objectIteration, scopedBlock} from "./generator/dsl";
+import {arrayIteration, assign, declare, objectIteration, scopedBlock} from "./generator/dsl";
 import {GeneratorAstNode, HasChildrenAstNode} from "./generator/ast";
+import {parseExpressionToAst} from "./ngExpression/ngAstBuilder";
+import {ExpressionFilterRectifier} from "./ngExpression/expressionWalker";
 
 export interface ScopeData {
     isStart : boolean;
@@ -19,9 +21,19 @@ export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
+export function rectifyExpression(expression : string) : string {
+    if (!expression) return '';
+    if (expression.startsWith('::')) { // strip one-time binding syntax
+        expression = expression.substring(2);
+    }
+    const ast = parseExpressionToAst(expression);
+    const rectifier = new ExpressionFilterRectifier();
+    return rectifier.walk(ast);
+}
+
 export function defaultParser(attrib : string) : ParserResult {
     return Either.Right({
-        nodes: [assign(attrib)]
+        nodes: [assign(rectifyExpression(attrib))]
     });
 }
 
@@ -68,12 +80,9 @@ export function parseNgRepeat(expression : string) : ParserResult {
     }
 
     const lhs = match[1];
-    let rhs = match[2];
-    if (rhs.startsWith('::')) { // strip one-time binding syntax
-        rhs = rhs.substring(2);
-    }
+    const rhs = rectifyExpression(match[2]);
     const aliasAs = match[3];
-    const trackByExp = match[4];
+    const trackByExp = rectifyExpression(match[4]);
 
     match = lhs.match(/^(?:(\s*[$\w]+)|\(\s*([$\w]+)\s*,\s*([$\w]+)\s*\))$/);
 
@@ -112,8 +121,11 @@ export function parseNgRepeat(expression : string) : ParserResult {
         iteratorNode = arrayIteration(valueIdentifier, iterableName);
     }
 
-    if (trackByExp) {
-        iteratorNode.children.push(assign(trackByExp)); // not really useful.
+    if (trackByExp && trackByExp != '$index') {
+        if (trackByExp.indexOf('$id(') > -1) {
+            iteratorNode.children.push(declare('$id', '(value : any) => string'));
+        }
+        iteratorNode.children.push(assign(trackByExp));
     }
     containingNode.children.push(iteratorNode);
 
@@ -146,9 +158,7 @@ export function parseInterpolatedText(text : string, symbols = {
         if (((startIndex = text.indexOf(symbols.startSymbol, index)) !== -1) &&
             ((endIndex = text.indexOf(symbols.endSymbol, startIndex + startSymbolLength)) !== -1)) {
             exp = text.substring(startIndex + startSymbolLength, endIndex).trim();
-            if (exp.startsWith('::')) {
-                exp = exp.substring(2).trim();
-            }
+            exp = rectifyExpression(exp);
             expressions.push(exp);
             index = endIndex + endSymbolLength;
         } else {

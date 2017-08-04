@@ -1,16 +1,22 @@
-import {NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat, SuccessfulParserResult} from "../src/parsers";
+import {defaultParser, NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat, SuccessfulParserResult} from "../src/parsers";
 import * as assert from "assert";
 import {AttributeParserError} from "../src/core";
 import {GeneratorAstNode} from "../src/generator/ast";
-import {arrayIteration, assign, objectIteration, scopedBlock} from "../src/generator/dsl";
+import {arrayIteration, assign, declare, objectIteration, scopedBlock} from "../src/generator/dsl";
 
 describe(`Parsers`, function() {
-    // describe(`expressions with filters`, function () {
-    //     it(`can invoke a filter`, function () {
-    //         const expression = `'SOME.KEY' | translate`;
-    //
-    //     });
-    // });
+    describe(`expressions with filters`, function () {
+        it(`can invoke a filter with one-time binding`, function () {
+            const expression = `:: 'SOME.KEY' | translate`;
+            const result = defaultParser(expression);
+            assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
+            const actual = result.right();
+            const expected = [
+                assign(`translate("SOME.KEY")`)
+            ];
+            assert.deepEqual(actual.nodes, expected);
+        });
+    });
 
     describe(`parseNgRepeat`, function() {
         function specialProperties() : GeneratorAstNode[] {
@@ -105,19 +111,56 @@ describe(`Parsers`, function() {
         });
 
         it(`should track using build in $id function`, function () {
-            testExpression(`item in items track by $id(item)`);
+            const actual = testExpression(`item in items track by $id(item)`);
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'items', [
+                        declare('$id', '(value : any) => string'),
+                        assign('$id(item)')
+                    ]),
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it('should still filter when track is present', function() {
-            testExpression(`item in items | filter:isIgor track by $id(item)`);
+            const actual = testExpression(`item in items | filter:isIgor track by $id(item)`);
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'filter(items, isIgor)', [
+                        declare('$id', '(value : any) => string'),
+                        assign('$id(item)')
+                    ]),
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it('should track using provided function when a filter is present', function() {
-            testExpression(`item in items | filter:newArray track by item.id`);
+            const actual = testExpression(`item in items | filter:newArray track by item.id`);
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'filter(items, newArray)', [
+                        assign('item.id')
+                    ]),
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it('should iterate over an array of primitives', function() {
-            testExpression(`item in items track by $index`);
+            const actual = testExpression(`item in items track by $index`);
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    arrayIteration('item', 'items', [
+                    ]),
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
         });
 
         it('should iterate over object with changing primitive property values', function() {

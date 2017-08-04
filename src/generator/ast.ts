@@ -5,6 +5,12 @@
 //     value? : string;
 // }
 
+export interface DeclarationNode {
+    type : 'DeclarationNode';
+    name : string;
+    typeAnnotation : string;
+}
+
 export interface AssignmentNode {
     type : 'AssignmentNode';
     name? : string;
@@ -34,4 +40,4 @@ export interface ScopedBlockNode {
 }
 
 export type HasChildrenAstNode = ScopedBlockNode | ObjectIterationNode | ArrayIterationNode;
-export type GeneratorAstNode = AssignmentNode | ArrayIterationNode | ObjectIterationNode | ScopedBlockNode;
+export type GeneratorAstNode = DeclarationNode | AssignmentNode | ArrayIterationNode | ObjectIterationNode | ScopedBlockNode;

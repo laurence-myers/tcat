@@ -1,10 +1,18 @@
 import {
     ArrayIterationNode,
-    AssignmentNode,
+    AssignmentNode, DeclarationNode,
     GeneratorAstNode,
     ObjectIterationNode,
     ScopedBlockNode
 } from "./ast";
+
+export function declare(name : string, typeAnnotation : string) : DeclarationNode {
+    return {
+        type: "DeclarationNode",
+        name,
+        typeAnnotation
+    };
+}
 
 interface AssignOptions {
     name? : string;
