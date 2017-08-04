@@ -183,7 +183,7 @@ export class ExpressionToStringWalker extends SkippingWalker {
 
     protected walkBinaryExpressionNode(node : BinaryExpressionNode) : void {
         this.dispatch(node.left);
-        this.sb += ` ${ node.operator }`;
+        this.sb += ` ${ node.operator } `;
         this.dispatch(node.right);
     }
 

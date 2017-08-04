@@ -5,14 +5,12 @@ import * as assert from "assert";
 describe(`Expression walkers`, function () {
     function toAstToString(expression : string) {
         const ast = parseExpressionToAst(expression);
-        console.log((<any> ast.body).expression);
         const walker = new ExpressionToStringWalker();
         return walker.walk(ast);
     }
 
     function rectified(expression : string) {
         const ast = parseExpressionToAst(expression);
-        console.log((<any> ast.body).expression);
         const walker = new ExpressionFilterRectifier();
         return walker.walk(ast);
     }
@@ -33,11 +31,19 @@ describe(`Expression walkers`, function () {
         });
     });
 
-    it(`Rectifies filters`, function () {
-        const expression = `someValue | translate : 'en-US' | limitTo : 3`;
-        const expected = `limitTo(translate(someValue, "en-US"), 3)`;
-        const actual = rectified(expression);
-        console.log(actual);
-        assert.equal(actual, expected);
+    describe(`ExpressionFilterRectifier`, function () {
+        it(`Rectifies filters`, function () {
+            const expression = `someValue | translate : 'en-US' | limitTo : 3`;
+            const expected = `limitTo(translate(someValue, "en-US"), 3)`;
+            const actual = rectified(expression);
+            assert.equal(actual, expected);
+        });
+
+        it(`Handles multiple filtered expressions`, function () {
+            const expression = `(someValue | translate : 'en-US' | limitTo : 3) + (anotherValue | parse) | number`;
+            const expected = `number(limitTo(translate(someValue, "en-US"), 3) + parse(anotherValue))`;
+            const actual = rectified(expression);
+            assert.equal(actual, expected);
+        });
     });
 });

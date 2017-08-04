@@ -369,21 +369,6 @@ function isAssignable(ast : any) {
     return ast.type === AST.Identifier || ast.type === AST.MemberExpression;
 }
 
-export interface Range {
-    start : number;
-    end : number;
-}
-
-export interface FilterRange {
-    range : Range;
-    arguments : Range[];
-}
-
-export interface ExpressionRange {
-    range : Range;
-    filters : FilterRange[];
-}
-
 export class AST {
     static Program : 'Program' = 'Program';
     static ExpressionStatement : 'ExpressionStatement' = 'ExpressionStatement';
@@ -407,20 +392,13 @@ export class AST {
     text : string;
     tokens : Token[];
 
-    expressionRanges : ExpressionRange[];
-
     constructor(public lexer : Lexer, public options : any) {
 
     }
 
-    private getIndex() : number {
-        return this.tokens.length > 0 ? this.tokens[0].index : this.lexer.index;
-    }
-
-    ast(text : string) : ProgramNode & { expressionRanges : ExpressionRange[] } {
+    ast(text : string) : ProgramNode {
         this.text = text;
         this.tokens = this.lexer.lex(text);
-        this.expressionRanges = [];
 
         let value = this.program();
 
@@ -437,7 +415,7 @@ export class AST {
             if (this.tokens.length > 0 && !this.peek('}', ')', ';', ']'))
                 body.push(this.expressionStatement());
             if (!this.expect(';')) {
-                return { type: AST.Program, body: body, expressionRanges: this.expressionRanges};
+                return { type: AST.Program, body: body };
             }
         }
     }
@@ -447,22 +425,9 @@ export class AST {
     }
 
     filterChain() {
-        let startExpression = this.getIndex();
         let left : any = this.expression();
-        let endExpression = this.getIndex();
-        let expr;
         while (this.expect('|')) {
-            if (!expr) {
-                expr = {
-                    range: {
-                        start: startExpression,
-                        end: endExpression
-                    },
-                    filters: []
-                };
-                this.expressionRanges.push(expr);
-            }
-            left = this.filter(left, expr);
+            left = this.filter(left);
         }
         return left;
     }
@@ -596,30 +561,13 @@ export class AST {
         return primary;
     }
 
-    filter(baseExpression : any, exprRange : ExpressionRange) {
+    filter(baseExpression : any) {
         let args = [baseExpression];
-        let startIdentifier = this.getIndex();
         let result = {type: AST.CallExpression, callee: this.identifier(), arguments: args, filter: true};
-        let endIdentifier = this.getIndex();
-        const filterRange : FilterRange = {
-            range: {
-                start: startIdentifier,
-                end: endIdentifier
-            },
-            arguments: []
-        };
 
         while (this.expect(':')) {
-            const argStart = this.tokens[0].index;
             args.push(this.expression());
-            const argEnd = this.tokens[0] ? this.tokens[0].index : this.lexer.index;
-            filterRange.arguments.push({
-                start: argStart,
-                end: argEnd
-            });
         }
-
-        exprRange.filters.push(filterRange);
 
         return result;
     }
@@ -779,7 +727,7 @@ export const $parseOptions = {
     isIdentifierContinue: isFunction(identContinue) && identContinue
 };
 
-export function parseExpressionToAst(expression : string) : ProgramNode & { expressionRanges : ExpressionRange[] } {
+export function parseExpressionToAst(expression : string) : ProgramNode {
     const options = $parseOptions;
     const astBuilder = new AST(new Lexer(options), options);
     return astBuilder.ast(expression);
