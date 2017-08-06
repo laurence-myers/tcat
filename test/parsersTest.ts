@@ -1,4 +1,7 @@
-import {defaultParser, NG_REPEAT_SPECIAL_PROPERTIES, parseNgRepeat, SuccessfulParserResult} from "../src/parsers";
+import {
+    defaultParser, NG_REPEAT_SPECIAL_PROPERTIES, parseNgOptions, parseNgRepeat,
+    SuccessfulParserResult
+} from "../src/parsers";
 import * as assert from "assert";
 import {AttributeParserError} from "../src/core";
 import {GeneratorAstNode} from "../src/generator/ast";
@@ -18,7 +21,7 @@ describe(`Parsers`, function() {
         });
     });
 
-    describe(`parseNgRepeat`, function() {
+    describe(`parseNgRepeat`, function () {
         function specialProperties() : GeneratorAstNode[] {
             const output : GeneratorAstNode[] = [];
             for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
@@ -217,6 +220,45 @@ describe(`Parsers`, function() {
                     testParseFailure(expression);
                 }
             });
+        });
+    });
+
+    describe(`parseNgOptions`, function () {
+        function testExpression(expression : string) : SuccessfulParserResult {
+            const result = parseNgOptions(expression);
+            assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
+            return result.right();
+        }
+
+        it(`should parse a list`, function () {
+            const actual = testExpression(`value.name for value in values`);
+            const expected = [
+                arrayIteration(`value`, `values`, [
+                    assign(`value.name`)
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
+        });
+
+        it(`should parse an object`, function () {
+            const actual = testExpression(`value for (key, value) in values`);
+            const expected = [
+                objectIteration(`key`, `value`, `values`, [
+                    assign(`value`)
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
+        });
+
+        it(`should parse the label expression`, function () {
+            const actual = testExpression(`option.id as option.display for option in values`);
+            const expected = [
+                arrayIteration(`option`, `values`, [
+                    assign(`option.id`),
+                    assign(`option.display`)
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
         });
     });
 });

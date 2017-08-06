@@ -1,7 +1,7 @@
 import {Either} from 'monet';
 import {AttributeParserError} from "./core";
 import {arrayIteration, assign, declare, objectIteration, scopedBlock} from "./generator/dsl";
-import {GeneratorAstNode, HasChildrenAstNode} from "./generator/ast";
+import {ArrayIterationNode, GeneratorAstNode, HasChildrenAstNode, ObjectIterationNode} from "./generator/ast";
 import {parseExpressionToAst} from "./ngExpression/ngAstBuilder";
 import {ExpressionFilterRectifier} from "./ngExpression/expressionWalker";
 
@@ -168,5 +168,73 @@ export function parseInterpolatedText(text : string, symbols = {
 
     return Either.Right({
         nodes: expressions.map((value) => assign(value))
+    });
+}
+
+/* tslint-disable max-len */
+const NG_OPTIONS_REGEXP = /^\s*([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+group\s+by\s+([\s\S]+?))?(?:\s+disable\s+when\s+([\s\S]+?))?\s+for\s+(?:([$\w][$\w]*)|(?:\(\s*([$\w][$\w]*)\s*,\s*([$\w][$\w]*)\s*\)))\s+in\s+([\s\S]+?)(?:\s+track\s+by\s+([\s\S]+?))?$/;
+/* tslint-enable */
+
+export function parseNgOptions(optionsExp : string) : ParserResult {
+    const match = optionsExp.match(NG_OPTIONS_REGEXP);
+    if (!(match)) {
+        return Either.Left(new AttributeParserError(
+            'Expected expression in form of ' +
+            '\'_select_ (as _label_)? for (_key_,)?_value_ in _collection_\'' +
+            ` but got \'{${ optionsExp }}\'.`));
+    }
+
+    // Extract the parts from the ngOptions expression
+
+    // The variable name for the value of the item in the collection
+    const valueName = match[5] || match[7];
+    // The variable name for the key of the item in the collection
+    const keyName = match[6];
+
+    // An expression that generates the viewValue for an option if there is a label expression
+    const selectAs = / as /.test(match[0]) && match[1];
+    // An expression that is used to track the id of each object in the options collection
+    const trackBy = match[9];
+    // An expression that generates the viewValue for an option if there is no label expression
+    const valueExpr = rectifyExpression(match[2] ? match[1] : valueName);
+    const selectAsExpr = selectAs && rectifyExpression(selectAs);
+    const viewValueExpr = selectAsExpr || valueExpr;
+    const trackByExpr = trackBy && rectifyExpression(trackBy);
+
+    const displayExpr = rectifyExpression(match[2] || match[1]);
+    const groupByExpr = rectifyExpression(match[3] || '');
+    const disableWhenExpr = rectifyExpression(match[4] || '');
+    const valuesExpr = rectifyExpression(match[8]);
+
+    // Convert to generator AST
+    console.log([keyName, viewValueExpr, trackByExpr, displayExpr, groupByExpr, disableWhenExpr, valuesExpr]);
+    const nodes : GeneratorAstNode[] = [];
+
+    let iteratorNode : ArrayIterationNode | ObjectIterationNode;
+    if (keyName) {
+        iteratorNode = {
+            type: "ObjectIterationNode",
+            keyName: keyName,
+            valueName: valueName,
+            iterable: valuesExpr,
+            children: []
+        };
+    } else {
+        iteratorNode = {
+            type: "ArrayIterationNode",
+            valueName: valueName,
+            iterable: valuesExpr,
+            children: []
+        };
+    }
+    nodes.push(iteratorNode);
+
+    if (viewValueExpr != valueName) {
+        iteratorNode.children.push(assign(viewValueExpr));
+    }
+    iteratorNode.children.push(assign(displayExpr));
+
+    return Either.Right({
+        nodes
     });
 }
