@@ -164,12 +164,31 @@ describe(`Parsers`, function() {
         });
 
         it('should iterate over object with changing primitive property values', function() {
-            testExpression('(key, value) in items track by $index');
+            const actual = testExpression('(key, value) in items track by $index');
+            const expected = [
+                scopedBlock([
+                    ...specialProperties(),
+                    objectIteration('key', 'value', 'items', [
+                    ]),
+                ])
+            ];
+            assert.deepEqual(actual.nodes, expected);
         });
 
         describe('alias as', function() {
             it('should assigned the filtered to the target scope property if an alias is provided', function() {
-                testExpression('item in items | filter:x as results track by $index');
+                const actual = testExpression('item in items | filter:x as results track by $index');
+                const expected = [
+                    scopedBlock([
+                        ...specialProperties(),
+                        assign('filter(items, x)', {
+                            name: 'results'
+                        }),
+                        arrayIteration('item', 'results', [
+                        ]),
+                    ])
+                ];
+                assert.deepEqual(actual.nodes, expected);
             });
 
             it('should throw if alias identifier is not a simple identifier', function() {
