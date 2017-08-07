@@ -230,35 +230,50 @@ describe(`Parsers`, function() {
             return result.right();
         }
 
+        function verifyExpression(expression : string, expected : GeneratorAstNode[]) : void {
+            const actual = testExpression(expression);
+            assert.deepEqual(actual.nodes, expected);
+        }
+
         it(`should parse a list`, function () {
-            const actual = testExpression(`value.name for value in values`);
-            const expected = [
+            verifyExpression(`value.name for value in values`, [
                 arrayIteration(`value`, `values`, [
                     assign(`value.name`)
                 ])
-            ];
-            assert.deepEqual(actual.nodes, expected);
+            ]);
         });
 
         it(`should parse an object`, function () {
-            const actual = testExpression(`value for (key, value) in values`);
-            const expected = [
+            verifyExpression(`value for (key, value) in values`,[
                 objectIteration(`key`, `value`, `values`, [
                     assign(`value`)
                 ])
-            ];
-            assert.deepEqual(actual.nodes, expected);
+            ]);
+        });
+
+        it(`should parse an object with label`, function () {
+            verifyExpression(`value as key for (key, value) in values`, [
+                objectIteration(`key`, `value`, `values`, [
+                    assign(`key`)
+                ])
+            ]);
         });
 
         it(`should parse the label expression`, function () {
-            const actual = testExpression(`option.id as option.display for option in values`);
-            const expected = [
+            verifyExpression(`option.id as option.display for option in values`, [
                 arrayIteration(`option`, `values`, [
                     assign(`option.id`),
                     assign(`option.display`)
                 ])
-            ];
-            assert.deepEqual(actual.nodes, expected);
+            ]);
+        });
+
+        it(`should parse a function call in the label expression`, function () {
+            verifyExpression(`value as createLabel(value) for value in array`, [
+                arrayIteration(`value`, `array`, [
+                    assign(`createLabel(value)`)
+                ])
+            ]);
         });
     });
 });
