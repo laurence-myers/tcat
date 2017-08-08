@@ -246,7 +246,6 @@ describe(`Parsers`, function() {
         it(`should parse an object`, function () {
             verifyExpression(`value for (key, value) in values`,[
                 objectIteration(`key`, `value`, `values`, [
-                    assign(`value`)
                 ])
             ]);
         });
@@ -275,5 +274,73 @@ describe(`Parsers`, function() {
                 ])
             ]);
         });
+
+        it(`should parse a filtered iterable`, function () {
+            verifyExpression(`value for value in array | filter : isNotFoo`, [
+                arrayIteration(`value`, `filter(array, isNotFoo)`, [
+                ])
+            ]);
+        });
+
+        it(`should parse one-time binding`, function () {
+            verifyExpression(`value for value in ::array`, [
+                arrayIteration(`value`, `array`, [
+                ])
+            ]);
+        });
+
+        it(`should parse disableWhen expression`, function () {
+            verifyExpression(`o.value as o.name disable when o.unavailable for o in options`, [
+                arrayIteration(`o`, `options`, [
+                    assign(`o.value`),
+                    assign(`o.name`),
+                    assign(`o.unavailable`)
+                ])
+            ]);
+        });
+
+        it(`should parse single select with object source`, function () {
+            verifyExpression(`val.score as val.label for (key, val) in obj`, [
+                objectIteration(`key`, `val`, `obj`, [
+                    assign(`val.score`),
+                    assign(`val.label`)
+                ])
+            ]);
+        });
+
+        it(`should parse track by`, function () {
+            verifyExpression(`item.label for item in arr track by item.id`, [
+                arrayIteration(`item`, `arr`, [
+                    assign(`item.label`),
+                    assign(`item.id`)
+                ])
+            ]);
+        });
+
+        it(`should parse nested track by`, function () {
+            verifyExpression(`item.subItem as item.subItem.label for item in arr track by (item.id || item.subItem.id)`, [
+                arrayIteration(`item`, `arr`, [
+                    assign(`item.subItem`),
+                    assign(`item.subItem.label`),
+                    assign(`item.id || item.subItem.id`)
+                ])
+            ]);
+        });
+
+        it(`should parse group by`, function () {
+            verifyExpression(`item.name group by item.group for item in values`, [
+                arrayIteration(`item`, `values`, [
+                    assign(`item.name`),
+                    assign(`item.group`)
+                ])
+            ]);
+        });
+
+        it(`should parse array literal`, function () {
+            verifyExpression(`item for item in ['first', 'second', 'third']`, [
+                arrayIteration(`item`, `["first", "second", "third"]`, [
+                ])
+            ]);
+        })
     });
 });

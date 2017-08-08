@@ -207,7 +207,6 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
     const valuesExpr = rectifyExpression(match[8]);
 
     // Convert to generator AST
-    console.log([keyName, viewValueExpr, trackByExpr, displayExpr, groupByExpr, disableWhenExpr, valuesExpr]);
     const nodes : GeneratorAstNode[] = [];
 
     let iteratorNode : ArrayIterationNode | ObjectIterationNode;
@@ -232,7 +231,18 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
     if (viewValueExpr != valueName) {
         iteratorNode.children.push(assign(viewValueExpr));
     }
-    iteratorNode.children.push(assign(displayExpr));
+    if (displayExpr != valueName) {
+        iteratorNode.children.push(assign(displayExpr));
+    }
+    if (groupByExpr) {
+        iteratorNode.children.push(assign(groupByExpr));
+    }
+    if (disableWhenExpr) {
+        iteratorNode.children.push(assign(disableWhenExpr));
+    }
+    if (trackByExpr) {
+        iteratorNode.children.push(assign(trackByExpr));
+    }
 
     return Either.Right({
         nodes
