@@ -90,7 +90,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected walkDeclarationNode(node : DeclarationNode) : void {
         const name = node.name || 'decl_' + ++this.counters.declarations;
         const typeAnnotation = node.typeAnnotation;
-        this.writeLine(`let ${ name } : ${ typeAnnotation };`);
+        this.writeLine(`declare let ${ name } : ${ typeAnnotation };`);
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
