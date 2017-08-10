@@ -97,8 +97,8 @@ export class TypeScriptGenerator extends SkippingWalker {
         this.writeLine(`for (const ${ node.keyName } in ${ node.iterable }) {`);
         this.indentLevel++;
         this.writeLine(`const ${ node.valueName } = ${ node.iterable }[${ node.keyName }];`);
-        this.indentLevel--;
         super.walkObjectIterationNode(node);
+        this.indentLevel--;
         this.writeLine(`}`);
     }
 
