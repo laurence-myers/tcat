@@ -19,7 +19,6 @@ async function start() : Promise<void> {
             (ast) => {
                 const tsCode = generateTypeScript(ast);
                 const base = readFileSync(templateInterface);
-                // return compileTypeScript(base + '\n' + output, tsConfig.config);
                 const final = '/* tslint:disable */\n' + base + '\n' + tsCode;
                 console.log(final);
                 writeFileSync(outputTypeView, final);
