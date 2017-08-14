@@ -287,3 +287,40 @@ export class ExpressionFilterRectifier extends ExpressionToStringWalker {
         this.sb += ')';
     }
 }
+
+export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
+    protected nodeStack : AstNode[] = [];
+
+    protected getPrevious() : AstNode | undefined {
+        return this.nodeStack.length > 1 ? this.nodeStack[this.nodeStack.length - 2] : undefined;
+    }
+
+    protected isAScopeIdentifier(node : IdentifierNode, parent : AstNode) : boolean {
+        switch (parent.type) {
+            case "CallExpression": // Expect filters to be globally declared, not on the scope object.
+                return !parent.filter
+                    || parent.callee !== node;
+            case "MemberExpression": // Don't rectify nested member expressions, like "bar" in "foo.bar.baz"
+                return parent.object === node
+                    || (parent.property === node && parent.computed);
+            default:
+                return true;
+        }
+    }
+
+    protected walkIdentifierNode(node : IdentifierNode) : void {
+        const parent = this.getPrevious();
+        if (parent &&
+            this.isAScopeIdentifier(node, parent)
+        ) {
+            this.sb += '__scope_1.'; // TODO: compute this
+        }
+        super.walkIdentifierNode(node);
+    }
+
+    protected dispatch(node : AstNode) : void {
+        this.nodeStack.push(node);
+        super.dispatch(node);
+        this.nodeStack.pop();
+    }
+}
