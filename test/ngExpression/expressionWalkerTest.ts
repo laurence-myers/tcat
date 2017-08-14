@@ -5,7 +5,6 @@ import {
     ExpressionToStringWalker
 } from "../../src/ngExpression/expressionWalker";
 import * as assert from "assert";
-import {logObject} from "../../src/core";
 
 describe(`Expression walkers`, function () {
     function toAstToString(expression : string) {
