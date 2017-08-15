@@ -36,13 +36,15 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
     // Parse children
     if (node.children) {
         for (const child of node.children) {
-            parseElement(child)
-                .bimap(
-                    (errs) => errors.push(...errs),
-                    (nodes) => {
-                        children.push(...nodes);
-                    }
-                );
+            if (!isNgTemplate(node) || !isTextHtmlNode(child)) { // don't double-parse nested templates
+                parseElement(child)
+                    .bimap(
+                        (errs) => errors.push(...errs),
+                        (nodes) => {
+                            children.push(...nodes);
+                        }
+                    );
+            }
         }
     }
     // Parse element directives
@@ -127,6 +129,10 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
 const SANITISING_PATTERN = /[^a-zA-Z0-9]/g;
 export function templateIdToInterfaceName(templateId : string) : string {
     return uppercamelcase(templateId.replace(SANITISING_PATTERN, '_')) + 'Scope';
+}
+
+function isNgTemplate(element : CheerioElement) : boolean {
+    return element.attribs.type === 'text/ng-template'
 }
 
 export function parseNgTemplateElement(element : CheerioElement) : ElementDirectiveParserResult {
