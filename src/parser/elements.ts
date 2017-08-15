@@ -1,12 +1,12 @@
 import {parseInterpolatedText, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
-import {AttributeParserError, ElementDirectiveParserError} from "../core";
+import {AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
 import {GeneratorAstNode} from "../generator/ast";
 import {directiveMap} from "../directives";
-import {declare, scopedBlock} from "../generator/dsl";
 import * as uppercamelcase from "uppercamelcase";
+import {parseHtml} from "./templateParser";
 
-export type ElementDirectiveParserResult = Either<ElementDirectiveParserError, SuccessfulParserResult>
+export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>
 export type ElementDirectiveParser = (element : CheerioElement) => ElementDirectiveParserResult;
 
 interface TextHtmlNode extends CheerioElement {
@@ -25,19 +25,6 @@ interface ScriptNode extends CheerioElement {
 function isScriptNode(node : CheerioElement) : node is ScriptNode {
     return node.type == 'script';
 }
-
-// export function singleAttributeParser(attributeName : string, attributeParser? : AttributeParser) : ElementParser {
-//     return (element : CheerioElement) : ParserResult => {
-//         const attrib = element.attribs[attributeName];
-//         if (attrib == undefined) {
-//             return Either.Left(new AttributeParserError(`Element is missing expected attribute: ${ attributeName }`));
-//         } else if (attributeParser) {
-//             return attributeParser(attrib);
-//         } else {
-//             return defaultParser(attrib);
-//         }
-//     };
-// }
 
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
@@ -64,7 +51,7 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
         const elemParser = tagLookup.parser;
         if (elemParser) {
             const either = elemParser(node);
-            either.bimap((err) => errors.push(err), (result) => {
+            either.bimap((errs) => errors.push(...errs), (result) => {
                 if (result.scopeData) {
                     scopeData = result.scopeData;
                     const siblingsToAdd = result.nodes.slice();
@@ -123,6 +110,7 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
 
     let output = [];
     if (scopeData) {
+        console.log(children);
         output.push(scopeData.root);
         scopeData.childParent.children.push(...siblings);
         scopeData.childParent.children.push(...children);
@@ -144,25 +132,33 @@ export function templateIdToInterfaceName(templateId : string) : string {
 
 export function parseNgTemplateElement(element : CheerioElement) : ElementDirectiveParserResult {
     if (!isScriptNode(element)) {
-        return Either.Left(new ElementDirectiveParserError(`ng-template parse expected a "script" element, but got "${ element.type }" instead.`));
+        return Either.Left([new ElementDirectiveParserError(`ng-template parse expected a "script" element, but got "${ element.type }" instead.`)]);
     } else if (element.attribs.type !== 'text/ng-template') {
         return Either.Right({
             nodes: []
         });
     } else if (!element.attribs.id) {
-        return Either.Left(new ElementDirectiveParserError(`ng-template element is missing an "id" attribute.`));
+        return Either.Left([new ElementDirectiveParserError(`ng-template element is missing an "id" attribute.`)]);
     } else {
-        const container = scopedBlock([
-            declare(`__scope_1`, templateIdToInterfaceName(element.attribs.id))
-        ]);
-        return Either.Right({
-            nodes: [container],
-            scopeData: {
-                isStart : true,
-                isEnd : true,
-                root : container,
-                childParent : container
-            }
+        if (element.children.length != 1) {
+            return Either.Left([new ElementDirectiveParserError(`ng-template script must have exactly one child node. Found: ${ element.children.length }`)]);
+        }
+        const childNode = element.children[0];
+        if (!isTextHtmlNode(childNode)) {
+            return Either.Left([new ElementDirectiveParserError(`ng-template script child node must be a text node.`)]);
+        }
+        const interfaceName = templateIdToInterfaceName(element.attribs.id);
+        const parseResult = parseHtml(childNode.data, interfaceName);
+        return parseResult.map((container) => {
+            return {
+                nodes: [container],
+                scopeData: {
+                    isStart : true,
+                    isEnd : true,
+                    root : container,
+                    childParent : container
+                }
+            };
         });
     }
 }

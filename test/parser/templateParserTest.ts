@@ -8,11 +8,12 @@ describe(`Template parsers`, function () {
             const html = `<script type="text/ng-template" id="some/nested/template.html">
     <div ng-click="someFunc()"></div>
 </script>`;
-            const either = parseHtml(html);
-            assert.ok(either.isRight());
+            const either = parseHtml(html, 'TemplateScope');
+            assert.ok(either.isRight(), "Expected to parse HTML successfully");
             const result = either.right();
             console.log(result.children);
             assert.deepEqual(result.children, [
+                declare(`__scope_1`, `TemplateScope`),
                 scopedBlock([
                     declare(`__scope_1`, `SomeNestedTemplateHtmlScope`),
                     assign(`someFunc()`)
