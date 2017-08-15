@@ -3,6 +3,7 @@ import * as util from "util";
 export class TcatError extends Error {}
 export class TemplateParserError extends TcatError {}
 export class AttributeParserError extends TcatError {}
+export class ElementDirectiveParserError extends TcatError {}
 
 export function assertNever(value : never) : never {
     throw new Error(`Unexpected value ${ value }`);

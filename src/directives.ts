@@ -1,23 +1,29 @@
 import {AttributeParser, defaultParser, parseInterpolatedText, parseNgRepeat} from "./parsers";
+import {ElementDirectiveParser, parseNgTemplateElement} from "./parser/elements";
 
 export function singleAttribute(name : string, parser : AttributeParser = defaultParser) : DirectiveData {
     return {
         name,
         canBeElement: false,
         canBeAttribute: true,
-        expressionAttributes: [name],
-        attributes: [],
-        parser
+        attributes: [{
+            name,
+            parser
+        }]
     };
+}
+
+export interface DirectiveAttribute {
+    name : string;
+    parser : AttributeParser;
 }
 
 export interface DirectiveData {
     name : string;
     canBeElement : boolean;
     canBeAttribute : boolean;
-    expressionAttributes : string[];
-    attributes : string[];
-    parser : AttributeParser;
+    attributes : DirectiveAttribute[];
+    parser? : ElementDirectiveParser;
 }
 
 /*
@@ -85,6 +91,7 @@ const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ng-mouseenter',
     'ng-mouseleave',
     'ng-mousemove',
+    'ng-mouseout',
     'ng-mouseover',
     'ng-mouseup',
     'ng-open',
@@ -114,3 +121,10 @@ for (const name of BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES) {
     directiveMap.set(name, singleAttribute(name, parseInterpolatedText));
 }
 directiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
+directiveMap.set('script', {
+    name: 'ng-template',
+    canBeElement: true,
+    canBeAttribute: false,
+    parser: (el) => parseNgTemplateElement(el), // not sure why this wrapping function is required...
+    attributes: []
+});
