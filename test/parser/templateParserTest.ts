@@ -11,7 +11,6 @@ describe(`Template parsers`, function () {
             const either = parseHtml(html, 'TemplateScope');
             assert.ok(either.isRight(), "Expected to parse HTML successfully");
             const result = either.right();
-            console.log(result.children);
             assert.deepEqual(result.children, [
                 declare(`__scope_1`, `TemplateScope`),
                 scopedBlock([

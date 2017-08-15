@@ -110,7 +110,6 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
 
     let output = [];
     if (scopeData) {
-        console.log(children);
         output.push(scopeData.root);
         scopeData.childParent.children.push(...siblings);
         scopeData.childParent.children.push(...children);
