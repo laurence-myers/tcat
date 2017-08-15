@@ -62,8 +62,8 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
             });
         }
         for (const subAttribEntry of tagLookup.attributes) {
-            const subAtribValue = node.attribs[subAttribEntry.name];
-            const either = subAttribEntry.parser(subAtribValue);
+            const subAttribValue = node.attribs[subAttribEntry.name];
+            const either = subAttribEntry.parser(subAttribValue);
             either.bimap((err) => errors.push(err), (result) => {
                 if (result.scopeData) {
                     scopeData = result.scopeData;
