@@ -7,12 +7,13 @@ import {declare, scopedBlock} from "../generator/dsl";
 import {parseElement} from "./elements";
 
 export function parseJade(contents : string, scopeInterfaceName : string) : Either<TcatError[], ScopedBlockNode> {
+    let html;
     try {
-        jade.render(contents);
+        html = jade.render(contents);
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }
-    return parseHtml(contents, scopeInterfaceName);
+    return parseHtml(html, scopeInterfaceName);
 }
 
 export function parseHtml(html : string, scopeInterfaceName : string) : Either<TcatError[], ScopedBlockNode> {

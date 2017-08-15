@@ -6,7 +6,8 @@ async function start() : Promise<void> {
     const templateName = "examples/smorgasbord/template.jade";
     const templateInterface = templateName + ".ts";
     const outputTypeView = templateName + '.typeview.ts';
-    parseJade(templateName, 'TemplateScope')
+    const contents = readFileSync(templateName, 'utf8');
+    parseJade(contents, 'TemplateScope')
         .bimap(
             (errors) => {
                 console.error("Error(s) parsing HTML");
