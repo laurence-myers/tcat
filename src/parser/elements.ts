@@ -1,4 +1,4 @@
-import {parseInterpolatedText, ScopeData, SuccessfulParserResult} from "../parsers";
+import {parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
 import {AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
 import {GeneratorAstNode} from "../generator/ast";
@@ -28,20 +28,53 @@ function isScriptNode(node : CheerioElement) : node is ScriptNode {
 
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
+interface ElementParserContext {
+    readonly errors : AttributeParserError[];
+    readonly siblings : GeneratorAstNode[];
+    readonly children : GeneratorAstNode[];
+    scopeData : ScopeData | undefined;
+}
+
+function addParseResultToContext(context : ElementParserContext, result : SuccessfulParserResult) {
+    if (result.scopeData) {
+        context.scopeData = result.scopeData;
+        const siblingsToAdd = result.nodes.slice();
+        siblingsToAdd.splice(siblingsToAdd.indexOf(context.scopeData.root), 1);
+    } else {
+        context.siblings.push(...result.nodes);
+    }
+}
+
+function handleElementDirectiveParseResult(context : ElementParserContext, either : ElementDirectiveParserResult) {
+    return either.bimap(
+        (errs) => context.errors.push(...errs),
+        (result) => addParseResultToContext(context, result)
+    );
+}
+
+function handleAttributeDirectiveParseResult(context : ElementParserContext, either : ParserResult) {
+    return either.bimap(
+        (errs) => context.errors.push(errs),
+        (result) => addParseResultToContext(context, result)
+    );
+}
+
 export function parseElement(node : CheerioElement) : Either<AttributeParserError[], GeneratorAstNode[]> {
-    const errors : AttributeParserError[] = [];
-    const siblings : GeneratorAstNode[] = [];
-    const children : GeneratorAstNode[] = [];
-    let scopeData : ScopeData | undefined;
+    const context : ElementParserContext = {
+        errors: [],
+        siblings: [],
+        children: [],
+        scopeData: undefined
+    };
     // Parse children
     if (node.children) {
         for (const child of node.children) {
             if (!isNgTemplate(node) || !isTextHtmlNode(child)) { // don't double-parse nested templates
                 parseElement(child)
                     .bimap(
-                        (errs) => errors.push(...errs),
+                        (errs) => context.errors.push(...errs),
                         (nodes) => {
-                            children.push(...nodes);
+                            context.children.push(...nodes);
                         }
                     );
             }
@@ -52,29 +85,17 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
     if (tagLookup && tagLookup.canBeElement) {
         const elemParser = tagLookup.parser;
         if (elemParser) {
-            const either = elemParser(node);
-            either.bimap((errs) => errors.push(...errs), (result) => {
-                if (result.scopeData) {
-                    scopeData = result.scopeData;
-                    const siblingsToAdd = result.nodes.slice();
-                    siblingsToAdd.splice(siblingsToAdd.indexOf(scopeData.root), 1);
-                } else {
-                    siblings.push(...result.nodes);
-                }
-            });
+            handleElementDirectiveParseResult(
+                context,
+                elemParser(node)
+            );
         }
         for (const subAttribEntry of tagLookup.attributes) {
             const subAttribValue = node.attribs[subAttribEntry.name];
-            const either = subAttribEntry.parser(subAttribValue);
-            either.bimap((err) => errors.push(err), (result) => {
-                if (result.scopeData) {
-                    scopeData = result.scopeData;
-                    const siblingsToAdd = result.nodes.slice();
-                    siblingsToAdd.splice(siblingsToAdd.indexOf(scopeData.root), 1);
-                } else {
-                    siblings.push(...result.nodes);
-                }
-            });
+            handleAttributeDirectiveParseResult(
+                context,
+                subAttribEntry.parser(subAttribValue)
+            );
         }
     }
     // Parse attributes: directives and interpolated text
@@ -84,43 +105,38 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
         if (attribLookup && attribLookup.canBeAttribute) {
             for (const subAttribEntry of attribLookup.attributes) {
                 const subAtribValue = node.attribs[subAttribEntry.name];
-                const either = subAttribEntry.parser(subAtribValue);
-                either.bimap((err) => errors.push(err), (result) => {
-                    if (result.scopeData) {
-                        scopeData = result.scopeData;
-                        const siblingsToAdd = result.nodes.slice();
-                        siblingsToAdd.splice(siblingsToAdd.indexOf(scopeData.root), 1);
-                    } else {
-                        siblings.push(...result.nodes);
-                    }
-                });
+                handleAttributeDirectiveParseResult(
+                    context,
+                    subAttribEntry.parser(subAtribValue)
+                );
             }
         } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
-            const either = parseInterpolatedText(value);
-            either.bimap((err) => errors.push(err), (result) => {
-                siblings.push(...result.nodes);
-            });
+            handleAttributeDirectiveParseResult(
+                context,
+                parseInterpolatedText(value)
+            );
         }
     }
     // Parse interpolated text
     if (isTextHtmlNode(node)) {
-        const either = parseInterpolatedText(node.data);
-        either.bimap((err) => errors.push(err), (result) => {
-            children.push(...result.nodes);
-        });
+        handleAttributeDirectiveParseResult(
+            context,
+            parseInterpolatedText(node.data)
+        );
     }
 
-    let output = [];
-    if (scopeData) {
-        output.push(scopeData.root);
-        scopeData.childParent.children.push(...siblings);
-        scopeData.childParent.children.push(...children);
+    let output : GeneratorAstNode[] = [];
+    let arrayToAddChildren;
+    if (context.scopeData) {
+        output.push(context.scopeData.root);
+        arrayToAddChildren = context.scopeData.childParent.children;
     } else {
-        output.push(...siblings);
-        output.push(...children);
+        arrayToAddChildren = output;
     }
-    if (errors.length > 0) {
-        return Either.Left(errors);
+    arrayToAddChildren.push(...context.siblings);
+    arrayToAddChildren.push(...context.children);
+    if (context.errors.length > 0) {
+        return Either.Left(context.errors);
     } else {
         return Either.Right(output);
     }
