@@ -176,7 +176,7 @@ type AdditivePrecedence = BinaryExpressionAdditiveNode | MultiplicativePrecedenc
 type MultiplicativePrecedence = BinaryExpressionMultiplicativeNode | UnaryPrecedence;
 type UnaryPrecedence = UnaryExpressionNode | PrimaryNode;
 
-export type AstNode =
+export type AngularJsAstNode =
     | PropertyNode
     | SelfReferentialNode
     | PrimaryNode

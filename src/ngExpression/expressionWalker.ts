@@ -1,7 +1,7 @@
 import {
     ArrayExpressionNode,
     AssignmentExpressionNode,
-    AstNode,
+    AngularJsAstNode,
     BinaryExpressionNode,
     CallExpressionNode,
     ConditionalExpressionNode,
@@ -38,11 +38,11 @@ abstract class BaseWalker {
     protected abstract walkThisExpressionNode(node : ThisExpressionNode) : void;
     protected abstract walkUnaryExpressionNode(node : UnaryExpressionNode) : void;
 
-    protected dispatchAll(nodes : AstNode[]) : void {
+    protected dispatchAll(nodes : AngularJsAstNode[]) : void {
         return nodes.forEach((node) => this.dispatch(node));
     }
 
-    protected dispatch(node : AstNode) : void {
+    protected dispatch(node : AngularJsAstNode) : void {
         switch (node.type) {
             case "ArrayExpression":
                 return this.walkArrayExpressionNode(node);
@@ -160,7 +160,7 @@ export class SkippingWalker extends BaseWalker {
 export class ExpressionToStringWalker extends SkippingWalker {
     sb = '';
 
-    protected dispatchAll(nodes : AstNode[], seperator? : string) : void {
+    protected dispatchAll(nodes : AngularJsAstNode[], seperator? : string) : void {
         return nodes.forEach((node, index) => {
             this.dispatch(node);
             if (seperator && index != nodes.length - 1) {
@@ -289,13 +289,13 @@ export class ExpressionFilterRectifier extends ExpressionToStringWalker {
 }
 
 export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
-    protected nodeStack : AstNode[] = [];
+    protected nodeStack : AngularJsAstNode[] = [];
 
-    protected getPrevious() : AstNode | undefined {
+    protected getPrevious() : AngularJsAstNode | undefined {
         return this.nodeStack.length > 1 ? this.nodeStack[this.nodeStack.length - 2] : undefined;
     }
 
-    protected isAScopeIdentifier(node : IdentifierNode, parent : AstNode) : boolean {
+    protected isAScopeIdentifier(node : IdentifierNode, parent : AngularJsAstNode) : boolean {
         switch (parent.type) {
             case "CallExpression": // Expect filters to be globally declared, not on the scope object.
                 return !parent.filter
@@ -318,7 +318,7 @@ export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
         super.walkIdentifierNode(node);
     }
 
-    protected dispatch(node : AstNode) : void {
+    protected dispatch(node : AngularJsAstNode) : void {
         this.nodeStack.push(node);
         super.dispatch(node);
         this.nodeStack.pop();
