@@ -1,5 +1,8 @@
 import {
-    defaultParser, NG_REPEAT_SPECIAL_PROPERTIES, parseNgOptions, parseNgRepeat,
+    defaultParser,
+    NG_REPEAT_SPECIAL_PROPERTIES,
+    parseNgOptions,
+    parseNgRepeat,
     SuccessfulParserResult
 } from "../src/parsers";
 import * as assert from "assert";
@@ -15,7 +18,31 @@ describe(`Parsers`, function() {
             assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
             const actual = result.right();
             const expected = [
-                assign(`translate("SOME.KEY")`)
+                {
+                    type: "AssignmentNode",
+                    expression: {
+                        type: 'Program',
+                        body: [{
+                            expression: {
+                                "type": "CallExpression",
+                                arguments: [{
+                                    type: "Literal",
+                                    isString: true,
+                                    value: "SOME.KEY"
+                                }],
+                                callee: {
+                                    type: "Identifier",
+                                    name: "translate"
+                                },
+                                filter: true
+                            },
+                            type: "ExpressionStatement"
+                        }]
+                    },
+                    variableType: 'const',
+                    typeAnnotation: undefined,
+                    name: undefined
+                }
             ];
             assert.deepEqual(actual.nodes, expected);
         });
@@ -132,7 +159,7 @@ describe(`Parsers`, function() {
             const expected = [
                 scopedBlock([
                     ...specialProperties(),
-                    arrayIteration('item', 'filter(items, isIgor)', [
+                    arrayIteration('item', 'items | filter : isIgor', [
                         declare('$id', '(value : any) => string'),
                         assign('$id(item)')
                     ]),
@@ -146,7 +173,7 @@ describe(`Parsers`, function() {
             const expected = [
                 scopedBlock([
                     ...specialProperties(),
-                    arrayIteration('item', 'filter(items, newArray)', [
+                    arrayIteration('item', 'items | filter : newArray', [
                         assign('item.id')
                     ]),
                 ])
@@ -184,7 +211,7 @@ describe(`Parsers`, function() {
                 const expected = [
                     scopedBlock([
                         ...specialProperties(),
-                        assign('filter(items, x)', {
+                        assign('items | filter : x', {
                             name: 'results'
                         }),
                         arrayIteration('item', 'results', [
@@ -277,7 +304,7 @@ describe(`Parsers`, function() {
 
         it(`should parse a filtered iterable`, function () {
             verifyExpression(`value for value in array | filter : isNotFoo`, [
-                arrayIteration(`value`, `filter(array, isNotFoo)`, [
+                arrayIteration(`value`, `array | filter : isNotFoo`, [
                 ])
             ]);
         });

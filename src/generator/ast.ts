@@ -5,6 +5,8 @@
 //     value? : string;
 // }
 
+import {ProgramNode} from "../ngExpression/ast";
+
 export interface DeclarationNode {
     type : 'DeclarationNode';
     name : string;
@@ -16,13 +18,13 @@ export interface AssignmentNode {
     name? : string;
     variableType : 'let' | 'const';
     typeAnnotation? : string;
-    expression : string;
+    expression : ProgramNode;
 }
 
 export interface ArrayIterationNode {
     type : 'ArrayIterationNode';
     valueName : string;
-    iterable : string;
+    iterable : ProgramNode;
     children : GeneratorAstNode[];
 }
 
@@ -30,7 +32,7 @@ export interface ObjectIterationNode {
     type : 'ObjectIterationNode';
     keyName : string;
     valueName : string;
-    iterable : string;
+    iterable : ProgramNode;
     children : GeneratorAstNode[];
 }
 

@@ -3,7 +3,7 @@ import {AttributeParserError} from "./core";
 import {arrayIteration, assign, declare, objectIteration, scopedBlock} from "./generator/dsl";
 import {ArrayIterationNode, GeneratorAstNode, HasChildrenAstNode, ObjectIterationNode} from "./generator/ast";
 import {parseExpressionToAst} from "./ngExpression/ngAstBuilder";
-import {ExpressionFilterRectifier} from "./ngExpression/expressionWalker";
+import {ProgramNode} from "./ngExpression/ast";
 
 export interface ScopeData {
     isStart : boolean;
@@ -21,19 +21,22 @@ export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
-export function rectifyExpression(expression : string) : string {
-    if (!expression) return '';
+export function parseExpression(expression : string) : ProgramNode {
+    if (!expression) {
+        return {
+            type: 'Program',
+            body: []
+        };
+    }
     if (expression.startsWith('::')) { // strip one-time binding syntax
         expression = expression.substring(2);
     }
-    const ast = parseExpressionToAst(expression);
-    const rectifier = new ExpressionFilterRectifier();
-    return rectifier.walk(ast);
+    return parseExpressionToAst(expression);
 }
 
 export function defaultParser(attrib : string) : ParserResult {
     return Either.Right({
-        nodes: [assign(rectifyExpression(attrib))]
+        nodes: [assign(attrib)]
     });
 }
 
@@ -80,9 +83,9 @@ export function parseNgRepeat(expression : string) : ParserResult {
     }
 
     const lhs = match[1];
-    const rhs = rectifyExpression(match[2]);
+    const rhs = match[2];
     const aliasAs = match[3];
-    const trackByExp = rectifyExpression(match[4]);
+    const trackByExp = match[4];
 
     match = lhs.match(/^(?:(\s*[$\w]+)|\(\s*([$\w]+)\s*,\s*([$\w]+)\s*\))$/);
 
@@ -158,7 +161,6 @@ export function parseInterpolatedText(text : string, symbols = {
         if (((startIndex = text.indexOf(symbols.startSymbol, index)) !== -1) &&
             ((endIndex = text.indexOf(symbols.endSymbol, startIndex + startSymbolLength)) !== -1)) {
             exp = text.substring(startIndex + startSymbolLength, endIndex).trim();
-            exp = rectifyExpression(exp);
             expressions.push(exp);
             index = endIndex + endSymbolLength;
         } else {
@@ -196,35 +198,22 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
     // An expression that is used to track the id of each object in the options collection
     const trackBy = match[9];
     // An expression that generates the viewValue for an option if there is no label expression
-    const valueExpr = rectifyExpression(match[2] ? match[1] : valueName);
-    const selectAsExpr = selectAs && rectifyExpression(selectAs);
-    const viewValueExpr = selectAsExpr || valueExpr;
-    const trackByExpr = trackBy && rectifyExpression(trackBy);
+    const valueExpr = match[2] ? match[1] : valueName;
+    const viewValueExpr = selectAs || valueExpr;
 
-    const displayExpr = rectifyExpression(match[2] || match[1]);
-    const groupByExpr = rectifyExpression(match[3] || '');
-    const disableWhenExpr = rectifyExpression(match[4] || '');
-    const valuesExpr = rectifyExpression(match[8]);
+    const displayExpr = match[2] || match[1];
+    const groupByExpr = match[3] || '';
+    const disableWhenExpr = match[4] || '';
+    const valuesExpr = match[8];
 
     // Convert to generator AST
     const nodes : GeneratorAstNode[] = [];
 
     let iteratorNode : ArrayIterationNode | ObjectIterationNode;
     if (keyName) {
-        iteratorNode = {
-            type: "ObjectIterationNode",
-            keyName: keyName,
-            valueName: valueName,
-            iterable: valuesExpr,
-            children: []
-        };
+        iteratorNode = objectIteration(keyName, valueName, valuesExpr);
     } else {
-        iteratorNode = {
-            type: "ArrayIterationNode",
-            valueName: valueName,
-            iterable: valuesExpr,
-            children: []
-        };
+        iteratorNode = arrayIteration(valueName, valuesExpr);
     }
     nodes.push(iteratorNode);
 
@@ -240,8 +229,8 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
     if (disableWhenExpr) {
         iteratorNode.children.push(assign(disableWhenExpr));
     }
-    if (trackByExpr) {
-        iteratorNode.children.push(assign(trackByExpr));
+    if (trackBy) {
+        iteratorNode.children.push(assign(trackBy));
     }
 
     return Either.Right({

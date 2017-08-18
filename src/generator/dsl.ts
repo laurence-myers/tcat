@@ -1,10 +1,12 @@
 import {
     ArrayIterationNode,
-    AssignmentNode, DeclarationNode,
+    AssignmentNode,
+    DeclarationNode,
     GeneratorAstNode,
     ObjectIterationNode,
     ScopedBlockNode
 } from "./ast";
+import {parseExpression} from "../parsers";
 
 export function declare(name : string, typeAnnotation : string) : DeclarationNode {
     return {
@@ -22,7 +24,7 @@ interface AssignOptions {
 export function assign(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
     return {
         type: "AssignmentNode",
-        expression,
+        expression: parseExpression(expression),
         variableType: options.variableType || 'const',
         typeAnnotation: options.typeAnnotation,
         name : options.name
@@ -33,7 +35,7 @@ export function arrayIteration(valueName : string, iterable : string, children :
     return {
         type: "ArrayIterationNode",
         valueName,
-        iterable,
+        iterable: parseExpression(iterable),
         children
     };
 }
@@ -43,7 +45,7 @@ export function objectIteration(keyName : string, valueName : string, iterable :
         type: "ObjectIterationNode",
         keyName,
         valueName,
-        iterable,
+        iterable: parseExpression(iterable),
         children
     };
 }

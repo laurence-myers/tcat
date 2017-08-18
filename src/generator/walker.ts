@@ -1,8 +1,14 @@
 import {
-    ArrayIterationNode, AssignmentNode, DeclarationNode, GeneratorAstNode, ObjectIterationNode,
+    ArrayIterationNode,
+    AssignmentNode,
+    DeclarationNode,
+    GeneratorAstNode,
+    ObjectIterationNode,
     ScopedBlockNode
 } from "./ast";
 import {assertNever} from "../core";
+import {ExpressionFilterRectifier} from "../ngExpression/expressionWalker";
+import {ProgramNode} from "../ngExpression/ast";
 
 export abstract class BaseWalker {
     protected abstract walkArrayIterationNode(node : ArrayIterationNode) : void;
@@ -73,8 +79,13 @@ export class TypeScriptGenerator extends SkippingWalker {
         this.output += '\n';
     }
 
+    protected formatExpression(expression : ProgramNode) : string {
+        const expressionWalker = new ExpressionFilterRectifier();
+        return `(${ expressionWalker.walk(expression) })`;
+    }
+
     protected walkArrayIterationNode(node : ArrayIterationNode) : void {
-        this.writeLine(`for (const ${ node.valueName } of ${ node.iterable }) {`);
+        this.writeLine(`for (const ${ node.valueName } of ${ this.formatExpression(node.iterable) }) {`);
         this.indentLevel++;
         super.walkArrayIterationNode(node);
         this.indentLevel--;
@@ -84,7 +95,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected walkAssignmentNode(node : AssignmentNode) : void {
         const name = node.name || 'expr_' + ++this.counters.expressions;
         const typeAnnotation = node.typeAnnotation ? ' : ' + node.typeAnnotation : '';
-        this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ node.expression };`);
+        this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ this.formatExpression(node.expression) };`);
     }
 
     protected walkDeclarationNode(node : DeclarationNode) : void {
@@ -94,9 +105,9 @@ export class TypeScriptGenerator extends SkippingWalker {
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
-        this.writeLine(`for (const ${ node.keyName } in ${ node.iterable }) {`);
+        this.writeLine(`for (const ${ node.keyName } in ${ this.formatExpression(node.iterable) }) {`);
         this.indentLevel++;
-        this.writeLine(`const ${ node.valueName } = ${ node.iterable }[${ node.keyName }];`);
+        this.writeLine(`const ${ node.valueName } = ${ this.formatExpression(node.iterable) }[${ node.keyName }];`);
         super.walkObjectIterationNode(node);
         this.indentLevel--;
         this.writeLine(`}`);
