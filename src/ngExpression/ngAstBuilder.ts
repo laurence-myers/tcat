@@ -366,10 +366,10 @@ export class Lexer {
 }
 
 function isAssignable(ast : any) {
-    return ast.type === AST.Identifier || ast.type === AST.MemberExpression;
+    return ast.type === AstBuilder.Identifier || ast.type === AstBuilder.MemberExpression;
 }
 
-export class AST {
+export class AstBuilder {
     static Program : 'Program' = 'Program';
     static ExpressionStatement : 'ExpressionStatement' = 'ExpressionStatement';
     static AssignmentExpression : 'AssignmentExpression' = 'AssignmentExpression';
@@ -415,13 +415,13 @@ export class AST {
             if (this.tokens.length > 0 && !this.peek('}', ')', ';', ']'))
                 body.push(this.expressionStatement());
             if (!this.expect(';')) {
-                return { type: AST.Program, body: body };
+                return { type: AstBuilder.Program, body: body };
             }
         }
     }
 
     expressionStatement() {
-        return { type: AST.ExpressionStatement, expression: this.filterChain() };
+        return { type: AstBuilder.ExpressionStatement, expression: this.filterChain() };
     }
 
     filterChain() {
@@ -443,7 +443,7 @@ export class AST {
                 throw new Error('Trying to assign a value to a non l-value');
             }
 
-            result = { type: AST.AssignmentExpression, left: result, right: this.assignment(), operator: '='};
+            result = { type: AstBuilder.AssignmentExpression, left: result, right: this.assignment(), operator: '='};
         }
         return result;
     }
@@ -456,7 +456,7 @@ export class AST {
             alternate = this.expression();
             if (this.consume(':')) {
                 consequent = this.expression();
-                return { type: AST.ConditionalExpression, test: test, alternate: alternate, consequent: consequent};
+                return { type: AstBuilder.ConditionalExpression, test: test, alternate: alternate, consequent: consequent};
             }
         }
         return test;
@@ -465,7 +465,7 @@ export class AST {
     logicalOR() {
         let left = this.logicalAND();
         while (this.expect('||')) {
-            left = { type: AST.LogicalExpression, operator: '||', left: left, right: this.logicalAND() };
+            left = { type: AstBuilder.LogicalExpression, operator: '||', left: left, right: this.logicalAND() };
         }
         return left;
     }
@@ -473,7 +473,7 @@ export class AST {
     logicalAND() {
         let left = this.equality();
         while (this.expect('&&')) {
-            left = { type: AST.LogicalExpression, operator: '&&', left: left, right: this.equality()};
+            left = { type: AstBuilder.LogicalExpression, operator: '&&', left: left, right: this.equality()};
         }
         return left;
     }
@@ -482,7 +482,7 @@ export class AST {
         let left = this.relational();
         let token;
         while ((token = <Token> this.expect('==','!=','===','!=='))) {
-            left = { type: AST.BinaryExpression, operator: token.text, left: left, right: this.relational() };
+            left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.relational() };
         }
         return left;
     }
@@ -491,7 +491,7 @@ export class AST {
         let left = this.additive();
         let token;
         while ((token = <Token> this.expect('<', '>', '<=', '>='))) {
-            left = { type: AST.BinaryExpression, operator: token.text, left: left, right: this.additive() };
+            left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.additive() };
         }
         return left;
     }
@@ -500,7 +500,7 @@ export class AST {
         let left = this.multiplicative();
         let token;
         while ((token = <Token> this.expect('+','-'))) {
-            left = { type: AST.BinaryExpression, operator: token.text, left: left, right: this.multiplicative() };
+            left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.multiplicative() };
         }
         return left;
     }
@@ -509,7 +509,7 @@ export class AST {
         let left = this.unary();
         let token;
         while ((token = <Token> this.expect('*','/','%'))) {
-            left = { type: AST.BinaryExpression, operator: token.text, left: left, right: this.unary() };
+            left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.unary() };
         }
         return left;
     }
@@ -517,7 +517,7 @@ export class AST {
     unary() : any {
         let token;
         if ((token = <Token> this.expect('+', '-', '!'))) {
-            return { type: AST.UnaryExpression, operator: token.text, prefix: true, argument: this.unary() };
+            return { type: AstBuilder.UnaryExpression, operator: token.text, prefix: true, argument: this.unary() };
         } else {
             return this.primary();
         }
@@ -535,7 +535,7 @@ export class AST {
         } else if (this.selfReferential.hasOwnProperty((<Token> this.peek()).text)) {
             primary = copy(this.selfReferential[(<Token> this.consume()).text]);
         } else if (this.options.literals.hasOwnProperty((<Token> this.peek()).text)) {
-            primary = { type: AST.Literal, value: this.options.literals[(<Token> this.consume()).text]};
+            primary = { type: AstBuilder.Literal, value: this.options.literals[(<Token> this.consume()).text]};
         } else if ((<Token> this.peek()).identifier) {
             primary = this.identifier();
         } else if ((<Token> this.peek()).constant) {
@@ -547,13 +547,13 @@ export class AST {
         let next;
         while ((next = <Token> this.expect('(', '[', '.'))) {
             if (next.text === '(') {
-                primary = {type: AST.CallExpression, callee: primary, arguments: this.parseArguments() };
+                primary = {type: AstBuilder.CallExpression, callee: primary, arguments: this.parseArguments() };
                 this.consume(')');
             } else if (next.text === '[') {
-                primary = { type: AST.MemberExpression, object: primary, property: this.expression(), computed: true };
+                primary = { type: AstBuilder.MemberExpression, object: primary, property: this.expression(), computed: true };
                 this.consume(']');
             } else if (next.text === '.') {
-                primary = { type: AST.MemberExpression, object: primary, property: this.identifier(), computed: false };
+                primary = { type: AstBuilder.MemberExpression, object: primary, property: this.identifier(), computed: false };
             } else {
                 this.throwError('IMPOSSIBLE');
             }
@@ -563,7 +563,7 @@ export class AST {
 
     filter(baseExpression : any) {
         let args = [baseExpression];
-        let result = {type: AST.CallExpression, callee: this.identifier(), arguments: args, filter: true};
+        let result = {type: AstBuilder.CallExpression, callee: this.identifier(), arguments: args, filter: true};
 
         while (this.expect(':')) {
             args.push(this.expression());
@@ -587,13 +587,13 @@ export class AST {
         if (!token.identifier) {
             this.throwError('is not a valid identifier', token);
         }
-        return { type: AST.Identifier, name: token.text };
+        return { type: AstBuilder.Identifier, name: token.text };
     }
 
     constant() {
         const token = (<Token> this.consume());
         // TODO check that it is a constant
-        return { type: AST.Literal, value: token.value, isString: token.isString };
+        return { type: AstBuilder.Literal, value: token.value, isString: token.isString };
     }
 
     arrayDeclaration() : any {
@@ -609,7 +609,7 @@ export class AST {
         }
         this.consume(']');
 
-        return { type: AST.ArrayExpression, elements: elements };
+        return { type: AstBuilder.ArrayExpression, elements: elements };
     }
 
     object() {
@@ -627,7 +627,7 @@ export class AST {
                     // Support trailing commas per ES5.1.
                     break;
                 }
-                property = {type: AST.Property, kind: 'init'};
+                property = {type: AstBuilder.Property, kind: 'init'};
                 if ((<Token> this.peek()).constant) {
                     property.key = this.constant();
                     property.computed = false;
@@ -657,7 +657,7 @@ export class AST {
         }
         this.consume('}');
 
-        return {type: AST.ObjectExpression, properties: properties };
+        return {type: AstBuilder.ObjectExpression, properties: properties };
     }
 
     throwError(msg : string, token? : Token | false) {
@@ -709,8 +709,8 @@ export class AST {
     }
 
     selfReferential : { [key : string] : any } = {
-        'this': {type: AST.ThisExpression },
-        '$locals': {type: AST.LocalsExpression }
+        'this': {type: AstBuilder.ThisExpression },
+        '$locals': {type: AstBuilder.LocalsExpression }
     }
 }
 
@@ -729,6 +729,6 @@ export const $parseOptions = {
 
 export function parseExpressionToAst(expression : string) : ProgramNode {
     const options = $parseOptions;
-    const astBuilder = new AST(new Lexer(options), options);
+    const astBuilder = new AstBuilder(new Lexer(options), options);
     return astBuilder.ast(expression);
 }
