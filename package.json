@@ -24,11 +24,13 @@
     "uppercamelcase": "3.0.0"
   },
   "devDependencies": {
+    "@types/app-root-path": "1.2.4",
     "@types/cheerio": "^0.22.2",
     "@types/jade": "0.0.30",
     "@types/mocha": "2.2.41",
     "@types/node": "6.0.63",
     "@types/uppercamelcase": "3.0.0",
+    "app-root-path": "2.0.1",
     "mocha": "3.4.2",
     "source-map-support": "0.4.11",
     "tslint": "4.4.2"

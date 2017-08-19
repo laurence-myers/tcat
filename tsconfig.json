@@ -56,5 +56,8 @@
   "include": [
     "src",
     "test"
+  ],
+  "exclude": [
+    "test/data"
   ]
 }
