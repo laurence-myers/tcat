@@ -1,24 +1,12 @@
-import { parseJade } from "./parser/templateParser";
-import { generateTypeScript } from "./generator/walker";
-import { readFileSync, writeFileSync } from "fs";
+import {convertJadeFileToTypeScriptFile} from "./converter";
 
 async function start() : Promise<void> {
     const templateName = "examples/smorgasbord/template.jade";
-    const templateInterface = templateName + ".ts";
-    const outputTypeView = templateName + '.typeview.ts';
-    const contents = readFileSync(templateName, 'utf8');
-    parseJade(contents, 'TemplateScope')
-        .bimap(
+    convertJadeFileToTypeScriptFile(templateName)
+        .leftMap(
             (errors) => {
-                console.error("Error(s) parsing HTML");
+                console.error("Errors were encountered processing templates.");
                 errors.forEach((err) => console.error(err));
-            },
-            (ast) => {
-                const tsCode = generateTypeScript(ast);
-                const base = readFileSync(templateInterface);
-                const final = '/* tslint:disable */\n' + base + '\n' + tsCode;
-                console.log(final);
-                writeFileSync(outputTypeView, final);
             }
         );
 }

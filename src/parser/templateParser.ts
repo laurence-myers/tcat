@@ -6,14 +6,14 @@ import {TcatError, TemplateParserError} from "../core";
 import {declare, scopedBlock} from "../generator/dsl";
 import {parseElement} from "./elements";
 
-export function parseJade(contents : string, scopeInterfaceName : string) : Either<TcatError[], ScopedBlockNode> {
+export function parseJadeToHtml(contents : string) : Either<TcatError[], string> {
     let html;
     try {
         html = jade.render(contents);
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }
-    return parseHtml(html, scopeInterfaceName);
+    return Either.Right(html);
 }
 
 export function parseHtml(html : string, scopeInterfaceName : string) : Either<TcatError[], ScopedBlockNode> {
