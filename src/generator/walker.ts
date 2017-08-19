@@ -7,7 +7,7 @@ import {
     ScopedBlockNode
 } from "./ast";
 import {assertNever} from "../core";
-import {ExpressionFilterRectifier} from "../ngExpression/expressionWalker";
+import {ExpressionScopeRectifier} from "../ngExpression/expressionWalker";
 import {ProgramNode} from "../ngExpression/ast";
 
 export abstract class BaseWalker {
@@ -70,6 +70,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected output = '';
     protected indentLevel = 0;
     protected indentString = '    ';
+    protected localsStack : Set<string>[] = [];
 
     protected writeLine(value : string) : void {
         for (let i = 0; i < this.indentLevel; i++) {
@@ -79,36 +80,62 @@ export class TypeScriptGenerator extends SkippingWalker {
         this.output += '\n';
     }
 
+    protected pushLocalsScope() : void {
+        this.localsStack.push(new Set<string>());
+    }
+
+    protected popLocalsScope() : void {
+        this.localsStack.pop();
+    }
+
+    protected addLocal(name : string) : void {
+        if (this.localsStack.length == 0) {
+            this.pushLocalsScope();
+
+        }
+        const locals = this.localsStack[this.localsStack.length - 1];
+        locals.add(name);
+    }
+
     protected formatExpression(expression : ProgramNode) : string {
-        const expressionWalker = new ExpressionFilterRectifier();
+        const expressionWalker = new ExpressionScopeRectifier(this.localsStack);
         return `(${ expressionWalker.walk(expression) })`;
     }
 
     protected walkArrayIterationNode(node : ArrayIterationNode) : void {
         this.writeLine(`for (const ${ node.valueName } of ${ this.formatExpression(node.iterable) }) {`);
+        this.pushLocalsScope();
+        this.addLocal(node.valueName);
         this.indentLevel++;
         super.walkArrayIterationNode(node);
+        this.popLocalsScope();
         this.indentLevel--;
         this.writeLine(`}`);
     }
 
     protected walkAssignmentNode(node : AssignmentNode) : void {
         const name = node.name || 'expr_' + ++this.counters.expressions;
+        this.addLocal(name);
         const typeAnnotation = node.typeAnnotation ? ' : ' + node.typeAnnotation : '';
         this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ this.formatExpression(node.expression) };`);
     }
 
     protected walkDeclarationNode(node : DeclarationNode) : void {
         const name = node.name || 'decl_' + ++this.counters.declarations;
+        this.addLocal(name);
         const typeAnnotation = node.typeAnnotation;
         this.writeLine(`declare let ${ name } : ${ typeAnnotation };`);
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
         this.writeLine(`for (const ${ node.keyName } in ${ this.formatExpression(node.iterable) }) {`);
+        this.pushLocalsScope();
+        this.addLocal(node.keyName);
         this.indentLevel++;
         this.writeLine(`const ${ node.valueName } = ${ this.formatExpression(node.iterable) }[${ node.keyName }];`);
+        this.addLocal(node.valueName);
         super.walkObjectIterationNode(node);
+        this.popLocalsScope();
         this.indentLevel--;
         this.writeLine(`}`);
     }
@@ -116,7 +143,9 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
         this.writeLine(`function block_${ ++this.counters.blocks }() {`);
         this.indentLevel++;
+        this.pushLocalsScope();
         super.walkScopedBlockNode(node);
+        this.popLocalsScope();
         this.indentLevel--;
         this.writeLine(`}`);
     }

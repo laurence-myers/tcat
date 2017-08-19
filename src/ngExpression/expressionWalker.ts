@@ -157,7 +157,7 @@ export class SkippingWalker extends BaseWalker {
     }
 }
 
-export class ExpressionToStringWalker extends SkippingWalker {
+export class ExpressionToStringWalker extends BaseWalker {
     sb = '';
 
     protected dispatchAll(nodes : AngularJsAstNode[], seperator? : string) : void {
@@ -291,6 +291,10 @@ export class ExpressionFilterRectifier extends ExpressionToStringWalker {
 export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
     protected nodeStack : AngularJsAstNode[] = [];
 
+    constructor(protected localsStack : Set<string>[] = [new Set<string>()]) {
+        super();
+    }
+
     protected getPrevious() : AngularJsAstNode | undefined {
         return this.nodeStack.length > 1 ? this.nodeStack[this.nodeStack.length - 2] : undefined;
     }
@@ -308,10 +312,15 @@ export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
         }
     }
 
+    protected isALocalIdentifier(node : IdentifierNode) : boolean {
+        return this.localsStack.some(set => set.has(node.name));
+    }
+
     protected walkIdentifierNode(node : IdentifierNode) : void {
         const parent = this.getPrevious();
-        if (parent &&
-            this.isAScopeIdentifier(node, parent)
+        if (!this.isALocalIdentifier(node)
+            && parent
+            && this.isAScopeIdentifier(node, parent)
         ) {
             this.sb += '__scope_1.'; // TODO: compute this
         }

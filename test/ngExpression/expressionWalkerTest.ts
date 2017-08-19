@@ -19,9 +19,9 @@ describe(`Expression walkers`, function () {
         return walker.walk(ast);
     }
 
-    function scopeRectified(expression : string) {
+    function scopeRectified(expression : string, localsStack? : Set<string>[]) {
         const ast = parseExpressionToAst(expression);
-        const walker = new ExpressionScopeRectifier();
+        const walker = new ExpressionScopeRectifier(localsStack);
         return walker.walk(ast);
     }
 
@@ -35,8 +35,8 @@ describe(`Expression walkers`, function () {
         assert.equal(actual, expected);
     }
 
-    function verifyExpressionScopeRectifier(expression : string, expected : string) : void {
-        const actual = scopeRectified(expression);
+    function verifyExpressionScopeRectifier(expression : string, expected : string, locals? : Set<string>[]) : void {
+        const actual = scopeRectified(expression, locals);
         assert.equal(actual, expected);
     }
 
@@ -134,6 +134,14 @@ describe(`Expression walkers`, function () {
             verifyExpressionScopeRectifier(
                 `someValue + anotherValue - thirdValue`,
                 `__scope_1.someValue + __scope_1.anotherValue - __scope_1.thirdValue`
+            );
+        });
+
+        it(`Does not rectify scope for locals`, function () {
+            verifyExpressionScopeRectifier(
+                `someValue`,
+                `someValue`,
+                [new Set<string>(['someValue'])]
             );
         });
     });
