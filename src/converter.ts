@@ -24,36 +24,41 @@ function writeFileWrap(templateFileName : FileName, contents : string) : Either<
     return writeFile(templateFileName, contents).leftMap(wrapInArray);
 }
 
-export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+function readExistingTypeScriptFile(templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+    return readFileWrap(asFileName(templateFileName + ".ts"))
+        .map(asTypeScriptContents);
+}
+
+export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, baseTypeScript : TypeScriptContents) : Either<TcatError[], TypeScriptContents> {
     return parseHtml(htmlContents, 'TemplateScope')
-        .flatMap((ast) => {
-            const templateInterfaceFileName = asFileName(templateFileName + ".ts");
-            return readFileWrap(templateInterfaceFileName)
-                .map((base) => {
-                    const tsCode = generateTypeScript(ast);
-                    const final = '/* tslint:disable */\n' + base + '\n' + tsCode;
-                    console.log(final);
-                    return asTypeScriptContents(final);
-                });
+        .map((ast) => {
+            const tsCode = generateTypeScript(ast);
+            const final = '/* tslint:disable */\n' + baseTypeScript + '\n' + tsCode;
+            console.log(final);
+            return asTypeScriptContents(final);
         });
 }
 
-export function convertJadeContentsToTypeScript(jadeContents : JadeContents, templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+export function convertJadeContentsToTypeScript(jadeContents : JadeContents, baseTypeScript : TypeScriptContents) : Either<TcatError[], TypeScriptContents> {
     return parseJadeToHtml(jadeContents)
-        .flatMap((html) => convertHtmlContentsToTypeScript(html, templateFileName));
+        .flatMap((html) => convertHtmlContentsToTypeScript(html, baseTypeScript));
 }
 
 export function convertHtmlFileToTypeScript(templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFileWrap(templateFileName)
         .flatMap(
-            (htmlContents) => convertHtmlContentsToTypeScript(asHtmlContents(htmlContents), templateFileName)
+            (htmlContents) =>
+                readExistingTypeScriptFile(templateFileName)
+                    .flatMap((baseTypescriptContents) => convertHtmlContentsToTypeScript(asHtmlContents(htmlContents), baseTypescriptContents))
         );
 }
 
 export function convertJadeFileToTypeScript(templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFileWrap(templateFileName)
         .flatMap(
-            (jadeContents) => convertJadeContentsToTypeScript(asJadeContents(jadeContents), templateFileName)
+            (jadeContents) =>
+                readExistingTypeScriptFile(templateFileName)
+                    .flatMap((baseTypescriptContents) => convertJadeContentsToTypeScript(asJadeContents(jadeContents), baseTypescriptContents))
         );
 }
 
