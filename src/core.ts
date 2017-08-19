@@ -36,3 +36,19 @@ export function writeFile(fileName : string, contents : string) : Either<FileWri
 export function wrapInArray<T>(value : T) : T[] {
     return [value];
 }
+
+const enum AsFileName {}
+export type FileName = string & AsFileName;
+export function asFileName(value : string) { return value as FileName; }
+
+const enum AsJadeContents {}
+export type JadeContents = string & AsJadeContents;
+export function asJadeContents(value : string) { return value as JadeContents; }
+
+const enum AsHtmlContents {}
+export type HtmlContents = string & AsHtmlContents;
+export function asHtmlContents(value : string) { return value as HtmlContents; }
+
+const enum AsTypeScriptContents {}
+export type TypeScriptContents = string & AsTypeScriptContents;
+export function asTypeScriptContents(value : string) { return value as TypeScriptContents; }

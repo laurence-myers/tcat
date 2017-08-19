@@ -1,7 +1,8 @@
 import {convertJadeFileToTypeScriptFile} from "./converter";
+import {asFileName} from "./core";
 
 async function start() : Promise<void> {
-    const templateName = "examples/smorgasbord/template.jade";
+    const templateName = asFileName("examples/smorgasbord/template.jade");
     convertJadeFileToTypeScriptFile(templateName)
         .leftMap(
             (errors) => {
