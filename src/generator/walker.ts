@@ -1,9 +1,9 @@
 import {
     ArrayIterationNode,
     AssignmentNode,
-    DeclarationNode,
     GeneratorAstNode,
     ObjectIterationNode,
+    TemplateRootNode,
     ScopedBlockNode
 } from "./ast";
 import {assertNever} from "../core";
@@ -13,9 +13,9 @@ import {ProgramNode} from "../ngExpression/ast";
 export abstract class BaseWalker {
     protected abstract walkArrayIterationNode(node : ArrayIterationNode) : void;
     protected abstract walkAssignmentNode(node : AssignmentNode) : void;
-    protected abstract walkDeclarationNode(node : DeclarationNode) : void;
     protected abstract walkObjectIterationNode(node : ObjectIterationNode) : void;
     protected abstract walkScopedBlockNode(node : ScopedBlockNode) : void;
+    protected abstract walkTemplateRootNode(node : TemplateRootNode) : void;
 
     protected dispatchAll(nodes : GeneratorAstNode[]) : void {
         return nodes.forEach((node) => this.dispatch(node));
@@ -27,12 +27,12 @@ export abstract class BaseWalker {
                 return this.walkArrayIterationNode(node);
             case 'AssignmentNode':
                 return this.walkAssignmentNode(node);
-            case 'DeclarationNode':
-                return this.walkDeclarationNode(node);
             case 'ObjectIterationNode':
                 return this.walkObjectIterationNode(node);
             case 'ScopedBlockNode':
                 return this.walkScopedBlockNode(node);
+            case 'TemplateRootNode':
+                return this.walkTemplateRootNode(node);
             default:
                 assertNever(node);
                 break;
@@ -49,9 +49,6 @@ export class SkippingWalker extends BaseWalker {
 
     }
 
-    protected walkDeclarationNode(_ : DeclarationNode) : void {
-    }
-
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
         return this.dispatchAll(node.children);
     }
@@ -59,11 +56,15 @@ export class SkippingWalker extends BaseWalker {
     protected walkScopedBlockNode(node : ScopedBlockNode) {
         this.dispatchAll(node.children);
     }
+
+    protected walkTemplateRootNode(node : TemplateRootNode) : void {
+        this.dispatchAll(node.children);
+    }
 }
 
 export class TypeScriptGenerator extends SkippingWalker {
     protected counters = {
-        declarations: 0,
+        scopes: 0,
         expressions: 0,
         blocks: 0
     };
@@ -98,7 +99,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     }
 
     protected formatExpression(expression : ProgramNode) : string {
-        const expressionWalker = new ExpressionScopeRectifier(this.localsStack);
+        const expressionWalker = new ExpressionScopeRectifier(this.counters.scopes, this.localsStack);
         return `(${ expressionWalker.walk(expression) })`;
     }
 
@@ -116,15 +117,15 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected walkAssignmentNode(node : AssignmentNode) : void {
         const name = node.name || 'expr_' + ++this.counters.expressions;
         this.addLocal(name);
-        const typeAnnotation = node.typeAnnotation ? ' : ' + node.typeAnnotation : '';
-        this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ this.formatExpression(node.expression) };`);
-    }
-
-    protected walkDeclarationNode(node : DeclarationNode) : void {
-        const name = node.name || 'decl_' + ++this.counters.declarations;
-        this.addLocal(name);
-        const typeAnnotation = node.typeAnnotation;
-        this.writeLine(`declare let ${ name } : ${ typeAnnotation };`);
+        const typeAnnotation =
+            node.typeAnnotation
+                ? ' : ' + node.typeAnnotation
+                : '';
+        const expression =
+            node.expressionType == 'AngularJS'
+                ? this.formatExpression(node.expression)
+                : node.expression;
+        this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ expression };`);
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
@@ -141,6 +142,9 @@ export class TypeScriptGenerator extends SkippingWalker {
     }
 
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
+        if (node.scopeInterface) {
+            this.writeLine(`declare const __scope_${ ++this.counters.scopes } : ${ node.scopeInterface };`);
+        }
         this.writeLine(`function block_${ ++this.counters.blocks }() {`);
         this.indentLevel++;
         this.pushLocalsScope();

@@ -1,7 +1,7 @@
 import * as assert from "assert";
 import {GeneratorAstNode} from "../../src/generator/ast";
 import {TypeScriptGenerator} from "../../src/generator/walker";
-import {arrayIteration, assign, objectIteration, scopedBlock} from "../../src/generator/dsl";
+import {arrayIteration, assign, assignTypeScript, objectIteration, templateRoot, scopedBlock} from "../../src/generator/dsl";
 import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parsers";
 
 describe(`Generator walker`, function () {
@@ -14,7 +14,7 @@ describe(`Generator walker`, function () {
         function specialNgRepeatProperties() : GeneratorAstNode[] {
             const output : GeneratorAstNode[] = [];
             for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
-                output.push(assign(
+                output.push(assignTypeScript(
                     specialProperty.value,
                     {
                         typeAnnotation: specialProperty.primitiveType,
@@ -28,7 +28,7 @@ describe(`Generator walker`, function () {
         it(`assigns an expression to a const`, function () {
             const expression = `!ctrl.tagClick`;
             const actual = walk(assign(expression));
-            const expected = `const expr_1 = (!__scope_1.ctrl.tagClick);\n`;
+            const expected = `const expr_1 = (!__scope_0.ctrl.tagClick);\n`;
             assert.equal(actual, expected);
         });
 
@@ -39,8 +39,8 @@ describe(`Generator walker`, function () {
                 assign(expression)
             ]));
             const expected = `function block_1() {
-    const expr_1 = (!__scope_1.ctrl.tagClick);
-    const expr_2 = (!__scope_1.ctrl.tagClick);
+    const expr_1 = (!__scope_0.ctrl.tagClick);
+    const expr_2 = (!__scope_0.ctrl.tagClick);
 }\n`;
             assert.equal(actual, expected);
         });
@@ -52,13 +52,14 @@ describe(`Generator walker`, function () {
                     arrayIteration('item', 'items')
                 ]));
                 const expected = `function block_1() {
-    const $index : number = (0);
-    const $first : boolean = (false);
-    const $last : boolean = (false);
-    const $middle : boolean = (false);
-    const $even : boolean = (false);
-    const $odd : boolean = (false);
-    for (const item of (__scope_1.items)) {
+    const $index : number = 0;
+    const $first : boolean = false;
+    const $last : boolean = false;
+    const $middle : boolean = false;
+    const $even : boolean = false;
+    const $odd : boolean = false;
+    const $id = (value : any) => "";
+    for (const item of (__scope_0.items)) {
     }
 }
 `;
@@ -71,14 +72,15 @@ describe(`Generator walker`, function () {
                     objectIteration('key', 'value', 'items')
                 ]));
                 const expected = `function block_1() {
-    const $index : number = (0);
-    const $first : boolean = (false);
-    const $last : boolean = (false);
-    const $middle : boolean = (false);
-    const $even : boolean = (false);
-    const $odd : boolean = (false);
-    for (const key in (__scope_1.items)) {
-        const value = (__scope_1.items)[key];
+    const $index : number = 0;
+    const $first : boolean = false;
+    const $last : boolean = false;
+    const $middle : boolean = false;
+    const $even : boolean = false;
+    const $odd : boolean = false;
+    const $id = (value : any) => "";
+    for (const key in (__scope_0.items)) {
+        const value = (__scope_0.items)[key];
     }
 }
 `;
@@ -94,15 +96,16 @@ describe(`Generator walker`, function () {
                     ])
                 ]));
                 const expected = `function block_1() {
-    const $index : number = (0);
-    const $first : boolean = (false);
-    const $last : boolean = (false);
-    const $middle : boolean = (false);
-    const $even : boolean = (false);
-    const $odd : boolean = (false);
-    for (const item of (__scope_1.items)) {
+    const $index : number = 0;
+    const $first : boolean = false;
+    const $last : boolean = false;
+    const $middle : boolean = false;
+    const $even : boolean = false;
+    const $odd : boolean = false;
+    const $id = (value : any) => "";
+    for (const item of (__scope_0.items)) {
         const expr_1 = (item.name);
-        const expr_2 = (__scope_1.someScopedValue);
+        const expr_2 = (__scope_0.someScopedValue);
     }
 }
 `;
@@ -111,35 +114,41 @@ describe(`Generator walker`, function () {
         });
 
         it(`should de-allocate locals outside of blocks`, function () {
-            const actual = walk(scopedBlock([
-                scopedBlock([
-                    ...specialNgRepeatProperties(),
-                    arrayIteration('item', 'items', [
-                        assign(`item.name`),
-                        assign(`someScopedValue`)
-                    ]),
-                    assign(`item.name`)
-                ]),
-                scopedBlock([
-                    ...specialNgRepeatProperties(),
-                    objectIteration('someKey', 'someValue', 'someObject', [
-                        assign(`someKey + '1'`),
-                        assign(`someValue`)
-                    ]),
-                    assign(`someKey`),
-                    assign(`someValue`)
-                ]),
-                assign(`expr_7`),
-                assign(`$index`)
-            ]));
-            const expected = `function block_1() {
+            const actual = walk(
+                templateRoot([
+                    scopedBlock([
+                        scopedBlock([
+                            ...specialNgRepeatProperties(),
+                            arrayIteration('item', 'items', [
+                                assign(`item.name`),
+                                assign(`someScopedValue`)
+                            ]),
+                            assign(`item.name`)
+                        ]),
+                        scopedBlock([
+                            ...specialNgRepeatProperties(),
+                            objectIteration('someKey', 'someValue', 'someObject', [
+                                assign(`someKey + '1'`),
+                                assign(`someValue`)
+                            ]),
+                            assign(`someKey`),
+                            assign(`someValue`)
+                        ]),
+                        assign(`expr_7`),
+                        assign(`$index`)
+                    ], 'TemplateScope')
+                ])
+            );
+            const expected = `declare const __scope_1 : TemplateScope;
+function block_1() {
     function block_2() {
-        const $index : number = (0);
-        const $first : boolean = (false);
-        const $last : boolean = (false);
-        const $middle : boolean = (false);
-        const $even : boolean = (false);
-        const $odd : boolean = (false);
+        const $index : number = 0;
+        const $first : boolean = false;
+        const $last : boolean = false;
+        const $middle : boolean = false;
+        const $even : boolean = false;
+        const $odd : boolean = false;
+        const $id = (value : any) => "";
         for (const item of (__scope_1.items)) {
             const expr_1 = (item.name);
             const expr_2 = (__scope_1.someScopedValue);
@@ -147,12 +156,13 @@ describe(`Generator walker`, function () {
         const expr_3 = (__scope_1.item.name);
     }
     function block_3() {
-        const $index : number = (0);
-        const $first : boolean = (false);
-        const $last : boolean = (false);
-        const $middle : boolean = (false);
-        const $even : boolean = (false);
-        const $odd : boolean = (false);
+        const $index : number = 0;
+        const $first : boolean = false;
+        const $last : boolean = false;
+        const $middle : boolean = false;
+        const $even : boolean = false;
+        const $odd : boolean = false;
+        const $id = (value : any) => "";
         for (const someKey in (__scope_1.someObject)) {
             const someValue = (__scope_1.someObject)[someKey];
             const expr_4 = (someKey + "1");

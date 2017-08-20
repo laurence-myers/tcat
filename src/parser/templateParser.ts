@@ -1,9 +1,9 @@
 import * as cheerio from "cheerio";
 import * as jade from "jade";
-import {GeneratorAstNode, ScopedBlockNode} from "../generator/ast";
+import {TemplateRootNode} from "../generator/ast";
 import {Either} from "monet";
 import {asHtmlContents, HtmlContents, TcatError, TemplateParserError} from "../core";
-import {declare, scopedBlock} from "../generator/dsl";
+import {templateRoot, scopedBlock} from "../generator/dsl";
 import {parseElement} from "./elements";
 
 export function parseJadeToHtml(contents : string) : Either<TcatError[], HtmlContents> {
@@ -16,18 +16,18 @@ export function parseJadeToHtml(contents : string) : Either<TcatError[], HtmlCon
     return Either.Right(asHtmlContents(html));
 }
 
-export function parseHtml(html : string, scopeInterfaceName : string) : Either<TcatError[], ScopedBlockNode> {
+export function parseHtml(html : string, scopeInterfaceName : string) : Either<TcatError[], TemplateRootNode> {
     let $;
     try {
         $ = cheerio.load(html);
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }
-    const result = parseElement($.root().get(0));
-    return result.map((nodes) => {
-        const initial : GeneratorAstNode[] = [
-            declare(`__scope_1`, scopeInterfaceName)
-        ];
-        return scopedBlock(initial.concat(nodes))
-    });
+    const rootAstNode = templateRoot();
+    return parseElement($.root().get(0), rootAstNode)
+        .map((nodes) => {
+            const block = scopedBlock(nodes, scopeInterfaceName);
+            rootAstNode.children.unshift(block);
+            return rootAstNode;
+        });
 }

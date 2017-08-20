@@ -10,9 +10,12 @@ describe("Converter", function () {
             const dir = `${ root }/test/data/example_${ exampleNumber }`;
             const templateContents : JadeContents = asJadeContents(readFileSync(`${ dir }/template.jade`, 'utf8'));
             const tsBaseContents : TypeScriptContents = asTypeScriptContents(readFileSync(`${ dir }/template.jade.ts`, 'utf8'));
-            const expectedContents : TypeScriptContents = asTypeScriptContents(readFileSync(`${ dir }/expected.ts`, 'utf8'));
+            const expectedContents : TypeScriptContents = asTypeScriptContents(
+                readFileSync(`${ dir }/expected.ts`, 'utf8')
+                    .replace(/\r\n/g, '\n')
+            );
             convertJadeContentsToTypeScript(templateContents, tsBaseContents)
-                .map((tsContents) => assert.equal(tsContents, expectedContents))
+                .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents))
                 .leftMap((errors) => { throw errors[0] });
         }
 

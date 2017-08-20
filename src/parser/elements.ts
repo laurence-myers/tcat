@@ -1,7 +1,7 @@
 import {parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
 import {AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
-import {GeneratorAstNode} from "../generator/ast";
+import {GeneratorAstNode, HasChildrenAstNode} from "../generator/ast";
 import {directiveMap} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
@@ -35,7 +35,7 @@ interface ElementParserContext {
     scopeData : ScopeData | undefined;
 }
 
-function addParseResultToContext(context : ElementParserContext, result : SuccessfulParserResult) {
+function addParseResultToContext(context : ElementParserContext, result : SuccessfulParserResult) : void {
     if (result.scopeData) {
         context.scopeData = result.scopeData;
         const siblingsToAdd = result.nodes.slice();
@@ -45,21 +45,21 @@ function addParseResultToContext(context : ElementParserContext, result : Succes
     }
 }
 
-function handleElementDirectiveParseResult(context : ElementParserContext, either : ElementDirectiveParserResult) {
-    return either.bimap(
+function handleElementDirectiveParseResult(context : ElementParserContext, either : ElementDirectiveParserResult) : void {
+    either.bimap(
         (errs) => context.errors.push(...errs),
         (result) => addParseResultToContext(context, result)
     );
 }
 
-function handleAttributeDirectiveParseResult(context : ElementParserContext, either : ParserResult) {
-    return either.bimap(
+function handleAttributeDirectiveParseResult(context : ElementParserContext, either : ParserResult) : void {
+    either.bimap(
         (errs) => context.errors.push(errs),
         (result) => addParseResultToContext(context, result)
     );
 }
 
-export function parseElement(node : CheerioElement) : Either<AttributeParserError[], GeneratorAstNode[]> {
+export function parseElement(node : CheerioElement, root : HasChildrenAstNode) : Either<AttributeParserError[], GeneratorAstNode[]> {
     const context : ElementParserContext = {
         errors: [],
         siblings: [],
@@ -70,7 +70,7 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
     if (node.children) {
         for (const child of node.children) {
             if (!isNgTemplate(node) || !isTextHtmlNode(child)) { // don't double-parse nested templates
-                parseElement(child)
+                parseElement(child, root)
                     .bimap(
                         (errs) => context.errors.push(...errs),
                         (nodes) => {
@@ -128,7 +128,15 @@ export function parseElement(node : CheerioElement) : Either<AttributeParserErro
     let output : GeneratorAstNode[] = [];
     let arrayToAddChildren;
     if (context.scopeData) {
-        output.push(context.scopeData.root);
+        if (context.scopeData.attachToRoot) {
+            if (context.scopeData.root.type == 'TemplateRootNode') {
+                root.children.push(...context.scopeData.root.children); // unwrap nested TemplateRootNodes
+            } else {
+                root.children.push(context.scopeData.root); // this should probably never happen...
+            }
+        } else {
+            output.push(context.scopeData.root);
+        }
         arrayToAddChildren = context.scopeData.childParent.children;
     } else {
         arrayToAddChildren = output;
@@ -170,14 +178,15 @@ export function parseNgTemplateElement(element : CheerioElement) : ElementDirect
         }
         const interfaceName = templateIdToInterfaceName(element.attribs.id);
         const parseResult = parseHtml(childNode.data, interfaceName);
-        return parseResult.map((container) => {
+        return parseResult.map((rootNode) => {
             return {
-                nodes: [container],
+                nodes: [rootNode],
                 scopeData: {
-                    isStart : true,
-                    isEnd : true,
-                    root : container,
-                    childParent : container
+                    isStart: true,
+                    isEnd: true,
+                    root: rootNode,
+                    childParent: rootNode,
+                    attachToRoot: true
                 }
             };
         });

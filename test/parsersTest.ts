@@ -8,7 +8,7 @@ import {
 import * as assert from "assert";
 import {AttributeParserError} from "../src/core";
 import {GeneratorAstNode} from "../src/generator/ast";
-import {arrayIteration, assign, declare, objectIteration, scopedBlock} from "../src/generator/dsl";
+import {arrayIteration, assign, assignTypeScript, objectIteration, scopedBlock} from "../src/generator/dsl";
 
 describe(`Parsers`, function() {
     describe(`expressions with filters`, function () {
@@ -41,7 +41,8 @@ describe(`Parsers`, function() {
                     },
                     variableType: 'const',
                     typeAnnotation: undefined,
-                    name: undefined
+                    name: undefined,
+                    expressionType: 'AngularJS'
                 }
             ];
             assert.deepEqual(actual.nodes, expected);
@@ -52,7 +53,7 @@ describe(`Parsers`, function() {
         function specialProperties() : GeneratorAstNode[] {
             const output : GeneratorAstNode[] = [];
             for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
-                output.push(assign(
+                output.push(assignTypeScript(
                     specialProperty.value,
                     {
                         typeAnnotation: specialProperty.primitiveType,
@@ -146,7 +147,6 @@ describe(`Parsers`, function() {
                 scopedBlock([
                     ...specialProperties(),
                     arrayIteration('item', 'items', [
-                        declare('$id', '(value : any) => string'),
                         assign('$id(item)')
                     ]),
                 ])
@@ -160,7 +160,6 @@ describe(`Parsers`, function() {
                 scopedBlock([
                     ...specialProperties(),
                     arrayIteration('item', 'items | filter : isIgor', [
-                        declare('$id', '(value : any) => string'),
                         assign('$id(item)')
                     ]),
                 ])

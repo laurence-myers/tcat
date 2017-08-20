@@ -291,7 +291,7 @@ export class ExpressionFilterRectifier extends ExpressionToStringWalker {
 export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
     protected nodeStack : AngularJsAstNode[] = [];
 
-    constructor(protected localsStack : Set<string>[] = [new Set<string>()]) {
+    constructor(protected scopeNumber : number, protected localsStack : Set<string>[] = [new Set<string>()]) {
         super();
     }
 
@@ -322,7 +322,7 @@ export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
             && parent
             && this.isAScopeIdentifier(node, parent)
         ) {
-            this.sb += '__scope_1.'; // TODO: compute this
+            this.sb += `__scope_${ this.scopeNumber }.`;
         }
         super.walkIdentifierNode(node);
     }

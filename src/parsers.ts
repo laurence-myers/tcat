@@ -1,6 +1,6 @@
 import {Either} from 'monet';
 import {AttributeParserError} from "./core";
-import {arrayIteration, assign, declare, objectIteration, scopedBlock} from "./generator/dsl";
+import {arrayIteration, assign, assignTypeScript, objectIteration, scopedBlock} from "./generator/dsl";
 import {ArrayIterationNode, GeneratorAstNode, HasChildrenAstNode, ObjectIterationNode} from "./generator/ast";
 import {parseExpressionToAst} from "./ngExpression/ngAstBuilder";
 import {ProgramNode} from "./ngExpression/ast";
@@ -10,6 +10,7 @@ export interface ScopeData {
     isEnd : boolean;
     root : HasChildrenAstNode;
     childParent : HasChildrenAstNode;
+    attachToRoot? : boolean;
 }
 
 export interface SuccessfulParserResult {
@@ -70,6 +71,11 @@ export const NG_REPEAT_SPECIAL_PROPERTIES = [
         name: '$odd',
         primitiveType: 'boolean',
         value: 'false'
+    },
+    {
+        name: '$id',
+        primitiveType: undefined,
+        value: '(value : any) => ""'
     }
 ];
 /**
@@ -102,7 +108,7 @@ export function parseNgRepeat(expression : string) : ParserResult {
 
     const containingNode = scopedBlock();
     for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
-        containingNode.children.push(assign(
+        containingNode.children.push(assignTypeScript(
             specialProperty.value,
             {
                 name: specialProperty.name,
@@ -125,9 +131,6 @@ export function parseNgRepeat(expression : string) : ParserResult {
     }
 
     if (trackByExp && trackByExp != '$index') {
-        if (trackByExp.indexOf('$id(') > -1) {
-            iteratorNode.children.push(declare('$id', '(value : any) => string'));
-        }
         iteratorNode.children.push(assign(trackByExp));
     }
     containingNode.children.push(iteratorNode);

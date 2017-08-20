@@ -1,20 +1,11 @@
 import {
     ArrayIterationNode,
     AssignmentNode,
-    DeclarationNode,
     GeneratorAstNode,
-    ObjectIterationNode,
+    ObjectIterationNode, TemplateRootNode,
     ScopedBlockNode
 } from "./ast";
 import {parseExpression} from "../parsers";
-
-export function declare(name : string, typeAnnotation : string) : DeclarationNode {
-    return {
-        type: "DeclarationNode",
-        name,
-        typeAnnotation
-    };
-}
 
 interface AssignOptions {
     name? : string;
@@ -27,7 +18,19 @@ export function assign(expression : string, options : AssignOptions = { variable
         expression: parseExpression(expression),
         variableType: options.variableType || 'const',
         typeAnnotation: options.typeAnnotation,
-        name : options.name
+        name: options.name,
+        expressionType: 'AngularJS'
+    };
+}
+
+export function assignTypeScript(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
+    return {
+        type: "AssignmentNode",
+        expression: expression,
+        variableType: options.variableType || 'const',
+        typeAnnotation: options.typeAnnotation,
+        name: options.name,
+        expressionType: 'TypeScript'
     };
 }
 
@@ -50,9 +53,17 @@ export function objectIteration(keyName : string, valueName : string, iterable :
     };
 }
 
-export function scopedBlock(children : GeneratorAstNode[] = []) : ScopedBlockNode {
+export function templateRoot(children : GeneratorAstNode[] = []) : TemplateRootNode {
+    return {
+        type: "TemplateRootNode",
+        children
+    };
+}
+
+export function scopedBlock(children : GeneratorAstNode[] = [], scopeInterface? : string) : ScopedBlockNode {
     return {
         type : 'ScopedBlockNode',
-        children
+        children,
+        scopeInterface
     };
 }

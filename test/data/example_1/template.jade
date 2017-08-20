@@ -1,4 +1,6 @@
 p {{:: 'SOME.KEY' | translate }}
 
+div(ng-repeat="item in items track by $id(item)")
+
 script(type="text/ng-template" id="first/second/thirdPart.html")
     p {{ someValue }}

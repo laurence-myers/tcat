@@ -1,25 +1,23 @@
-// export interface PrimitiveNode {
-//     type : 'PrimitiveNode';
-//     name : string;
-//     primitiveType : 'boolean' | 'string' | 'number';
-//     value? : string;
-// }
-
 import {ProgramNode} from "../ngExpression/ast";
 
-export interface DeclarationNode {
-    type : 'DeclarationNode';
-    name : string;
-    typeAnnotation : string;
-}
-
-export interface AssignmentNode {
+export interface BaseAssignmentNode {
     type : 'AssignmentNode';
     name? : string;
     variableType : 'let' | 'const';
     typeAnnotation? : string;
-    expression : ProgramNode;
 }
+
+export interface AngularJsAssignmentNode extends BaseAssignmentNode {
+    expression : ProgramNode;
+    expressionType : 'AngularJS'
+}
+
+export interface TypeScriptAssignmentNode extends BaseAssignmentNode {
+    expression : string;
+    expressionType : 'TypeScript'
+}
+
+export type AssignmentNode = AngularJsAssignmentNode | TypeScriptAssignmentNode;
 
 export interface ArrayIterationNode {
     type : 'ArrayIterationNode';
@@ -39,7 +37,13 @@ export interface ObjectIterationNode {
 export interface ScopedBlockNode {
     type : 'ScopedBlockNode';
     children : GeneratorAstNode[];
+    scopeInterface? : string;
 }
 
-export type HasChildrenAstNode = ScopedBlockNode | ObjectIterationNode | ArrayIterationNode;
-export type GeneratorAstNode = DeclarationNode | AssignmentNode | ArrayIterationNode | ObjectIterationNode | ScopedBlockNode;
+export interface TemplateRootNode {
+    type : 'TemplateRootNode';
+    children : GeneratorAstNode[];
+}
+
+export type HasChildrenAstNode = TemplateRootNode | ScopedBlockNode | ObjectIterationNode | ArrayIterationNode;
+export type GeneratorAstNode = AssignmentNode | HasChildrenAstNode;

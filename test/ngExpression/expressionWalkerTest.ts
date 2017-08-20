@@ -21,7 +21,7 @@ describe(`Expression walkers`, function () {
 
     function scopeRectified(expression : string, localsStack? : Set<string>[]) {
         const ast = parseExpressionToAst(expression);
-        const walker = new ExpressionScopeRectifier(localsStack);
+        const walker = new ExpressionScopeRectifier(1, localsStack);
         return walker.walk(ast);
     }
 
