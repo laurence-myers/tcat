@@ -3,7 +3,8 @@ import {asFileName} from "./core";
 
 async function start() : Promise<void> {
     const templateName = asFileName("examples/smorgasbord/template.jade");
-    convertJadeFileToTypeScriptFile(templateName)
+    const directivesFileName = asFileName("examples/smorgasbord/directives.json");
+    convertJadeFileToTypeScriptFile(templateName, directivesFileName)
         .leftMap(
             (errors) => {
                 console.error("Errors were encountered processing templates.");

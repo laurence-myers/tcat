@@ -15,7 +15,7 @@ export function singleAttribute(name : string, parser : AttributeParser = defaul
 
 export interface DirectiveAttribute {
     name : string;
-    parser : AttributeParser;
+    parser? : AttributeParser;
 }
 
 export interface DirectiveData {
@@ -113,18 +113,30 @@ const BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES = [
     'ng-srcset'
 ];
 
-export const directiveMap : Map<string, DirectiveData> = new Map<string, DirectiveData>();
+export const builtinDirectiveMap : Map<string, DirectiveData> = new Map<string, DirectiveData>();
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES) {
-    directiveMap.set(name, singleAttribute(name));
+    builtinDirectiveMap.set(name, singleAttribute(name));
 }
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES) {
-    directiveMap.set(name, singleAttribute(name, parseInterpolatedText));
+    builtinDirectiveMap.set(name, singleAttribute(name, parseInterpolatedText));
 }
-directiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
-directiveMap.set('script', {
+builtinDirectiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
+builtinDirectiveMap.set('script', {
     name: 'ng-template',
     canBeElement: true,
     canBeAttribute: false,
-    parser: (el) => parseNgTemplateElement(el), // not sure why this wrapping function is required...
+    parser: (el, directives) => parseNgTemplateElement(el, directives), // not sure why this wrapping function is required...
     attributes: []
 });
+
+// TODO: support multiple directives per tag/element name. (1:M)
+export function createDirectiveMap(directives : DirectiveData[]) : Map<string, DirectiveData> {
+    const map = new Map<string, DirectiveData>();
+    for (const [key, value] of builtinDirectiveMap.entries()) {
+        map.set(key, value);
+    }
+    for (const directive of directives) {
+        map.set(directive.name, directive);
+    }
+    return map;
+}

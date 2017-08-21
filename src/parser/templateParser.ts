@@ -3,8 +3,9 @@ import * as jade from "jade";
 import {TemplateRootNode} from "../generator/ast";
 import {Either} from "monet";
 import {asHtmlContents, HtmlContents, TcatError, TemplateParserError} from "../core";
-import {templateRoot, scopedBlock} from "../generator/dsl";
+import {scopedBlock, templateRoot} from "../generator/dsl";
 import {parseElement} from "./elements";
+import {DirectiveData} from "../directives";
 
 export function parseJadeToHtml(contents : string) : Either<TcatError[], HtmlContents> {
     let html;
@@ -16,7 +17,7 @@ export function parseJadeToHtml(contents : string) : Either<TcatError[], HtmlCon
     return Either.Right(asHtmlContents(html));
 }
 
-export function parseHtml(html : string, scopeInterfaceName : string) : Either<TcatError[], TemplateRootNode> {
+export function parseHtml(html : string, scopeInterfaceName : string, directives : Map<string, DirectiveData>) : Either<TcatError[], TemplateRootNode> {
     let $;
     try {
         $ = cheerio.load(html);
@@ -24,7 +25,7 @@ export function parseHtml(html : string, scopeInterfaceName : string) : Either<T
         return Either.Left([new TemplateParserError(err)]);
     }
     const rootAstNode = templateRoot();
-    return parseElement($.root().get(0), rootAstNode)
+    return parseElement($.root().get(0), rootAstNode, directives)
         .map((nodes) => {
             const block = scopedBlock(nodes, scopeInterfaceName);
             rootAstNode.children.unshift(block);

@@ -1,13 +1,13 @@
-import {parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
+import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
 import {AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
 import {GeneratorAstNode, HasChildrenAstNode} from "../generator/ast";
-import {directiveMap} from "../directives";
+import {DirectiveData} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>
-export type ElementDirectiveParser = (element : CheerioElement) => ElementDirectiveParserResult;
+export type ElementDirectiveParser = (element : CheerioElement, directives : Map<string, DirectiveData>) => ElementDirectiveParserResult;
 
 interface TextHtmlNode extends CheerioElement {
     type : 'text';
@@ -59,7 +59,7 @@ function handleAttributeDirectiveParseResult(context : ElementParserContext, eit
     );
 }
 
-export function parseElement(node : CheerioElement, root : HasChildrenAstNode) : Either<AttributeParserError[], GeneratorAstNode[]> {
+export function parseElement(node : CheerioElement, root : HasChildrenAstNode, directives : Map<string, DirectiveData>) : Either<AttributeParserError[], GeneratorAstNode[]> {
     const context : ElementParserContext = {
         errors: [],
         siblings: [],
@@ -70,7 +70,7 @@ export function parseElement(node : CheerioElement, root : HasChildrenAstNode) :
     if (node.children) {
         for (const child of node.children) {
             if (!isNgTemplate(node) || !isTextHtmlNode(child)) { // don't double-parse nested templates
-                parseElement(child, root)
+                parseElement(child, root, directives)
                     .bimap(
                         (errs) => context.errors.push(...errs),
                         (nodes) => {
@@ -81,33 +81,35 @@ export function parseElement(node : CheerioElement, root : HasChildrenAstNode) :
         }
     }
     // Parse element directives
-    const tagLookup = directiveMap.get(node.tagName);
+    const tagLookup = directives.get(node.tagName);
     if (tagLookup && tagLookup.canBeElement) {
         const elemParser = tagLookup.parser;
         if (elemParser) {
             handleElementDirectiveParseResult(
                 context,
-                elemParser(node)
+                elemParser(node, directives)
             );
         }
         for (const subAttribEntry of tagLookup.attributes) {
             const subAttribValue = node.attribs[subAttribEntry.name];
+            const parser = subAttribEntry.parser || defaultParser;
             handleAttributeDirectiveParseResult(
                 context,
-                subAttribEntry.parser(subAttribValue)
+                parser(subAttribValue)
             );
         }
     }
     // Parse attributes: directives and interpolated text
     for (const key in node.attribs) {
-        const attribLookup = directiveMap.get(key);
+        const attribLookup = directives.get(key);
         const value = node.attribs[key];
         if (attribLookup && attribLookup.canBeAttribute) {
             for (const subAttribEntry of attribLookup.attributes) {
                 const subAtribValue = node.attribs[subAttribEntry.name];
+                const parser = subAttribEntry.parser || defaultParser;
                 handleAttributeDirectiveParseResult(
                     context,
-                    subAttribEntry.parser(subAtribValue)
+                    parser(subAtribValue)
                 );
             }
         } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
@@ -159,7 +161,7 @@ function isNgTemplate(element : CheerioElement) : boolean {
     return element.attribs.type === 'text/ng-template'
 }
 
-export function parseNgTemplateElement(element : CheerioElement) : ElementDirectiveParserResult {
+export function parseNgTemplateElement(element : CheerioElement, directives : Map<string, DirectiveData>) : ElementDirectiveParserResult {
     if (!isScriptNode(element)) {
         return Either.Left([new ElementDirectiveParserError(`ng-template parse expected a "script" element, but got "${ element.type }" instead.`)]);
     } else if (element.attribs.type !== 'text/ng-template') {
@@ -177,7 +179,7 @@ export function parseNgTemplateElement(element : CheerioElement) : ElementDirect
             return Either.Left([new ElementDirectiveParserError(`ng-template script child node must be a text node.`)]);
         }
         const interfaceName = templateIdToInterfaceName(element.attribs.id);
-        const parseResult = parseHtml(childNode.data, interfaceName);
+        const parseResult = parseHtml(childNode.data, interfaceName, directives);
         return parseResult.map((rootNode) => {
             return {
                 nodes: [rootNode],

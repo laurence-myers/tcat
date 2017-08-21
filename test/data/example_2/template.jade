@@ -1,0 +1,6 @@
+// TODO: check that directive names/arguments are valid
+my-element-directive(some-arg="prop1" another-arg="prop2")
+    // TODO: support transcluded content properly! This will check the parent scope, not the directive scope!
+    div Transcluded content: {{ directiveFunction() }}
+
+div(my-attribute-directive some-attrib-string="asdf" some-attrib-expression="prop1 + prop2")

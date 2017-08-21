@@ -1,0 +1,25 @@
+[
+  {
+    "name": "my-element-directive",
+    "canBeElement": true,
+    "canBeAttribute": false,
+    "attributes": [
+      {
+        "name": "some-arg"
+      },
+      {
+        "name": "another-arg"
+      }
+    ]
+  },
+  {
+    "name": "my-attribute-directive",
+    "canBeElement": false,
+    "canBeAttribute": true,
+    "attributes": [
+      {
+        "name": "some-attrib-expression"
+      }
+    ]
+  }
+]
