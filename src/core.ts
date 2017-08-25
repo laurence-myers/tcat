@@ -41,9 +41,9 @@ const enum AsFileName {}
 export type FileName = string & AsFileName;
 export function asFileName(value : string) { return value as FileName; }
 
-const enum AsJadeContents {}
-export type JadeContents = string & AsJadeContents;
-export function asJadeContents(value : string) { return value as JadeContents; }
+const enum AsPugContents {}
+export type PugContents = string & AsPugContents;
+export function asPugContents(value : string) { return value as PugContents; }
 
 const enum AsHtmlContents {}
 export type HtmlContents = string & AsHtmlContents;

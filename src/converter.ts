@@ -1,8 +1,8 @@
-import {parseHtml, parseJadeToHtml} from "./parser/templateParser";
+import {parseHtml, parsePugToHtml} from "./parser/templateParser";
 import {
     asFileName,
     asHtmlContents,
-    asJadeContents,
+    asPugContents,
     asTypeScriptContents,
     FileName,
     HtmlContents,
@@ -59,11 +59,11 @@ export function convertHtmlFileToTypeScript(templateFileName : FileName, directi
         );
 }
 
-export function convertJadeFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+export function convertPugFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFileWrap(templateFileName)
         .flatMap(
-            (jadeContents) =>
-                parseJadeToHtml(asJadeContents(jadeContents), templateFileName)
+            (pugContents) =>
+                parsePugToHtml(asPugContents(pugContents), templateFileName)
                     .flatMap((htmlContents) =>
                         readFilesAndConvertContents(templateFileName, directivesFileName, htmlContents)
                     )
@@ -81,8 +81,8 @@ export function convertHtmlFileToTypeScriptFile(templateFileName : FileName, dir
         );
 }
 
-export function convertJadeFileToTypeScriptFile(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], void> {
-    return convertJadeFileToTypeScript(templateFileName, directivesFileName)
+export function convertPugFileToTypeScriptFile(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], void> {
+    return convertPugFileToTypeScript(templateFileName, directivesFileName)
         .flatMap(
             (typeScriptContents) => writeFileWrap(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
         );

@@ -1,6 +1,6 @@
 import {Command, command, param} from "clime";
 import {asFileName} from "../core";
-import {convertJadeFileToTypeScriptFile} from "../converter";
+import {convertPugFileToTypeScriptFile} from "../converter";
 import {File} from "clime/bld/castable";
 
 @command({
@@ -24,7 +24,7 @@ export default class extends Command {
         await directives.assert();
         await templateName.assert();
         console.log("Starting...");
-        convertJadeFileToTypeScriptFile(asFileName(templateName.fullName), asFileName(directives.fullName))
+        convertPugFileToTypeScriptFile(asFileName(templateName.fullName), asFileName(directives.fullName))
             .bimap(
                 (errors) => {
                     console.error("Errors were encountered processing templates.");

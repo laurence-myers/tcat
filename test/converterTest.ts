@@ -1,7 +1,7 @@
 import {path as root} from "app-root-path";
 import {readFileSync} from "fs";
 import {asFileName, asTypeScriptContents, TypeScriptContents} from "../src/core";
-import {convertJadeFileToTypeScript} from "../src/converter";
+import {convertPugFileToTypeScript} from "../src/converter";
 import * as assert from "assert";
 
 describe("Converter", function () {
@@ -14,7 +14,7 @@ describe("Converter", function () {
                 readFileSync(`${ dir }/expected.ts`, 'utf8')
                     .replace(/\r\n/g, '\n')
             );
-            convertJadeFileToTypeScript(templateName, directivesName)
+            convertPugFileToTypeScript(templateName, directivesName)
                 .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents))
                 .leftMap((errors) => { throw errors[0] });
         }
