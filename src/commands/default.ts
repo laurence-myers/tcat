@@ -15,7 +15,7 @@ export default class extends Command {
         })
         directives : File,
         @param({
-            description: 'The file name of the template wish to type check.',
+            description: 'The file name of the template you wish to type check.',
             required: true,
             type: File,
         })
