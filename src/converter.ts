@@ -6,7 +6,6 @@ import {
     asTypeScriptContents,
     FileName,
     HtmlContents,
-    JadeContents,
     readFile,
     TcatError,
     TypeScriptContents,
@@ -40,25 +39,23 @@ export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, bas
         .map((ast) => {
             const tsCode = generateTypeScript(ast);
             const final = '/* tslint:disable */\n' + baseTypeScript + '\n' + tsCode;
-            console.log(final);
             return asTypeScriptContents(final);
         });
 }
 
-export function convertJadeContentsToTypeScript(jadeContents : JadeContents, baseTypeScript : TypeScriptContents, directives : DirectiveData[]) : Either<TcatError[], TypeScriptContents> {
-    return parseJadeToHtml(jadeContents)
-        .flatMap((html) => convertHtmlContentsToTypeScript(html, baseTypeScript, directives));
+function readFilesAndConvertContents(templateFileName : FileName, directivesFileName : FileName, htmlContents : HtmlContents) : Either<TcatError[], TypeScriptContents> {
+    return readExistingTypeScriptFile(templateFileName)
+        .flatMap((baseTypescriptContents) =>
+            readDirectiveDataFile(directivesFileName)
+                .flatMap((directives) => convertHtmlContentsToTypeScript(htmlContents, baseTypescriptContents, directives))
+        )
 }
 
 export function convertHtmlFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFileWrap(templateFileName)
         .flatMap(
             (htmlContents) =>
-                readExistingTypeScriptFile(templateFileName)
-                    .flatMap((baseTypescriptContents) =>
-                        readDirectiveDataFile(directivesFileName)
-                            .flatMap((directives) => convertHtmlContentsToTypeScript(asHtmlContents(htmlContents), baseTypescriptContents, directives))
-                    )
+                readFilesAndConvertContents(templateFileName, directivesFileName, asHtmlContents(htmlContents))
         );
 }
 
@@ -66,11 +63,9 @@ export function convertJadeFileToTypeScript(templateFileName : FileName, directi
     return readFileWrap(templateFileName)
         .flatMap(
             (jadeContents) =>
-                readExistingTypeScriptFile(templateFileName)
-                    .flatMap((baseTypescriptContents) =>
-                        readDirectiveDataFile(directivesFileName)
-                            .flatMap((directives) =>
-                                convertJadeContentsToTypeScript(asJadeContents(jadeContents), baseTypescriptContents, directives))
+                parseJadeToHtml(asJadeContents(jadeContents), templateFileName)
+                    .flatMap((htmlContents) =>
+                        readFilesAndConvertContents(templateFileName, directivesFileName, htmlContents)
                     )
         );
 }

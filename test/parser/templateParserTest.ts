@@ -3,11 +3,12 @@ import * as assert from "assert";
 import {assign, templateRoot, scopedBlock} from "../../src/generator/dsl";
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
+import {asHtmlContents} from "../../src/core";
 
 describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
         function verifyHtml(html : string, expected : TemplateRootNode, directives : DirectiveData[]) {
-            const either = parseHtml(html, 'TemplateScope', createDirectiveMap(directives));
+            const either = parseHtml(asHtmlContents(html), 'TemplateScope', createDirectiveMap(directives));
             assert.ok(either.isRight(), "Expected to parse HTML successfully");
             const result = either.right();
             assert.deepEqual(result, expected);

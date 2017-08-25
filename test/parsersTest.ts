@@ -21,7 +21,7 @@ describe(`Parsers`, function() {
                 {
                     type: "AssignmentNode",
                     expression: {
-                        type: 'Program',
+                        type: "Program",
                         body: [{
                             expression: {
                                 "type": "CallExpression",

@@ -1,6 +1,6 @@
 import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
-import {AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
+import {asHtmlContents, AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
 import {GeneratorAstNode, HasChildrenAstNode} from "../generator/ast";
 import {DirectiveData} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
@@ -179,7 +179,7 @@ export function parseNgTemplateElement(element : CheerioElement, directives : Ma
             return Either.Left([new ElementDirectiveParserError(`ng-template script child node must be a text node.`)]);
         }
         const interfaceName = templateIdToInterfaceName(element.attribs.id);
-        const parseResult = parseHtml(childNode.data, interfaceName, directives);
+        const parseResult = parseHtml(asHtmlContents(childNode.data), interfaceName, directives);
         return parseResult.map((rootNode) => {
             return {
                 nodes: [rootNode],
