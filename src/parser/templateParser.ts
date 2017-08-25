@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import * as jade from "jade";
 import * as pug from "pug";
 import {TemplateRootNode} from "../generator/ast";
 import {Either} from "monet";
@@ -10,10 +11,18 @@ import {DirectiveData} from "../directives";
 export function parsePugToHtml(contents : PugContents, templateFileName? : FileName) : Either<TcatError[], HtmlContents> {
     let html;
     try {
-        html = pug.render(contents, {
-            filename: templateFileName,
-
-        });
+        // In pug files, "include" statements expect a file extension of .pug. You can work around this by explicitly
+        // including the file extension of .jade, but it still emits a warning message to stdout.
+        // So, let's just use the legacy module for old ".jade" templates.
+        if (templateFileName && templateFileName.toLowerCase().lastIndexOf('.jade') == templateFileName.length - 5) {
+            html = jade.render(contents, {
+                filename: templateFileName
+            });
+        } else {
+            html = pug.render(contents, {
+                filename: templateFileName
+            });
+        }
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }

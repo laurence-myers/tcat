@@ -19,6 +19,7 @@
     "angular-expressions": "github:peerigon/angular-expressions",
     "cheerio": "^1.0.0-rc.2",
     "clime": "0.5.1",
+    "jade": "1.11.0",
     "monet": "0.8.10",
     "pug": "2.0.0-rc.3",
     "typescript": "2.4.2",
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@types/app-root-path": "1.2.4",
     "@types/cheerio": "^0.22.2",
+    "@types/jade": "0.0.30",
     "@types/mocha": "2.2.41",
     "@types/node": "6.0.63",
     "@types/pug": "2.0.4",
