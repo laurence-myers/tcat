@@ -2,10 +2,12 @@ import {
     ArrayIterationNode,
     AssignmentNode,
     GeneratorAstNode,
-    ObjectIterationNode, TemplateRootNode,
-    ScopedBlockNode
+    ObjectIterationNode,
+    ParameterNode,
+    ScopedBlockNode,
+    TemplateRootNode
 } from "./ast";
-import {parseExpression} from "../parsers";
+import {parseExpression} from "../ngExpression/ngAstBuilder";
 
 interface AssignOptions {
     name? : string;
@@ -53,6 +55,14 @@ export function objectIteration(keyName : string, valueName : string, iterable :
     };
 }
 
+export function parameter(name : string, typeAnnotation : string) : ParameterNode {
+    return {
+        type: "ParameterNode",
+        name,
+        typeAnnotation
+    };
+}
+
 export function templateRoot(children : GeneratorAstNode[] = []) : TemplateRootNode {
     return {
         type: "TemplateRootNode",
@@ -60,9 +70,10 @@ export function templateRoot(children : GeneratorAstNode[] = []) : TemplateRootN
     };
 }
 
-export function scopedBlock(children : GeneratorAstNode[] = [], scopeInterface? : string) : ScopedBlockNode {
+export function scopedBlock(parameters : ParameterNode[], children : GeneratorAstNode[] = [], scopeInterface? : string) : ScopedBlockNode {
     return {
-        type : 'ScopedBlockNode',
+        type: "ScopedBlockNode",
+        parameters,
         children,
         scopeInterface
     };

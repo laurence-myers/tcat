@@ -19,9 +19,9 @@ describe(`Template parsers`, function () {
     <div ng-click="someFunc()"></div>
 </script>`;
             const expected = templateRoot([
-                scopedBlock([
+                scopedBlock([], [
                 ], `TemplateScope`),
-                scopedBlock([
+                scopedBlock([], [
                     assign(`someFunc()`)
                 ], `SomeNestedTemplateHtmlScope`)
             ]);
@@ -35,11 +35,11 @@ describe(`Template parsers`, function () {
     </script>
 </script>`;
             const expected = templateRoot([
-                scopedBlock([
+                scopedBlock([], [
                 ], `TemplateScope`),
-                scopedBlock([
+                scopedBlock([], [
                 ], `SomeNestedTemplateHtmlScope`),
-                scopedBlock([
+                scopedBlock([], [
                     assign(`someFunc()`)
                 ], `AnotherNestedTemplateHtmlScope`)
             ]);
@@ -61,7 +61,7 @@ describe(`Template parsers`, function () {
                 }
             ];
             const expected = templateRoot([
-                scopedBlock([
+                scopedBlock([], [
                     assign(`scopeProperty1`)
                 ], `TemplateScope`),
             ]);
@@ -87,7 +87,7 @@ describe(`Template parsers`, function () {
                 }
             ];
             const expected = templateRoot([
-                scopedBlock([
+                scopedBlock([], [
                     assign(`scopeProperty1`)
                 ], `TemplateScope`),
             ]);

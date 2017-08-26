@@ -34,8 +34,15 @@ export interface ObjectIterationNode {
     children : GeneratorAstNode[];
 }
 
+export interface ParameterNode {
+    type : 'ParameterNode';
+    name : string;
+    typeAnnotation : string;
+}
+
 export interface ScopedBlockNode {
     type : 'ScopedBlockNode';
+    parameters : ParameterNode[];
     children : GeneratorAstNode[];
     scopeInterface? : string;
 }
@@ -46,4 +53,4 @@ export interface TemplateRootNode {
 }
 
 export type HasChildrenAstNode = TemplateRootNode | ScopedBlockNode | ObjectIterationNode | ArrayIterationNode;
-export type GeneratorAstNode = AssignmentNode | HasChildrenAstNode;
+export type GeneratorAstNode = AssignmentNode | HasChildrenAstNode | ParameterNode;

@@ -1,4 +1,4 @@
-import {parseExpressionToAst} from "../../src/ngExpression/ngAstBuilder";
+import {parseExpression} from "../../src/ngExpression/ngAstBuilder";
 import {
     ExpressionFilterRectifier,
     ExpressionScopeRectifier,
@@ -8,19 +8,19 @@ import * as assert from "assert";
 
 describe(`Expression walkers`, function () {
     function toAstToString(expression : string) {
-        const ast = parseExpressionToAst(expression);
+        const ast = parseExpression(expression);
         const walker = new ExpressionToStringWalker();
         return walker.walk(ast);
     }
 
     function rectified(expression : string) {
-        const ast = parseExpressionToAst(expression);
+        const ast = parseExpression(expression);
         const walker = new ExpressionFilterRectifier();
         return walker.walk(ast);
     }
 
     function scopeRectified(expression : string, localsStack? : Set<string>[]) {
-        const ast = parseExpressionToAst(expression);
+        const ast = parseExpression(expression);
         const walker = new ExpressionScopeRectifier(1, localsStack);
         return walker.walk(ast);
     }

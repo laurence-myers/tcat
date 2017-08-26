@@ -727,7 +727,16 @@ export const $parseOptions = {
     isIdentifierContinue: isFunction(identContinue) && identContinue
 };
 
-export function parseExpressionToAst(expression : string) : ProgramNode {
+export function parseExpression(expression : string) : ProgramNode {
+    if (!expression) {
+        return {
+            type: 'Program',
+            body: []
+        };
+    }
+    if (expression.startsWith('::')) { // strip one-time binding syntax
+        expression = expression.substring(2);
+    }
     const options = $parseOptions;
     const astBuilder = new AstBuilder(new Lexer(options), options);
     return astBuilder.ast(expression);

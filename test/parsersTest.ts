@@ -8,7 +8,7 @@ import {
 import * as assert from "assert";
 import {AttributeParserError} from "../src/core";
 import {GeneratorAstNode} from "../src/generator/ast";
-import {arrayIteration, assign, assignTypeScript, objectIteration, scopedBlock} from "../src/generator/dsl";
+import {arrayIteration, assign, objectIteration, scopedBlock} from "../src/generator/dsl";
 
 describe(`Parsers`, function() {
     describe(`expressions with filters`, function () {
@@ -50,20 +50,6 @@ describe(`Parsers`, function() {
     });
 
     describe(`parseNgRepeat`, function () {
-        function specialProperties() : GeneratorAstNode[] {
-            const output : GeneratorAstNode[] = [];
-            for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
-                output.push(assignTypeScript(
-                    specialProperty.value,
-                    {
-                        typeAnnotation: specialProperty.primitiveType,
-                        name: specialProperty.name
-                    }
-                ));
-            }
-            return output;
-        }
-
         function testExpression(expression : string) : SuccessfulParserResult {
             const result = parseNgRepeat(expression);
             assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
@@ -78,8 +64,7 @@ describe(`Parsers`, function() {
 
         it(`should iterate over an array of objects`, function () {
             const iterationNode = arrayIteration('item', 'items');
-            const rootNode = scopedBlock([
-                ...specialProperties(),
+            const rootNode = scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
                 iterationNode
             ]);
             const actual = testExpression('item in items');
@@ -98,8 +83,7 @@ describe(`Parsers`, function() {
         it(`should be possible to use one-time bindings on the collection`, function () {
             const actual = testExpression('item in ::items');
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
                     arrayIteration('item', 'items')
                 ])
             ];
@@ -109,8 +93,7 @@ describe(`Parsers`, function() {
         it(`should iterate over on object/map`, function () {
             const actual = testExpression('(key, value) in items');
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     objectIteration('key', 'value', 'items')
                 ])
             ];
@@ -120,8 +103,7 @@ describe(`Parsers`, function() {
         it(`should iterate over on object/map where (key,value) contains whitespaces`, function () {
             const actual = testExpression(`(  key ,  value  ) in items`);
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     objectIteration('key', 'value', 'items')
                 ])
             ];
@@ -131,8 +113,7 @@ describe(`Parsers`, function() {
         it(`should track using expression function`, function () {
             const actual = testExpression(`item in items track by item.id`);
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items', [
                         assign('item.id')
                     ]),
@@ -144,8 +125,7 @@ describe(`Parsers`, function() {
         it(`should track using build in $id function`, function () {
             const actual = testExpression(`item in items track by $id(item)`);
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items', [
                         assign('$id(item)')
                     ]),
@@ -157,8 +137,7 @@ describe(`Parsers`, function() {
         it('should still filter when track is present', function() {
             const actual = testExpression(`item in items | filter:isIgor track by $id(item)`);
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items | filter : isIgor', [
                         assign('$id(item)')
                     ]),
@@ -170,8 +149,7 @@ describe(`Parsers`, function() {
         it('should track using provided function when a filter is present', function() {
             const actual = testExpression(`item in items | filter:newArray track by item.id`);
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items | filter : newArray', [
                         assign('item.id')
                     ]),
@@ -183,8 +161,7 @@ describe(`Parsers`, function() {
         it('should iterate over an array of primitives', function() {
             const actual = testExpression(`item in items track by $index`);
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items', [
                     ]),
                 ])
@@ -195,8 +172,7 @@ describe(`Parsers`, function() {
         it('should iterate over object with changing primitive property values', function() {
             const actual = testExpression('(key, value) in items track by $index');
             const expected = [
-                scopedBlock([
-                    ...specialProperties(),
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     objectIteration('key', 'value', 'items', [
                     ]),
                 ])
@@ -208,8 +184,7 @@ describe(`Parsers`, function() {
             it('should assigned the filtered to the target scope property if an alias is provided', function() {
                 const actual = testExpression('item in items | filter:x as results track by $index');
                 const expected = [
-                    scopedBlock([
-                        ...specialProperties(),
+                    scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                         assign('items | filter : x', {
                             name: 'results'
                         }),

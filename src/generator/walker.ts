@@ -4,7 +4,7 @@ import {
     GeneratorAstNode,
     ObjectIterationNode,
     TemplateRootNode,
-    ScopedBlockNode
+    ScopedBlockNode, ParameterNode
 } from "./ast";
 import {assertNever} from "../core";
 import {ExpressionScopeRectifier} from "../ngExpression/expressionWalker";
@@ -14,6 +14,7 @@ export abstract class BaseWalker {
     protected abstract walkArrayIterationNode(node : ArrayIterationNode) : void;
     protected abstract walkAssignmentNode(node : AssignmentNode) : void;
     protected abstract walkObjectIterationNode(node : ObjectIterationNode) : void;
+    protected abstract walkParameterNode(node : ParameterNode) : void;
     protected abstract walkScopedBlockNode(node : ScopedBlockNode) : void;
     protected abstract walkTemplateRootNode(node : TemplateRootNode) : void;
 
@@ -29,6 +30,8 @@ export abstract class BaseWalker {
                 return this.walkAssignmentNode(node);
             case 'ObjectIterationNode':
                 return this.walkObjectIterationNode(node);
+            case 'ParameterNode':
+                return this.walkParameterNode(node);
             case 'ScopedBlockNode':
                 return this.walkScopedBlockNode(node);
             case 'TemplateRootNode':
@@ -45,12 +48,15 @@ export class SkippingWalker extends BaseWalker {
         return this.dispatchAll(node.children);
     }
 
-    protected walkAssignmentNode(_ : AssignmentNode) {
+    protected walkAssignmentNode(_node : AssignmentNode) {
 
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
         return this.dispatchAll(node.children);
+    }
+
+    protected walkParameterNode(_node : ParameterNode) : void {
     }
 
     protected walkScopedBlockNode(node : ScopedBlockNode) {
@@ -141,13 +147,28 @@ export class TypeScriptGenerator extends SkippingWalker {
         this.writeLine(`}`);
     }
 
+    protected walkParameterNode(node : ParameterNode) : void {
+        this.writeLine(`${ node.name } : ${ node.typeAnnotation },`);
+        this.addLocal(node.name);
+    }
+
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
         if (node.scopeInterface) {
             this.writeLine(`declare const __scope_${ ++this.counters.scopes } : ${ node.scopeInterface };`);
         }
-        this.writeLine(`function block_${ ++this.counters.blocks }() {`);
-        this.indentLevel++;
         this.pushLocalsScope();
+        const blockStart = `function block_${ ++this.counters.blocks }(`;
+        const blockStartSuffix = `) {`;
+        if (node.parameters.length > 0) {
+            this.writeLine(blockStart);
+            this.indentLevel++;
+            this.dispatchAll(node.parameters);
+            this.indentLevel--;
+            this.writeLine(blockStartSuffix);
+        } else {
+            this.writeLine(blockStart + blockStartSuffix);
+        }
+        this.indentLevel++;
         super.walkScopedBlockNode(node);
         this.popLocalsScope();
         this.indentLevel--;

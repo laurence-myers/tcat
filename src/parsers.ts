@@ -1,9 +1,13 @@
 import {Either} from 'monet';
 import {AttributeParserError} from "./core";
-import {arrayIteration, assign, assignTypeScript, objectIteration, scopedBlock} from "./generator/dsl";
-import {ArrayIterationNode, GeneratorAstNode, HasChildrenAstNode, ObjectIterationNode} from "./generator/ast";
-import {parseExpressionToAst} from "./ngExpression/ngAstBuilder";
-import {ProgramNode} from "./ngExpression/ast";
+import {arrayIteration, assign, objectIteration, parameter, scopedBlock} from "./generator/dsl";
+import {
+    ArrayIterationNode,
+    GeneratorAstNode,
+    HasChildrenAstNode,
+    ObjectIterationNode,
+    ParameterNode
+} from "./generator/ast";
 
 export interface ScopeData {
     isStart : boolean;
@@ -22,61 +26,21 @@ export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 // Splits a string into one or more expression strings
 export type AttributeParser = (attrib : string) => ParserResult;
 
-export function parseExpression(expression : string) : ProgramNode {
-    if (!expression) {
-        return {
-            type: 'Program',
-            body: []
-        };
-    }
-    if (expression.startsWith('::')) { // strip one-time binding syntax
-        expression = expression.substring(2);
-    }
-    return parseExpressionToAst(expression);
-}
-
 export function defaultParser(attrib : string) : ParserResult {
     return Either.Right({
         nodes: [assign(attrib)]
     });
 }
 
-export const NG_REPEAT_SPECIAL_PROPERTIES = [
-    {
-        name: '$index',
-        primitiveType: 'number',
-        value: '0'
-    },
-    {
-        name: '$first',
-        primitiveType: 'boolean',
-        value: 'false'
-    },
-    {
-        name: '$last',
-        primitiveType: 'boolean',
-        value: 'false'
-    },
-    {
-        name: '$middle',
-        primitiveType: 'boolean',
-        value: 'false'
-    },
-    {
-        name: '$even',
-        primitiveType: 'boolean',
-        value: 'false'
-    },
-    {
-        name: '$odd',
-        primitiveType: 'boolean',
-        value: 'false'
-    },
-    {
-        name: '$id',
-        primitiveType: undefined,
-        value: '(value : any) => ""'
-    }
+console.log(parameter);
+export const NG_REPEAT_SPECIAL_PROPERTIES : ParameterNode[] = [
+    parameter(`$index`, `number`),
+    parameter(`$first`, `boolean`),
+    parameter(`$last`, `boolean`),
+    parameter(`$middle`, `boolean`),
+    parameter(`$even`, `boolean`),
+    parameter(`$odd`, `boolean`),
+    parameter(`$id`, `(value : any) => ""`)
 ];
 /**
  * This code is derived from the AngularJS source code.
@@ -106,15 +70,7 @@ export function parseNgRepeat(expression : string) : ParserResult {
         return Either.Left(new AttributeParserError(`alias \'{${ aliasAs }}\' is invalid --- must be a valid JS identifier which is not a reserved name.`));
     }
 
-    const containingNode = scopedBlock();
-    for (const specialProperty of NG_REPEAT_SPECIAL_PROPERTIES) {
-        containingNode.children.push(assignTypeScript(
-            specialProperty.value,
-            {
-                name: specialProperty.name,
-                typeAnnotation: specialProperty.primitiveType
-            }));
-    }
+    const containingNode = scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES);
 
     let iteratorNode;
     let iterableName;

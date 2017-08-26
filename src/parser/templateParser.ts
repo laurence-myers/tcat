@@ -39,7 +39,7 @@ export function parseHtml(html : HtmlContents, scopeInterfaceName : string, dire
     const rootAstNode = templateRoot();
     return parseElement($.root().get(0), rootAstNode, directives)
         .map((nodes) => {
-            const block = scopedBlock(nodes, scopeInterfaceName);
+            const block = scopedBlock([], nodes, scopeInterfaceName);
             rootAstNode.children.unshift(block);
             return rootAstNode;
         });
