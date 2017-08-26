@@ -9,29 +9,15 @@ import {
     readFile,
     TcatError,
     TypeScriptContents,
-    wrapInArray,
     writeFile
 } from "./core";
 import {generateTypeScript} from "./generator/walker";
 import {Either} from "monet";
 import {createDirectiveMap, DirectiveData} from "./directives";
-
-function readFileWrap(templateFileName : FileName) : Either<TcatError[], string> {
-    return readFile(templateFileName).leftMap(wrapInArray);
-}
-
-function writeFileWrap(templateFileName : FileName, contents : string) : Either<TcatError[], void> {
-    return writeFile(templateFileName, contents).leftMap(wrapInArray);
-}
+import {readDirectiveDataFile, readTypeScriptFile} from "./files";
 
 function readExistingTypeScriptFile(templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
-    return readFileWrap(asFileName(templateFileName + ".ts"))
-        .map(asTypeScriptContents);
-}
-
-function readDirectiveDataFile(directiveFileName : FileName) : Either<TcatError[], DirectiveData[]> {
-    return readFileWrap(directiveFileName)
-        .map((contents) => JSON.parse(contents));
+    return readTypeScriptFile(asFileName(templateFileName + `.ts`));
 }
 
 export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, baseTypeScript : TypeScriptContents, directives : DirectiveData[]) : Either<TcatError[], TypeScriptContents> {
@@ -52,7 +38,7 @@ function readFilesAndConvertContents(templateFileName : FileName, directivesFile
 }
 
 export function convertHtmlFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
-    return readFileWrap(templateFileName)
+    return readFile(templateFileName)
         .flatMap(
             (htmlContents) =>
                 readFilesAndConvertContents(templateFileName, directivesFileName, asHtmlContents(htmlContents))
@@ -60,7 +46,7 @@ export function convertHtmlFileToTypeScript(templateFileName : FileName, directi
 }
 
 export function convertPugFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
-    return readFileWrap(templateFileName)
+    return readFile(templateFileName)
         .flatMap(
             (pugContents) =>
                 parsePugToHtml(asPugContents(pugContents), templateFileName)
@@ -77,13 +63,13 @@ function generateTypeScriptOutputFileName(templateFileName : FileName) : FileNam
 export function convertHtmlFileToTypeScriptFile(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], void> {
     return convertHtmlFileToTypeScript(templateFileName, directivesFileName)
         .flatMap(
-            (typeScriptContents) => writeFileWrap(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
+            (typeScriptContents) => writeFile(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
         );
 }
 
 export function convertPugFileToTypeScriptFile(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], void> {
     return convertPugFileToTypeScript(templateFileName, directivesFileName)
         .flatMap(
-            (typeScriptContents) => writeFileWrap(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
+            (typeScriptContents) => writeFile(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
         );
 }

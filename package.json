@@ -4,6 +4,7 @@
   "description": "Type Checker for AngularJS Templates",
   "main": "build/src/main.js",
   "scripts": {
+    "schema": "typescript-json-schema ./tsconfig.json DirectiveData --ignore-errors",
     "start": "node build/src/cli.js",
     "test": "mocha --require source-map-support/register --recursive build/test",
     "tsc": "tsc",
@@ -16,6 +17,7 @@
     "npm": "3.10.10"
   },
   "dependencies": {
+    "ajv": "5.2.2",
     "cheerio": "^1.0.0-rc.2",
     "clime": "0.5.1",
     "jade": "1.11.0",
@@ -35,6 +37,7 @@
     "app-root-path": "2.0.1",
     "mocha": "3.4.2",
     "source-map-support": "0.4.11",
-    "tslint": "4.4.2"
+    "tslint": "4.4.2",
+    "typescript-json-schema": "0.16.0"
   }
 }
