@@ -1,3 +1,7 @@
+interface FunkyType {
+    funkyName : string;
+}
+
 interface TemplateScope {
     prop1 : string;
     prop2 : string;

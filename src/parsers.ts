@@ -32,7 +32,6 @@ export function defaultParser(attrib : string) : ParserResult {
     });
 }
 
-console.log(parameter);
 export const NG_REPEAT_SPECIAL_PROPERTIES : ParameterNode[] = [
     parameter(`$index`, `number`),
     parameter(`$first`, `boolean`),

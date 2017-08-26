@@ -1,6 +1,6 @@
 import {parseHtml} from "../../src/parser/templateParser";
 import * as assert from "assert";
-import {assign, templateRoot, scopedBlock} from "../../src/generator/dsl";
+import {assign, templateRoot, scopedBlock, parameter} from "../../src/generator/dsl";
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
@@ -89,6 +89,36 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`scopeProperty1`)
+                ], `TemplateScope`),
+            ]);
+            verifyHtml(html, expected, directives);
+        });
+
+        it(`parses custom attribute directives with expression locals`, function () {
+            const html = `<div my-attribute-directive first-arg="updateSomeValue(localValue)"></div>`;
+            const directives = [
+                {
+                    name: "my-attribute-directive", // TODO: normalise names
+                    canBeElement: false,
+                    canBeAttribute: true,
+                    attributes: [
+                        {
+                            name: "first-arg",
+                            locals: [
+                                {
+                                    name: "localValue",
+                                    type: "string"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ];
+            const expected = templateRoot([
+                scopedBlock([], [
+                    scopedBlock([parameter(`localValue`, `string`)], [
+                        assign(`updateSomeValue(localValue)`)
+                    ])
                 ], `TemplateScope`),
             ]);
             verifyHtml(html, expected, directives);

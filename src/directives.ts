@@ -15,6 +15,7 @@ export function singleAttribute(name : string, parser : AttributeParser = defaul
 
 export interface DirectiveAttribute {
     name : string;
+    locals? : { name : string, type : string }[];
     parser? : AttributeParser;
 }
 

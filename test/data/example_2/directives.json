@@ -18,7 +18,13 @@
     "canBeAttribute": true,
     "attributes": [
       {
-        "name": "some-attrib-expression"
+        "name": "some-attrib-expression",
+        "locals": [
+          {
+            "name": "someLocal",
+            "type": "FunkyType"
+          }
+        ]
       }
     ]
   }

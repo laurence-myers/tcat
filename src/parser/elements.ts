@@ -1,10 +1,11 @@
 import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
 import {asHtmlContents, AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
-import {GeneratorAstNode, HasChildrenAstNode} from "../generator/ast";
-import {DirectiveData} from "../directives";
+import {GeneratorAstNode, HasChildrenAstNode, ParameterNode, ScopedBlockNode} from "../generator/ast";
+import {DirectiveAttribute, DirectiveData} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
+import {parameter, scopedBlock} from "../generator/dsl";
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>
 export type ElementDirectiveParser = (element : CheerioElement, directives : Map<string, DirectiveData>) => ElementDirectiveParserResult;
@@ -59,6 +60,33 @@ function handleAttributeDirectiveParseResult(context : ElementParserContext, eit
     );
 }
 
+function convertToParameter(entry : { name : string; type : string }) : ParameterNode {
+    return parameter(entry.name, entry.type);
+}
+
+function parseDirectiveSubAttribute(node : CheerioElement, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
+    const subAttribValue = node.attribs[subAttribEntry.name];
+    let containingBlock : ScopedBlockNode | undefined;
+    if (subAttribEntry.locals && subAttribEntry.locals.length > 0) {
+        containingBlock = scopedBlock(subAttribEntry.locals.map(convertToParameter));
+    }
+    const parser = subAttribEntry.parser || defaultParser;
+    return parser(subAttribValue).bimap(
+        (errs) => context.errors.push(errs),
+        (result : SuccessfulParserResult) => {
+            // TODO: make this better
+            if (containingBlock) {
+                containingBlock.children.push(...result.nodes);
+                result.nodes = [containingBlock];
+                if (result.scopeData) {
+                    result.scopeData.root = containingBlock;
+                }
+            }
+            addParseResultToContext(context, result);
+        }
+    );
+}
+
 export function parseElement(node : CheerioElement, root : HasChildrenAstNode, directives : Map<string, DirectiveData>) : Either<AttributeParserError[], GeneratorAstNode[]> {
     const context : ElementParserContext = {
         errors: [],
@@ -91,12 +119,7 @@ export function parseElement(node : CheerioElement, root : HasChildrenAstNode, d
             );
         }
         for (const subAttribEntry of tagLookup.attributes) {
-            const subAttribValue = node.attribs[subAttribEntry.name];
-            const parser = subAttribEntry.parser || defaultParser;
-            handleAttributeDirectiveParseResult(
-                context,
-                parser(subAttribValue)
-            );
+            parseDirectiveSubAttribute(node, subAttribEntry, context);
         }
     }
     // Parse attributes: directives and interpolated text
@@ -105,12 +128,7 @@ export function parseElement(node : CheerioElement, root : HasChildrenAstNode, d
         const value = node.attribs[key];
         if (attribLookup && attribLookup.canBeAttribute) {
             for (const subAttribEntry of attribLookup.attributes) {
-                const subAtribValue = node.attribs[subAttribEntry.name];
-                const parser = subAttribEntry.parser || defaultParser;
-                handleAttributeDirectiveParseResult(
-                    context,
-                    parser(subAtribValue)
-                );
+                parseDirectiveSubAttribute(node, subAttribEntry, context);
             }
         } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
             handleAttributeDirectiveParseResult(
