@@ -16,7 +16,6 @@
     "npm": "3.10.10"
   },
   "dependencies": {
-    "angular-expressions": "github:peerigon/angular-expressions",
     "cheerio": "^1.0.0-rc.2",
     "clime": "0.5.1",
     "jade": "1.11.0",
