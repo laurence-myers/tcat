@@ -132,7 +132,7 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock([
-                        parameter(`myForm`, `IFormController`)
+                        parameter(`myForm`, `IMyForm`)
                     ], [
                         assign(`myForm.$error.required`)
                     ])

@@ -29,10 +29,9 @@ export interface DirectiveData {
 
 /*
 TODO:
- form - parse "name" as an assignment to the scope.
- input - name (property of the form), ng-model, ng-required, ng-minlength, ng-maxlength, ng-pattern, ng-change, ng-trim
- input[checkbox] - ng-model, ng-true-value, ng-false-value, ng-change
- input[date] - min (interp), max (interp), ng-min, ng-max, ng-required, ng-change
+ input - name (property of the form)
+ input[checkbox] - ng-model, ng-true-value, ng-false-value
+ input[date] - min (interp), max (interp), ng-min, ng-max, ng-required
  input[datetime-local]
  input[email]
  input[month]
@@ -49,14 +48,11 @@ TODO:
  ngIf (multiElement)
  ngInclude
  ngNonBindable - don't parse children
- ngOptions
  ngPluralize
  ngRepeat (multiElement)
  ngShow (multiElement)
- script
  select
  textarea
-
 
  Expose $event on all event directives
  */
@@ -84,7 +80,7 @@ const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ng-keydown',
     'ng-keypress',
     'ng-keyup',
-    'ng-maxlength',
+    'ng-maxlength', // do ng-maxlength and ng-minlength allow expressions? hmm.
     'ng-minlength',
     'ng-model',
     'ng-model-options',

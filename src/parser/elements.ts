@@ -28,7 +28,8 @@ function isScriptNode(node : CheerioElement) : node is ScriptNode {
 }
 
 interface FormNode extends CheerioElement {
-    type : 'form';
+    type : 'tag';
+    tagName : 'form';
 }
 
 function isFormNode(node : CheerioElement) : node is FormNode {
@@ -230,7 +231,7 @@ export function parseFormElement(element : CheerioElement, _directives : Map<str
         });
     } else {
         const node = scopedBlock([
-            parameter(element.attribs.name, 'IFormController') // TODO: import this interface
+            parameter(element.attribs.name, 'I' + uppercamelcase(element.attribs.name))
         ]);
         return Either.Right({
             nodes: [node],
