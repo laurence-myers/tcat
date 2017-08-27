@@ -14,7 +14,7 @@ export interface ScopeData {
     isEnd : boolean;
     root : HasChildrenAstNode;
     childParent : HasChildrenAstNode;
-    attachToRoot? : boolean;
+    attachToTemplateRoot? : boolean;
 }
 
 export interface SuccessfulParserResult {
