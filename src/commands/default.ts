@@ -1,10 +1,21 @@
 import {CastingContext, Command, command, option, Options, param, params} from "clime";
-import {asFileName, asHtmlFileName, asPugFileName, FileName, TcatError, UnsupportedTemplateFileError} from "../core";
+import {
+    asDirectoryName,
+    asFileName,
+    asHtmlFileName,
+    asPugFileName,
+    DirectoryName,
+    FileName,
+    flatten,
+    TcatError,
+    UnsupportedTemplateFileError
+} from "../core";
 import {convertHtmlFileToTypeScriptFile, convertPugFileToTypeScriptFile} from "../converter";
 import {Directory, File} from "clime/bld/castable";
 import * as fs from "fs";
 import * as path from "path";
 import {Either} from "monet";
+import {FileFilter, walk} from "../files";
 
 class FileOrDirectory {
     static cast(name: string, context: CastingContext<File | Directory>): File | Directory {
@@ -17,19 +28,37 @@ class FileOrDirectory {
     }
 }
 
+const DEFAULT_FILTER_VALUE = '.html,.pug,.jade';
 class CliOptions extends Options {
     @option({
         flag: 'f',
-        description: 'Filter for file extensions. Defaults to .jade. Specify multiple extensions using commas, e.g. .jade,.html',
+        description: `Filter for file extensions. Specify multiple extensions using commas, e.g. .jade,.html. Defaults to ${ DEFAULT_FILTER_VALUE }`,
+        default: DEFAULT_FILTER_VALUE
     })
-    filter: string;
+    filter : string;
+
+    @option({
+        description: 'Verbose logging',
+        default: false,
+        toggle: true
+    })
+    verbose : boolean;
 }
 
 @command({
     description: 'Type Checker for AngularJS Templates',
 })
 export default class extends Command {
-    processFile(templateName : FileName, directivesName : FileName) : Either<TcatError[], void> {
+    protected verbose : boolean = false;
+
+    protected debug(...args : any[]) : void {
+        if (this.verbose) {
+            console.log(...args);
+        }
+    }
+
+    protected processFile(templateName : FileName, directivesName : FileName) : Either<TcatError[], void> {
+        this.debug(templateName);
         const extension = path.extname(templateName).toLowerCase();
         if (['.jade', '.pug'].indexOf(extension) > -1) {
             return convertPugFileToTypeScriptFile(asPugFileName(templateName), directivesName);
@@ -38,6 +67,28 @@ export default class extends Command {
         } else {
             return Either.Left([new UnsupportedTemplateFileError(`Unsupported template file: ${ templateName }`)]);
         }
+    }
+
+    protected walkDirectory(directory : DirectoryName, filter : FileFilter) : FileName[] {
+        return walk(directory, filter);
+    }
+
+    protected createFileFilter(options : CliOptions) : FileFilter {
+        const extensions = options.filter
+            .split(',')
+            .map((extension) => extension.toLowerCase());
+        return (fileName) => {
+            const isValidFileName = extensions.indexOf(path.extname(fileName.toLowerCase())) > -1;
+            if (isValidFileName) {
+                const tsInterfaceExists = fs.existsSync(fileName + '.ts');
+                if (tsInterfaceExists) {
+                    return true;
+                } else {
+                    this.debug(`Skipping template file ${ fileName } due to missing .ts file.`);
+                }
+            }
+            return false;
+        };
     }
 
     async execute(
@@ -54,25 +105,31 @@ export default class extends Command {
         })
         filesOrDirectories : Array<File | Directory>,
 
-        _options : CliOptions
+        options : CliOptions
     ) {
+        this.verbose = options.verbose;
         await directives.assert();
         await Promise.all(filesOrDirectories.map(async (templateName) => templateName.assert()));
         console.log("Starting...");
-        filesOrDirectories.map((fileOrDirectory) => {
-            if (fileOrDirectory instanceof File) {
-                return this.processFile(asFileName(fileOrDirectory.fullName), asFileName(directives.fullName))
-                    .leftMap(
-                        (errors) => {
-                            console.error(`Errors were encountered processing template "${ fileOrDirectory.fullName }".`);
-                            errors.forEach((err) => console.error(err));
-                            return errors;
-                        }
-                    );
-            } else {
-                console.log("TODO: directory support");
-                return Either.Right<TcatError[], void>(undefined);
-            }
+        const fileFilter = this.createFileFilter(options);
+        const fileNames : FileName[] = flatten(
+            filesOrDirectories.map((fileOrDirectory) => {
+                if (fileOrDirectory instanceof File) {
+                    return [asFileName(fileOrDirectory.fullName)];
+                } else {
+                    return this.walkDirectory(asDirectoryName(fileOrDirectory.fullName), fileFilter);
+                }
+            })
+        );
+        fileNames.map((fileName : FileName) => {
+            return this.processFile(fileName, asFileName(directives.fullName))
+                .leftMap(
+                    (errors) => {
+                        console.error(`Errors were encountered processing template "${ fileName }".`);
+                        errors.forEach((err) => console.error(err));
+                        return errors;
+                    }
+                );
         }).reduce((result : Either<TcatError[], void>, current) => result.takeLeft(current), Either.Right<TcatError[], void>(undefined))
             .cata(() => {
                 console.log("Done, with errors.");

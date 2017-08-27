@@ -1,10 +1,19 @@
 import {
-    asFileName, asTypeScriptContents, FileName, JsonValidationError, readFile, TcatError,
+    asDirectoryName,
+    asFileName,
+    asTypeScriptContents,
+    DirectoryName,
+    FileName,
+    JsonValidationError,
+    readFile,
+    TcatError,
     TypeScriptContents
 } from "./core";
 import {Either} from "monet";
 import {DirectiveData} from "./directives";
 import * as Ajv from "ajv";
+import * as fs from "fs";
+import * as path from "path";
 
 const directiveDataSchema = {
     "definitions": {
@@ -80,4 +89,20 @@ export function validateDirectiveDataJson(contents : string) : Either<TcatError[
 export function readDirectiveDataFile(directiveFileName : FileName) : Either<TcatError[], DirectiveData[]> {
     return readFile(directiveFileName)
         .flatMap(validateDirectiveDataJson);
+}
+
+export type FileFilter = (fileName : string) => boolean;
+export function walk(dir : DirectoryName, filter : FileFilter) : FileName[] {
+    const results : FileName[] = [];
+    const list = fs.readdirSync(dir);
+    list.forEach(function(file) {
+        file = path.join(dir, file);
+        const stat = fs.statSync(file);
+        if (stat && stat.isDirectory()) {
+            results.push(...walk(asDirectoryName(file), filter));
+        } else if (filter(file)) {
+            results.push(asFileName(file));
+        }
+    });
+    return results;
 }

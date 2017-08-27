@@ -15,6 +15,10 @@ export function assertNever(value : never) : never {
     throw new Error(`Unexpected value ${ value }`);
 }
 
+export function flatten<T>(arr : T[][]) : T[] {
+    return Array.prototype.concat(...arr);
+}
+
 export function logObject(obj : any): void {
     console.log(util.inspect(obj, false, <any> null));
 }
