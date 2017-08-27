@@ -163,7 +163,7 @@ export class ExpressionToStringWalker extends BaseWalker {
     protected dispatchAll(nodes : AngularJsAstNode[], seperator? : string) : void {
         return nodes.forEach((node, index) => {
             this.dispatch(node);
-            if (seperator && index != nodes.length - 1) {
+            if (seperator && index !== nodes.length - 1) {
                 this.sb += seperator;
             }
         });

@@ -64,7 +64,7 @@ describe(`Parsers`, function() {
 
         it(`should iterate over an array of objects`, function () {
             const iterationNode = arrayIteration('item', 'items');
-            const rootNode = scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
+            const rootNode = scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                 iterationNode
             ]);
             const actual = testExpression('item in items');
@@ -83,7 +83,7 @@ describe(`Parsers`, function() {
         it(`should be possible to use one-time bindings on the collection`, function () {
             const actual = testExpression('item in ::items');
             const expected = [
-                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
+                scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items')
                 ])
             ];
@@ -245,7 +245,7 @@ describe(`Parsers`, function() {
         });
 
         it(`should parse an object`, function () {
-            verifyExpression(`value for (key, value) in values`,[
+            verifyExpression(`value for (key, value) in values`, [
                 objectIteration(`key`, `value`, `values`, [
                 ])
             ]);
@@ -342,6 +342,6 @@ describe(`Parsers`, function() {
                 arrayIteration(`item`, `["first", "second", "third"]`, [
                 ])
             ]);
-        })
+        });
     });
 });

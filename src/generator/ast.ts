@@ -9,12 +9,12 @@ export interface BaseAssignmentNode {
 
 export interface AngularJsAssignmentNode extends BaseAssignmentNode {
     expression : ProgramNode;
-    expressionType : 'AngularJS'
+    expressionType : 'AngularJS';
 }
 
 export interface TypeScriptAssignmentNode extends BaseAssignmentNode {
     expression : string;
-    expressionType : 'TypeScript'
+    expressionType : 'TypeScript';
 }
 
 export type AssignmentNode = AngularJsAssignmentNode | TypeScriptAssignmentNode;

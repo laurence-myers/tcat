@@ -53,7 +53,7 @@ describe(`Generator walker`, function () {
             });
 
             it(`should iterate over on object/map`, function () {
-                const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
+                const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     objectIteration('key', 'value', 'items')
                 ]));
                 const expected = `function _block_1(
@@ -74,7 +74,7 @@ describe(`Generator walker`, function () {
             });
 
             it(`should not look for locals in the scope object`, function () {
-                const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
+                const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items', [
                         assign(`item.name`),
                         assign(`someScopedValue`)
@@ -103,14 +103,14 @@ describe(`Generator walker`, function () {
             const actual = walk(
                 templateRoot([
                     scopedBlock([], [
-                        scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
+                        scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                             arrayIteration('item', 'items', [
                                 assign(`item.name`),
                                 assign(`someScopedValue`)
                             ]),
                             assign(`item.name`)
                         ]),
-                        scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES,[
+                        scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                             objectIteration('someKey', 'someValue', 'someObject', [
                                 assign(`someKey + '1'`),
                                 assign(`someValue`)

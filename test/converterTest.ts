@@ -16,7 +16,7 @@ describe("Converter", function () {
             );
             convertPugFileToTypeScript(templateName, directivesName)
                 .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents))
-                .leftMap((errors) => { throw errors[0] });
+                .leftMap((errors) => { throw errors[0]; });
         }
 
         const NUM_EXAMPLES = 2;

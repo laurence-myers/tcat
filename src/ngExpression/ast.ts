@@ -60,7 +60,7 @@ export interface MemberExpressionIdentifierNode {
     computed : false;
 }
 
-export type MemberExpressionNode = MemberExpressionExpressionNode | MemberExpressionIdentifierNode
+export type MemberExpressionNode = MemberExpressionExpressionNode | MemberExpressionIdentifierNode;
 
 type BasePrimaryType =
     // FilterChainPrecedence
@@ -162,7 +162,7 @@ export interface ProgramNode {
 }
 
 // Daft workaround to avoid circular type alias error in TypeScript.
-type StartPrecedence<TNode> = TNode | FilterChainPrecedence
+type StartPrecedence<TNode> = TNode | FilterChainPrecedence;
 
 type FilterChainPrecedence = FilterNode | ExpressionPrecedence;
 type ExpressionPrecedence = AssignmentPrecedence;

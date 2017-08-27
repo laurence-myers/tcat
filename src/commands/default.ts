@@ -18,7 +18,7 @@ import {Either} from "monet";
 import {FileFilter, walk} from "../files";
 
 class FileOrDirectory {
-    static cast(name: string, context: CastingContext<File | Directory>): File | Directory {
+    static cast(name : string, context : CastingContext<File | Directory>) : File | Directory {
         const stats = fs.statSync(name);
         if (stats.isDirectory()) {
             return Directory.cast(name, context);

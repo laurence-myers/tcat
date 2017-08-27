@@ -4,9 +4,9 @@
 import {ProgramNode} from "./ast";
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
-function isDefined(value : any) {return typeof value !== 'undefined';}
-function isString(value : any) {return typeof value === 'string';}
-let lowercase = function(string : any) {return isString(string) ? string.toLowerCase() : string;};
+function isDefined(value : any) { return typeof value !== 'undefined'; }
+function isString(value : any) { return typeof value === 'string'; }
+let lowercase = function(str : any) { return isString(str) ? str.toLowerCase() : str; };
 // let uppercase = function(string : any) {return isString(string) ? string.toUpperCase() : string;};
 const getPrototypeOf = Object.getPrototypeOf;
 const isArray = Array.isArray;
@@ -17,7 +17,7 @@ function isObject(value : any) {
 function isBlankObject(value : any) {
     return value !== null && typeof value === 'object' && !getPrototypeOf(value);
 }
-function isFunction(value : any) {return typeof value === 'function';}
+function isFunction(value : any) { return typeof value === 'function'; }
 function setHashKey(obj : any, h? : any) {
     if (h) {
         obj.$$hashKey = h;
@@ -143,7 +143,7 @@ function createMap() {
 
 let OPERATORS = createMap();
 '+ - * / % === !== == != < > <= >= && || ! = |'.split(' ').forEach((operator) => OPERATORS[operator] = true);
-let ESCAPE : { [key : string] : string } = {'n':'\n', 'f':'\f', 'r':'\r', 't':'\t', 'v':'\v', '\'':'\'', '"':'"'};
+let ESCAPE : { [key : string] : string } = {'n': '\n', 'f': '\f', 'r': '\r', 't': '\t', 'v': '\v', '\'': '\'', '"': '"'};
 
 interface Token {
     index : number;
@@ -273,23 +273,23 @@ export class Lexer {
     }
 
     readNumber() {
-        let number = '';
+        let numberString = '';
         let start = this.index;
         while (this.index < this.text.length) {
             let ch = lowercase(this.text.charAt(this.index));
             if (ch === '.' || this.isNumber(ch)) {
-                number += ch;
+                numberString += ch;
             } else {
                 let peekCh = this.peek();
                 if (ch === 'e' && this.isExpOperator(<string> peekCh)) {
-                    number += ch;
+                    numberString += ch;
                 } else if (this.isExpOperator(ch) &&
                     peekCh && this.isNumber(peekCh) &&
-                    number.charAt(number.length - 1) === 'e') {
-                    number += ch;
+                    numberString.charAt(numberString.length - 1) === 'e') {
+                    numberString += ch;
                 } else if (this.isExpOperator(ch) &&
                     (!peekCh || !this.isNumber(peekCh)) &&
-                    number.charAt(number.length - 1) === 'e') {
+                    numberString.charAt(numberString.length - 1) === 'e') {
                     this.throwError('Invalid exponent');
                 } else {
                     break;
@@ -299,9 +299,9 @@ export class Lexer {
         }
         this.tokens.push({
             index: start,
-            text: number,
+            text: numberString,
             constant: true,
-            value: Number(number)
+            value: Number(numberString)
         });
     }
 
@@ -325,7 +325,7 @@ export class Lexer {
     readString(quote : string) {
         let start = this.index;
         this.index++;
-        let string = '';
+        let str = '';
         let rawString = quote;
         let escape = false;
         while (this.index < this.text.length) {
@@ -338,10 +338,10 @@ export class Lexer {
                         this.throwError('Invalid unicode escape [\\u' + hex + ']');
                     }
                     this.index += 4;
-                    string += String.fromCharCode(parseInt(hex, 16));
+                    str += String.fromCharCode(parseInt(hex, 16));
                 } else {
                     let rep = ESCAPE[ch];
-                    string = string + (rep || ch);
+                    str = str + (rep || ch);
                 }
                 escape = false;
             } else if (ch === '\\') {
@@ -352,12 +352,12 @@ export class Lexer {
                     index: start,
                     text: rawString,
                     constant: true,
-                    value: string,
+                    value: str,
                     isString: true
                 });
                 return;
             } else {
-                string += ch;
+                str += ch;
             }
             this.index++;
         }
@@ -481,7 +481,7 @@ export class AstBuilder {
     equality() {
         let left = this.relational();
         let token;
-        while ((token = <Token> this.expect('==','!=','===','!=='))) {
+        while ((token = <Token> this.expect('==', '!=', '===', '!=='))) {
             left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.relational() };
         }
         return left;
@@ -499,7 +499,7 @@ export class AstBuilder {
     additive() {
         let left = this.multiplicative();
         let token;
-        while ((token = <Token> this.expect('+','-'))) {
+        while ((token = <Token> this.expect('+', '-'))) {
             left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.multiplicative() };
         }
         return left;
@@ -508,7 +508,7 @@ export class AstBuilder {
     multiplicative() {
         let left = this.unary();
         let token;
-        while ((token = <Token> this.expect('*','/','%'))) {
+        while ((token = <Token> this.expect('*', '/', '%'))) {
             left = { type: AstBuilder.BinaryExpression, operator: token.text, left: left, right: this.unary() };
         }
         return left;
@@ -711,7 +711,7 @@ export class AstBuilder {
     selfReferential : { [key : string] : any } = {
         'this': {type: AstBuilder.ThisExpression },
         '$locals': {type: AstBuilder.LocalsExpression }
-    }
+    };
 }
 
 let identStart = undefined;

@@ -34,7 +34,7 @@ function readFilesAndConvertContents(templateFileName : FileName, directivesFile
         .flatMap((baseTypescriptContents) =>
             readDirectiveDataFile(directivesFileName)
                 .flatMap((directives) => convertHtmlContentsToTypeScript(htmlContents, baseTypescriptContents, directives))
-        )
+        );
 }
 
 export function convertHtmlFileToTypeScript(templateFileName : HtmlFileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {

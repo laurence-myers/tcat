@@ -85,7 +85,7 @@ export function parseNgRepeat(expression : string) : ParserResult {
         iteratorNode = arrayIteration(valueIdentifier, iterableName);
     }
 
-    if (trackByExp && trackByExp != '$index') {
+    if (trackByExp && trackByExp !== '$index') {
         iteratorNode.children.push(assign(trackByExp));
     }
     containingNode.children.push(iteratorNode);
@@ -175,10 +175,10 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
     }
     nodes.push(iteratorNode);
 
-    if (viewValueExpr != valueName) {
+    if (viewValueExpr !== valueName) {
         iteratorNode.children.push(assign(viewValueExpr));
     }
-    if (displayExpr != valueName) {
+    if (displayExpr !== valueName) {
         iteratorNode.children.push(assign(displayExpr));
     }
     if (groupByExpr) {

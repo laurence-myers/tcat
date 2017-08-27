@@ -96,7 +96,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     }
 
     protected addLocal(name : string) : void {
-        if (this.localsStack.length == 0) {
+        if (this.localsStack.length === 0) {
             this.pushLocalsScope();
 
         }
@@ -128,7 +128,7 @@ export class TypeScriptGenerator extends SkippingWalker {
                 ? ' : ' + node.typeAnnotation
                 : '';
         const expression =
-            node.expressionType == 'AngularJS'
+            node.expressionType === 'AngularJS'
                 ? this.formatExpression(node.expression)
                 : node.expression;
         this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ expression };`);

@@ -7,7 +7,7 @@ import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
 
-export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>
+export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>;
 export type ElementDirectiveParser = (element : CheerioElement, directives : Map<string, DirectiveData>) => ElementDirectiveParserResult;
 
 interface TextHtmlNode extends CheerioElement {
@@ -16,7 +16,7 @@ interface TextHtmlNode extends CheerioElement {
 }
 
 function isTextHtmlNode(node : CheerioElement) : node is TextHtmlNode {
-    return node.type == 'text';
+    return node.type === 'text';
 }
 
 interface ScriptNode extends CheerioElement {
@@ -24,7 +24,7 @@ interface ScriptNode extends CheerioElement {
 }
 
 function isScriptNode(node : CheerioElement) : node is ScriptNode {
-    return node.type == 'script';
+    return node.type === 'script';
 }
 
 interface FormNode extends CheerioElement {
@@ -33,7 +33,7 @@ interface FormNode extends CheerioElement {
 }
 
 function isFormNode(node : CheerioElement) : node is FormNode {
-    return node.type == 'tag' && node.tagName == 'form';
+    return node.type === 'tag' && node.tagName === 'form';
 }
 
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
@@ -70,7 +70,7 @@ export class ElementWalker {
         if (scopeData) {
             context.scopeData = result.scopeData;
             if (scopeData.attachToTemplateRoot) {
-                if (scopeData.root.type == 'TemplateRootNode') {
+                if (scopeData.root.type === 'TemplateRootNode') {
                     this.root.children.push(...scopeData.root.children); // unwrap nested TemplateRootNodes
                 } else {
                     this.root.children.push(scopeData.root); // this should probably never happen...
@@ -227,7 +227,7 @@ export function templateIdToInterfaceName(templateId : string) : string {
 }
 
 function isNgTemplate(element : CheerioElement) : boolean {
-    return element.attribs.type === 'text/ng-template'
+    return element.attribs.type === 'text/ng-template';
 }
 
 export function parseNgTemplateElement(element : CheerioElement, directives : Map<string, DirectiveData>) : ElementDirectiveParserResult {
@@ -240,7 +240,7 @@ export function parseNgTemplateElement(element : CheerioElement, directives : Ma
     } else if (!element.attribs.id) {
         return Either.Left([new ElementDirectiveParserError(`ng-template element is missing an "id" attribute.`)]);
     } else {
-        if (element.children.length != 1) {
+        if (element.children.length !== 1) {
             return Either.Left([new ElementDirectiveParserError(`ng-template script must have exactly one child node. Found: ${ element.children.length }`)]);
         }
         const childNode = element.children[0];
