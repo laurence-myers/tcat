@@ -1,6 +1,6 @@
 import {path as root} from "app-root-path";
 import {readFileSync} from "fs";
-import {asFileName, asTypeScriptContents, TypeScriptContents} from "../src/core";
+import {asFileName, asPugFileName, asTypeScriptContents, TypeScriptContents} from "../src/core";
 import {convertPugFileToTypeScript} from "../src/converter";
 import * as assert from "assert";
 
@@ -8,7 +8,7 @@ describe("Converter", function () {
     describe("Examples", function () {
         function verifyExample(exampleNumber : number) : void {
             const dir = `${ root }/test/data/example_${ exampleNumber }`;
-            const templateName = asFileName(`${ dir }/template.jade`);
+            const templateName = asPugFileName(`${ dir }/template.jade`);
             const directivesName = asFileName(`${ dir }/directives.json`);
             const expectedContents : TypeScriptContents = asTypeScriptContents(
                 readFileSync(`${ dir }/expected.ts`, 'utf8')

@@ -5,7 +5,7 @@ import {
     asPugContents,
     asTypeScriptContents,
     FileName,
-    HtmlContents,
+    HtmlContents, HtmlFileName, PugFileName,
     readFile,
     TcatError,
     TypeScriptContents,
@@ -37,7 +37,7 @@ function readFilesAndConvertContents(templateFileName : FileName, directivesFile
         )
 }
 
-export function convertHtmlFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+export function convertHtmlFileToTypeScript(templateFileName : HtmlFileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFile(templateFileName)
         .flatMap(
             (htmlContents) =>
@@ -45,7 +45,7 @@ export function convertHtmlFileToTypeScript(templateFileName : FileName, directi
         );
 }
 
-export function convertPugFileToTypeScript(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+export function convertPugFileToTypeScript(templateFileName : PugFileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFile(templateFileName)
         .flatMap(
             (pugContents) =>
@@ -60,14 +60,14 @@ function generateTypeScriptOutputFileName(templateFileName : FileName) : FileNam
     return asFileName(`${ templateFileName }.typeview.ts`);
 }
 
-export function convertHtmlFileToTypeScriptFile(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], void> {
+export function convertHtmlFileToTypeScriptFile(templateFileName : HtmlFileName, directivesFileName : FileName) : Either<TcatError[], void> {
     return convertHtmlFileToTypeScript(templateFileName, directivesFileName)
         .flatMap(
             (typeScriptContents) => writeFile(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
         );
 }
 
-export function convertPugFileToTypeScriptFile(templateFileName : FileName, directivesFileName : FileName) : Either<TcatError[], void> {
+export function convertPugFileToTypeScriptFile(templateFileName : PugFileName, directivesFileName : FileName) : Either<TcatError[], void> {
     return convertPugFileToTypeScript(templateFileName, directivesFileName)
         .flatMap(
             (typeScriptContents) => writeFile(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)

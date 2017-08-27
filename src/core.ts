@@ -3,6 +3,7 @@ import {Either} from "monet";
 import {readFileSync, writeFileSync} from "fs";
 
 export class TcatError extends Error {}
+export class UnsupportedTemplateFileError extends TcatError {}
 export class FileReadError extends TcatError {}
 export class FileWriteError extends TcatError {}
 export class TemplateParserError extends TcatError {}
@@ -37,6 +38,18 @@ export function writeFile(fileName : string, contents : string) : Either<FileWri
 const enum AsFileName {}
 export type FileName = string & AsFileName;
 export function asFileName(value : string) { return value as FileName; }
+
+const enum AsDirectoryName {}
+export type DirectoryName = string & AsDirectoryName;
+export function asDirectoryName(value : string) { return value as DirectoryName; }
+
+const enum AsHtmlFileName {}
+export type HtmlFileName = FileName & AsHtmlFileName;
+export function asHtmlFileName(value : string) { return value as HtmlFileName; }
+
+const enum AsPugFileName {}
+export type PugFileName = FileName & AsPugFileName;
+export function asPugFileName(value : string) { return value as PugFileName; }
 
 const enum AsPugContents {}
 export type PugContents = string & AsPugContents;

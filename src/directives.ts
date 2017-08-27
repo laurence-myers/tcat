@@ -27,6 +27,8 @@ export interface DirectiveData {
     parser? : ElementDirectiveParser;
 }
 
+export type DirectiveMap = Map<string, DirectiveData>;
+
 /*
 TODO:
  input - name (property of the form)

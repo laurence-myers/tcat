@@ -14,7 +14,7 @@ export function parsePugToHtml(contents : PugContents, templateFileName? : FileN
         // In pug files, "include" statements expect a file extension of .pug. You can work around this by explicitly
         // including the file extension of .jade, but it still emits a warning message to stdout.
         // So, let's just use the legacy module for old ".jade" templates.
-        if (templateFileName && templateFileName.toLowerCase().lastIndexOf('.jade') == templateFileName.length - 5) {
+        if (templateFileName && templateFileName.toLowerCase().endsWith('.jade')) {
             html = jade.render(contents, {
                 filename: templateFileName
             });

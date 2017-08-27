@@ -19,7 +19,7 @@
   "dependencies": {
     "ajv": "5.2.2",
     "cheerio": "^1.0.0-rc.2",
-    "clime": "0.5.1",
+    "clime": "0.5.4",
     "jade": "1.11.0",
     "monet": "0.8.10",
     "pug": "2.0.0-rc.3",
