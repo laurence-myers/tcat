@@ -322,7 +322,7 @@ export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
             && parent
             && this.isAScopeIdentifier(node, parent)
         ) {
-            this.sb += `__scope_${ this.scopeNumber }.`;
+            this.sb += `_scope_${ this.scopeNumber }.`;
         }
         super.walkIdentifierNode(node);
     }

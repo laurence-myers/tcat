@@ -83,28 +83,28 @@ describe(`Expression walkers`, function () {
         it(`Rectifies scope for a variable`, function () {
             verifyExpressionScopeRectifier(
                 `someValue`,
-                `__scope_1.someValue`
+                `_scope_1.someValue`
             );
         });
 
         it(`Rectifies scope for a function call, passing a scoped argument`, function () {
             verifyExpressionScopeRectifier(
                 `someFunc(someValue)`,
-                `__scope_1.someFunc(__scope_1.someValue)`
+                `_scope_1.someFunc(_scope_1.someValue)`
             );
         });
 
         it(`Rectifies scope for a member expression`, function () {
             verifyExpressionScopeRectifier(
                 `anObject.someValue['member']`,
-                `__scope_1.anObject.someValue["member"]`
+                `_scope_1.anObject.someValue["member"]`
             );
         });
 
         it(`Rectifies scope for a member expression with a scoped argument`, function () {
             verifyExpressionScopeRectifier(
                 `anObject.someValue[propertyName]`,
-                `__scope_1.anObject.someValue[__scope_1.propertyName]`
+                `_scope_1.anObject.someValue[_scope_1.propertyName]`
             );
         });
 
@@ -112,28 +112,28 @@ describe(`Expression walkers`, function () {
         it(`Rectifies scope for multiple member expressions`, function () {
             verifyExpressionScopeRectifier(
                 `anObject.anotherObject.someValue[propertyName]`,
-                `__scope_1.anObject.anotherObject.someValue[__scope_1.propertyName]`
+                `_scope_1.anObject.anotherObject.someValue[_scope_1.propertyName]`
             );
         });
 
         it(`Rectifies scope for a member expression with a function call`, function () {
             verifyExpressionScopeRectifier(
                 `foo.bar()`,
-                `__scope_1.foo.bar()`
+                `_scope_1.foo.bar()`
             );
         });
 
         it(`Does not rectify filters`, function () {
             verifyExpressionScopeRectifier(
                 `rootFunc() | translate : 'en-US' | limitTo : 3`,
-                `limitTo(translate(__scope_1.rootFunc(), "en-US"), 3)`
+                `limitTo(translate(_scope_1.rootFunc(), "en-US"), 3)`
             );
         });
 
         it(`Rectifies scope for binary operations`, function () {
             verifyExpressionScopeRectifier(
                 `someValue + anotherValue - thirdValue`,
-                `__scope_1.someValue + __scope_1.anotherValue - __scope_1.thirdValue`
+                `_scope_1.someValue + _scope_1.anotherValue - _scope_1.thirdValue`
             );
         });
 

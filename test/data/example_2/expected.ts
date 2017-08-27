@@ -10,14 +10,14 @@ interface TemplateScope {
     directiveFunction : () => any;
 }
 
-declare const __scope_1 : TemplateScope;
-function block_1() {
-    const expr_1 = (__scope_1.prop1);
-    const expr_2 = (__scope_1.prop2);
-    const expr_3 = (__scope_1.directiveFunction());
-    function block_2(
+declare const _scope_1 : TemplateScope;
+function _block_1() {
+    const _expr_1 = (_scope_1.prop1);
+    const _expr_2 = (_scope_1.prop2);
+    const _expr_3 = (_scope_1.directiveFunction());
+    function _block_2(
         someLocal : FunkyType,
     ) {
-        const expr_4 = (__scope_1.prop1 + __scope_1.prop2 + someLocal.funkyName);
+        const _expr_4 = (_scope_1.prop1 + _scope_1.prop2 + someLocal.funkyName);
     }
 }

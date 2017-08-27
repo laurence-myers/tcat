@@ -121,7 +121,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     }
 
     protected walkAssignmentNode(node : AssignmentNode) : void {
-        const name = node.name || 'expr_' + ++this.counters.expressions;
+        const name = node.name || '_expr_' + ++this.counters.expressions;
         this.addLocal(name);
         const typeAnnotation =
             node.typeAnnotation
@@ -154,10 +154,11 @@ export class TypeScriptGenerator extends SkippingWalker {
 
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
         if (node.scopeInterface) {
-            this.writeLine(`declare const __scope_${ ++this.counters.scopes } : ${ node.scopeInterface };`);
+            // TODO: just make the scope object a parameter of the function/scoped block.
+            this.writeLine(`declare const _scope_${ ++this.counters.scopes } : ${ node.scopeInterface };`);
         }
         this.pushLocalsScope();
-        const blockStart = `function block_${ ++this.counters.blocks }(`;
+        const blockStart = `function _block_${ ++this.counters.blocks }(`;
         const blockStartSuffix = `) {`;
         if (node.parameters.length > 0) {
             this.writeLine(blockStart);

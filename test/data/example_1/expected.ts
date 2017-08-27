@@ -7,10 +7,10 @@ interface TemplateScope {
 
 type FirstSecondThirdPartHtmlScope = any;
 
-declare const __scope_1 : TemplateScope;
-function block_1() {
-    const expr_1 = (translate("SOME.KEY"));
-    function block_2(
+declare const _scope_1 : TemplateScope;
+function _block_1() {
+    const _expr_1 = (translate("SOME.KEY"));
+    function _block_2(
         $index : number,
         $first : boolean,
         $last : boolean,
@@ -19,12 +19,12 @@ function block_1() {
         $odd : boolean,
         $id : (value : any) => "",
     ) {
-        for (const item of (__scope_1.items)) {
-            const expr_2 = ($id(item));
+        for (const item of (_scope_1.items)) {
+            const _expr_2 = ($id(item));
         }
     }
 }
-declare const __scope_2 : FirstSecondThirdPartHtmlScope;
-function block_3() {
-    const expr_3 = (__scope_2.someValue);
+declare const _scope_2 : FirstSecondThirdPartHtmlScope;
+function _block_3() {
+    const _expr_3 = (_scope_2.someValue);
 }
