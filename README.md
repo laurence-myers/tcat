@@ -72,3 +72,32 @@ Run TSC, specifying "tsconfig-tcat.json" for your project file.
 
 If "template.html" refers to anything you haven't explicitly specified in the file "template.html.ts", the TypeScript
 compiler will fail.
+
+## TODO
+
+- Warn on unrecognised HTML elements or attributes, since this could indicate a directive that should be type checked.
+- Support for multi-element directives, like `ng-repeat-start`.
+- Support for multiple directives per tag/attribute.
+- Support normalised element/attribute names, e.g. `ng-bind`, `ng:bind`, `ng_bind`, `data-ng-bind`, and `x-ng-bind` 
+should all normalise to `ngBind`.
+- Verify required/optional attributes in directives.
+- Support for translcuded content in directives, referencing values in the directive's scope.
+- CLI: don't parse directives.json for every processed template file.
+- Support for the following directives:
+  - All `input` variants, and their attributes
+  - ng-controller
+  - ng-include
+  - ng-non-bindable
+  - ng-pluralize
+  - select
+  - textarea
+  - All multi-element variants:
+    - `ng-hide`
+    - `ng-if`
+    - `ng-repeat`
+    - `ng-show`
+- Generate interface for forms with named inputs, so the HTML matches any TS interface. 
+- Support for micro-syntax in custom directives, like `ng-repeat`. (Plugins?)
+- Automatically allow built-in AngularJS filters, like `date`.
+- Expose the `$event` local for event-handling directives.
+- Process directives in order of priority.

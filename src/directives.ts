@@ -45,7 +45,6 @@ TODO:
  input[url]
  input[week]
  ngController
- ngForm
  ngHide (multiElement)
  ngIf (multiElement)
  ngInclude
