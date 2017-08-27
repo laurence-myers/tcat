@@ -9,9 +9,12 @@ describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
         function verifyHtml(html : string, expected : TemplateRootNode, directives : DirectiveData[]) {
             const either = parseHtml(asHtmlContents(html), 'TemplateScope', createDirectiveMap(directives));
-            assert.ok(either.isRight(), "Expected to parse HTML successfully");
-            const result = either.right();
-            assert.deepEqual(result, expected);
+            either.bimap((errors) => {
+                assert.ok(either.isRight(), "Expected to parse HTML successfully, got errors: " + errors.join('\n'));
+            }, () => {
+                const result = either.right();
+                assert.deepEqual(result, expected);
+            });
         }
 
         it(`parses ng-template with nested elements`, function () {
@@ -122,6 +125,30 @@ describe(`Template parsers`, function () {
                 ], `TemplateScope`),
             ]);
             verifyHtml(html, expected, directives);
+        });
+
+        it(`parses a form element with a name`, function () {
+            const html = `<form name="myForm"><p>{{ myForm.$error.required }}</p></form>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    scopedBlock([
+                        parameter(`myForm`, `IFormController`)
+                    ], [
+                        assign(`myForm.$error.required`)
+                    ])
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`parses a form element without a name`, function () {
+            const html = `<form><p>{{ myForm.$error.required }}</p></form>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`myForm.$error.required`)
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
         });
     });
 });

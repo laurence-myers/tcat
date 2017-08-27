@@ -1,5 +1,5 @@
 import {AttributeParser, defaultParser, parseInterpolatedText, parseNgRepeat} from "./parsers";
-import {ElementDirectiveParser, parseNgTemplateElement} from "./parser/elements";
+import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 
 export function singleAttribute(name : string, parser : AttributeParser = defaultParser) : DirectiveData {
     return {
@@ -127,6 +127,13 @@ builtinDirectiveMap.set('script', {
     canBeElement: true,
     canBeAttribute: false,
     parser: (el, directives) => parseNgTemplateElement(el, directives), // not sure why this wrapping function is required...
+    attributes: []
+});
+builtinDirectiveMap.set('form', {
+    name: 'form',
+    canBeElement: true,
+    canBeAttribute: false,
+    parser: (el, directives) => parseFormElement(el, directives),
     attributes: []
 });
 

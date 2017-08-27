@@ -27,6 +27,14 @@ function isScriptNode(node : CheerioElement) : node is ScriptNode {
     return node.type == 'script';
 }
 
+interface FormNode extends CheerioElement {
+    type : 'form';
+}
+
+function isFormNode(node : CheerioElement) : node is FormNode {
+    return node.type == 'tag' && node.tagName == 'form';
+}
+
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
 interface ElementParserContext {
@@ -181,7 +189,7 @@ function isNgTemplate(element : CheerioElement) : boolean {
 
 export function parseNgTemplateElement(element : CheerioElement, directives : Map<string, DirectiveData>) : ElementDirectiveParserResult {
     if (!isScriptNode(element)) {
-        return Either.Left([new ElementDirectiveParserError(`ng-template parse expected a "script" element, but got "${ element.type }" instead.`)]);
+        return Either.Left([new ElementDirectiveParserError(`ng-template parser expected a "script" element, but got "${ element.type }" instead.`)]);
     } else if (element.attribs.type !== 'text/ng-template') {
         return Either.Right({
             nodes: []
@@ -209,6 +217,30 @@ export function parseNgTemplateElement(element : CheerioElement, directives : Ma
                     attachToRoot: true
                 }
             };
+        });
+    }
+}
+
+export function parseFormElement(element : CheerioElement, _directives : Map<string, DirectiveData>) : ElementDirectiveParserResult {
+    if (!isFormNode(element)) {
+        return Either.Left([new ElementDirectiveParserError(`form parser expected a "form" element, but got "${ element.type }" instead.`)]);
+    } else if (!element.attribs.name) {
+        return Either.Right({
+            nodes: []
+        });
+    } else {
+        const node = scopedBlock([
+            parameter(element.attribs.name, 'IFormController') // TODO: import this interface
+        ]);
+        return Either.Right({
+            nodes: [node],
+            scopeData: {
+                isStart: true,
+                isEnd: true,
+                root: node,
+                childParent: node,
+                attachToRoot: false
+            }
         });
     }
 }
