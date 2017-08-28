@@ -94,7 +94,6 @@ should all normalise to `ngBind`.
   - All multi-element variants:
     - `ng-hide`
     - `ng-if`
-    - `ng-repeat`
     - `ng-show`
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
 - Support for micro-syntax in custom directives, like `ng-repeat`. (Plugins?)

@@ -1,4 +1,11 @@
-import {AttributeParser, defaultParser, parseInterpolatedText, parseNgRepeat} from "./parsers";
+import {
+    AttributeParser,
+    defaultParser,
+    parseInterpolatedText,
+    parseNgRepeat,
+    parseNgRepeatEnd,
+    parseNgRepeatStart
+} from "./parsers";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 
 export function singleAttribute(name : string, parser : AttributeParser = defaultParser) : DirectiveData {
@@ -50,7 +57,6 @@ TODO:
  ngInclude
  ngNonBindable - don't parse children
  ngPluralize
- ngRepeat (multiElement)
  ngShow (multiElement)
  select
  textarea
@@ -118,7 +124,11 @@ for (const name of BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES) {
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES) {
     builtinDirectiveMap.set(name, singleAttribute(name, parseInterpolatedText));
 }
+
 builtinDirectiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
+builtinDirectiveMap.set('ng-repeat-start', singleAttribute('ng-repeat-start', parseNgRepeatStart));
+builtinDirectiveMap.set('ng-repeat-end', singleAttribute('ng-repeat-end', parseNgRepeatEnd));
+
 builtinDirectiveMap.set('script', {
     name: 'ng-template',
     canBeElement: true,

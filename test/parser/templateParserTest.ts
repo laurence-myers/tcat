@@ -1,9 +1,10 @@
 import {parseHtml} from "../../src/parser/templateParser";
 import * as assert from "assert";
-import {assign, templateRoot, scopedBlock, parameter} from "../../src/generator/dsl";
+import {assign, templateRoot, scopedBlock, parameter, arrayIteration} from "../../src/generator/dsl";
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
+import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parsers";
 
 describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
@@ -146,6 +147,32 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`myForm.$error.required`)
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`parses nested multi-element ng-repeat directives`, function () {
+            const html =
+`<div ng-repeat-start="item in items">
+    <div ng-repeat-start="value in item.values">
+        
+    </div>
+    <div ng-repeat-end>{{ value }}</div>
+</div>
+<div ng-repeat-end>{{ item.name }}</div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
+                        arrayIteration(`item`, `items`, [
+                            scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
+                                arrayIteration(`value`, `item.values`, [
+                                    assign(`value`)
+                                ])
+                            ]),
+                            assign(`item.name`)
+                        ])
+                    ])
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, expected, []);

@@ -1,6 +1,12 @@
 import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
 import {Either} from "monet";
-import {asHtmlContents, AttributeParserError, ElementDirectiveParserError, TcatError} from "../core";
+import {
+    asHtmlContents,
+    AttributeParserError,
+    ElementDirectiveParserError,
+    TcatError,
+    UnexpectedStateError
+} from "../core";
 import {HasChildrenAstNode, ParameterNode, ScopedBlockNode, TemplateRootNode} from "../generator/ast";
 import {DirectiveAttribute, DirectiveData, DirectiveMap} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
@@ -41,6 +47,7 @@ const interpolationStartSymbol = '{{'; // TODO: make this configurable
 interface ElementParserContext {
     readonly errors : AttributeParserError[];
     scopeData : ScopeData | undefined;
+    isScopeEnd : boolean;
 }
 
 function convertToParameter(entry : { name : string; type : string }) : ParameterNode {
@@ -62,11 +69,18 @@ export class ElementWalker {
     }
 
     protected getCurrentScope() : HasChildrenAstNode {
-        return this.scopeStack[this.scopeStack.length - 1];
+        const node = this.scopeStack[this.scopeStack.length - 1];
+        if (node === undefined) {
+            throw new UnexpectedStateError(`ElementWalker should always have at least one scope on the stack.`);
+        }
+        return node;
     }
 
     protected addParseResult(context : ElementParserContext, result : SuccessfulParserResult) : void {
         const scopeData = result.scopeData;
+        context.isScopeEnd = result.isScopeEnd !== undefined
+            ? result.isScopeEnd
+            : context.scopeData !== undefined;
         if (scopeData) {
             context.scopeData = result.scopeData;
             if (scopeData.attachToTemplateRoot) {
@@ -78,9 +92,7 @@ export class ElementWalker {
             } else {
                 this.getCurrentScope().children.push(...result.nodes);
             }
-            if (scopeData.isStart) {
-                this.scopeStack.push(scopeData.childParent);
-            }
+            this.scopeStack.push(scopeData.childParent);
         } else {
             this.getCurrentScope().children.push(...result.nodes);
         }
@@ -185,7 +197,8 @@ export class ElementWalker {
     protected parseElement(node : CheerioElement) : Either<AttributeParserError[], void> {
         const context : ElementParserContext = {
             errors: [],
-            scopeData: undefined
+            scopeData: undefined,
+            isScopeEnd: false
         };
 
         this.parseElementDirective(node, context);
@@ -193,17 +206,8 @@ export class ElementWalker {
         this.parseInterpolatedText(node, context);
         this.parseChildren(node, context);
 
-        if (context.scopeData) {
-            if (context.scopeData.isStart) {
-                if (context.scopeData.attachToTemplateRoot) {
-
-                }
-                if (!context.scopeData.isEnd) {
-                    this.scopeStack.push(context.scopeData.childParent);
-                }
-            } else if (context.scopeData.isEnd) {
-                this.scopeStack.pop();
-            }
+        if (context.isScopeEnd) {
+            this.scopeStack.pop();
         }
         if (context.errors.length > 0) {
             return Either.Left(context.errors);

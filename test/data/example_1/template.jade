@@ -2,5 +2,10 @@ p {{:: 'SOME.KEY' | translate }}
 
 div(ng-repeat="item in items track by $id(item)")
 
+div(ng-repeat-start="item in items")
+    div(ng-repeat-start="value in item.values")
+    div(ng-repeat-end) {{ value }}
+div(ng-repeat-end) {{ item.name }}
+
 script(type="text/ng-template" id="first/second/thirdPart.html")
     p {{ someValue }}

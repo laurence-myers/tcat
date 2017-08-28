@@ -73,8 +73,6 @@ describe(`Parsers`, function() {
             ];
             assert.deepEqual(actual.nodes, expected);
             assert.deepEqual(actual.scopeData, {
-                isStart: true,
-                isEnd: true,
                 root: rootNode,
                 childParent: iterationNode
             });

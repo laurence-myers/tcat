@@ -3,6 +3,7 @@ import {Either} from "monet";
 import {readFileSync, writeFileSync} from "fs";
 
 export class TcatError extends Error {}
+export class UnexpectedStateError extends TcatError {}
 export class UnsupportedTemplateFileError extends TcatError {}
 export class FileReadError extends TcatError {}
 export class FileWriteError extends TcatError {}
@@ -20,7 +21,11 @@ export function flatten<T>(arr : T[][]) : T[] {
 }
 
 export function logObject(obj : any) : void {
-    console.log(util.inspect(obj, false, <any> null));
+    console.log(objectToString(obj));
+}
+
+export function objectToString(obj : any) : string {
+    return util.inspect(obj, false, <any> null);
 }
 
 export function readFile(fileName : string) : Either<FileReadError[], string> {

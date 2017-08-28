@@ -1,7 +1,10 @@
 import {translate} from "./translate";
 
 interface TemplateScope {
-    items : any[];
+    items : Array<{
+        name : string;
+        values : string[];
+    }>;
 }
 
 type FirstSecondThirdPartHtmlScope = any;

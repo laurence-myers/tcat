@@ -10,8 +10,6 @@ import {
 } from "./generator/ast";
 
 export interface ScopeData {
-    isStart : boolean;
-    isEnd : boolean;
     root : HasChildrenAstNode;
     childParent : HasChildrenAstNode;
     attachToTemplateRoot? : boolean;
@@ -20,6 +18,7 @@ export interface ScopeData {
 export interface SuccessfulParserResult {
     nodes : GeneratorAstNode[];
     scopeData? : ScopeData;
+    isScopeEnd? : boolean;
 }
 export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 
@@ -92,12 +91,29 @@ export function parseNgRepeat(expression : string) : ParserResult {
 
     return Either.Right({
         nodes: [containingNode],
+        isScopeEnd: true,
         scopeData: {
-            isStart: true,
-            isEnd: true,
             root: containingNode,
             childParent: iteratorNode
         }
+    });
+}
+
+export function parseNgRepeatStart(expression : string) : ParserResult {
+    return parseNgRepeat(expression)
+        .map((result) => {
+            return {
+                nodes: result.nodes,
+                isScopeEnd: false,
+                scopeData: result.scopeData
+            };
+        });
+}
+
+export function parseNgRepeatEnd(_expression? : string) : ParserResult {
+    return Either.Right({
+        nodes: [],
+        isScopeEnd: true
     });
 }
 
