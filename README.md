@@ -91,12 +91,9 @@ should all normalise to `ngBind`.
   - ng-pluralize
   - select
   - textarea
-  - All multi-element variants:
-    - `ng-hide`
-    - `ng-if`
-    - `ng-show`
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
 - Support for micro-syntax in custom directives, like `ng-repeat`. (Plugins?)
 - Automatically allow built-in AngularJS filters, like `date`.
 - Expose the `$event` local for event-handling directives.
 - Process directives in order of priority.
+- Generate "if" statements for `ng-if`, to support compiling TS with strict null checks enabled. 

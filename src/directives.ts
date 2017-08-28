@@ -3,7 +3,7 @@ import {
     defaultParser,
     parseInterpolatedText,
     parseNgRepeat,
-    parseNgRepeatEnd,
+    parseScopeEnd,
     parseNgRepeatStart
 } from "./parsers";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
@@ -52,12 +52,9 @@ TODO:
  input[url]
  input[week]
  ngController
- ngHide (multiElement)
- ngIf (multiElement)
  ngInclude
  ngNonBindable - don't parse children
  ngPluralize
- ngShow (multiElement)
  select
  textarea
 
@@ -127,7 +124,16 @@ for (const name of BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES) {
 
 builtinDirectiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
 builtinDirectiveMap.set('ng-repeat-start', singleAttribute('ng-repeat-start', parseNgRepeatStart));
-builtinDirectiveMap.set('ng-repeat-end', singleAttribute('ng-repeat-end', parseNgRepeatEnd));
+builtinDirectiveMap.set('ng-repeat-end', singleAttribute('ng-repeat-end', parseScopeEnd));
+
+builtinDirectiveMap.set('ng-show-start', singleAttribute('ng-show-start'));
+builtinDirectiveMap.set('ng-show-end', singleAttribute('ng-show-end', parseScopeEnd));
+
+builtinDirectiveMap.set('ng-hide-start', singleAttribute('ng-hide-start'));
+builtinDirectiveMap.set('ng-hide-end', singleAttribute('ng-hide-end', parseScopeEnd));
+
+builtinDirectiveMap.set('ng-if-start', singleAttribute('ng-if-start'));
+builtinDirectiveMap.set('ng-if-end', singleAttribute('ng-if-end', parseScopeEnd));
 
 builtinDirectiveMap.set('script', {
     name: 'ng-template',

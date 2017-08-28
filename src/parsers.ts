@@ -110,7 +110,7 @@ export function parseNgRepeatStart(expression : string) : ParserResult {
         });
 }
 
-export function parseNgRepeatEnd(_expression? : string) : ParserResult {
+export function parseScopeEnd(_expression? : string) : ParserResult {
     return Either.Right({
         nodes: [],
         isScopeEnd: true

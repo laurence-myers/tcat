@@ -155,9 +155,7 @@ describe(`Template parsers`, function () {
         it(`parses nested multi-element ng-repeat directives`, function () {
             const html =
 `<div ng-repeat-start="item in items">
-    <div ng-repeat-start="value in item.values">
-        
-    </div>
+    <div ng-repeat-start="value in item.values"></div>
     <div ng-repeat-end>{{ value }}</div>
 </div>
 <div ng-repeat-end>{{ item.name }}</div>`;
@@ -173,6 +171,36 @@ describe(`Template parsers`, function () {
                             assign(`item.name`)
                         ])
                     ])
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`parses multi-element ng-show and ng-hide`, function () {
+            const html =
+`<div ng-show-start="items.length > 0"></div>
+<div ng-show-end</div> {{ items[0] }}
+<div ng-hide-start="items.length == 0"></div>
+<p ng-hide-end>{{ items.length }} items found</p>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`items.length > 0`),
+                    assign(`items[0]`),
+                    assign(`items.length == 0`),
+                    assign(`items.length`)
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`parses multi-element ng-if`, function () {
+            const html =
+`<div ng-if-start="someProperty"></div>
+<div ng-if-end</div> {{ someProperty.name }}`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`someProperty`),
+                    assign(`someProperty.name`),
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, expected, []);
