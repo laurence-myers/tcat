@@ -158,7 +158,7 @@ export class TypeScriptGenerator extends SkippingWalker {
             this.writeLine(`declare const _scope_${ ++this.counters.scopes } : ${ node.scopeInterface };`);
         }
         this.pushLocalsScope();
-        const blockStart = `function _block_${ ++this.counters.blocks }(`;
+        const blockStart = `const _block_${ ++this.counters.blocks } = function (`;
         const blockStartSuffix = `) {`;
         if (node.parameters.length > 0) {
             this.writeLine(blockStart);
@@ -173,7 +173,7 @@ export class TypeScriptGenerator extends SkippingWalker {
         super.walkScopedBlockNode(node);
         this.popLocalsScope();
         this.indentLevel--;
-        this.writeLine(`}`);
+        this.writeLine(`};`);
     }
 
     public generate(node : GeneratorAstNode) : string {

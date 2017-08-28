@@ -11,9 +11,9 @@ interface TemplateScope {
 type FirstSecondThirdPartHtmlScope = any;
 
 declare const _scope_1 : TemplateScope;
-function _block_1() {
+const _block_1 = function () {
     const _expr_1 = (translate("SOME.KEY"));
-    function _block_2(
+    const _block_2 = function (
         $index : number,
         $first : boolean,
         $last : boolean,
@@ -25,8 +25,8 @@ function _block_1() {
         for (const item of (_scope_1.items)) {
             const _expr_2 = ($id(item));
         }
-    }
-    function _block_3(
+    };
+    const _block_3 = function (
         $index : number,
         $first : boolean,
         $last : boolean,
@@ -36,7 +36,7 @@ function _block_1() {
         $id : (value : any) => "",
     ) {
         for (const item of (_scope_1.items)) {
-            function _block_4(
+            const _block_4 = function (
                 $index : number,
                 $first : boolean,
                 $last : boolean,
@@ -48,12 +48,12 @@ function _block_1() {
                 for (const value of (item.values)) {
                     const _expr_3 = (value);
                 }
-            }
+            };
             const _expr_4 = (item.name);
         }
-    }
-}
+    };
+};
 declare const _scope_2 : FirstSecondThirdPartHtmlScope;
-function _block_5() {
+const _block_5 = function () {
     const _expr_5 = (_scope_2.someValue);
-}
+};

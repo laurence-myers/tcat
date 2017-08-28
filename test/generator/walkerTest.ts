@@ -24,10 +24,10 @@ describe(`Generator walker`, function () {
                 assign(expression),
                 assign(expression)
             ]));
-            const expected = `function _block_1() {
+            const expected = `const _block_1 = function () {
     const _expr_1 = (!_scope_0.ctrl.tagClick);
     const _expr_2 = (!_scope_0.ctrl.tagClick);
-}\n`;
+};\n`;
             assert.equal(actual, expected);
         });
 
@@ -36,7 +36,7 @@ describe(`Generator walker`, function () {
                 const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     arrayIteration('item', 'items')
                 ]));
-                const expected = `function _block_1(
+                const expected = `const _block_1 = function (
     $index : number,
     $first : boolean,
     $last : boolean,
@@ -47,7 +47,7 @@ describe(`Generator walker`, function () {
 ) {
     for (const item of (_scope_0.items)) {
     }
-}
+};
 `;
                 assert.equal(actual, expected);
             });
@@ -56,7 +56,7 @@ describe(`Generator walker`, function () {
                 const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                     objectIteration('key', 'value', 'items')
                 ]));
-                const expected = `function _block_1(
+                const expected = `const _block_1 = function (
     $index : number,
     $first : boolean,
     $last : boolean,
@@ -68,7 +68,7 @@ describe(`Generator walker`, function () {
     for (const key in (_scope_0.items)) {
         const value = (_scope_0.items)[key];
     }
-}
+};
 `;
                 assert.equal(actual, expected);
             });
@@ -80,7 +80,7 @@ describe(`Generator walker`, function () {
                         assign(`someScopedValue`)
                     ])
                 ]));
-                const expected = `function _block_1(
+                const expected = `const _block_1 = function (
     $index : number,
     $first : boolean,
     $last : boolean,
@@ -93,7 +93,7 @@ describe(`Generator walker`, function () {
         const _expr_1 = (item.name);
         const _expr_2 = (_scope_0.someScopedValue);
     }
-}
+};
 `;
                 assert.equal(actual, expected);
             });
@@ -124,8 +124,8 @@ describe(`Generator walker`, function () {
                 ])
             );
             const expected = `declare const _scope_1 : TemplateScope;
-function _block_1() {
-    function _block_2(
+const _block_1 = function () {
+    const _block_2 = function (
         $index : number,
         $first : boolean,
         $last : boolean,
@@ -139,8 +139,8 @@ function _block_1() {
             const _expr_2 = (_scope_1.someScopedValue);
         }
         const _expr_3 = (_scope_1.item.name);
-    }
-    function _block_3(
+    };
+    const _block_3 = function (
         $index : number,
         $first : boolean,
         $last : boolean,
@@ -156,10 +156,10 @@ function _block_1() {
         }
         const _expr_6 = (_scope_1.someKey);
         const _expr_7 = (_scope_1.someValue);
-    }
+    };
     const _expr_8 = (_scope_1._expr_7);
     const _expr_9 = (_scope_1.$index);
-}
+};
 `;
             assert.equal(actual, expected);
         });

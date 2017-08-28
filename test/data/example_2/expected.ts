@@ -11,13 +11,13 @@ interface TemplateScope {
 }
 
 declare const _scope_1 : TemplateScope;
-function _block_1() {
+const _block_1 = function () {
     const _expr_1 = (_scope_1.prop1);
     const _expr_2 = (_scope_1.prop2);
     const _expr_3 = (_scope_1.directiveFunction());
-    function _block_2(
+    const _block_2 = function (
         someLocal : FunkyType,
     ) {
         const _expr_4 = (_scope_1.prop1 + _scope_1.prop2 + someLocal.funkyName);
-    }
-}
+    };
+};
