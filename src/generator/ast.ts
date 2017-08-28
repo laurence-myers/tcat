@@ -34,6 +34,12 @@ export interface ObjectIterationNode {
     children : GeneratorAstNode[];
 }
 
+export interface IfStatementNode {
+    type : 'IfStatementNode';
+    expression : ProgramNode;
+    children : GeneratorAstNode[];
+}
+
 export interface ParameterNode {
     type : 'ParameterNode';
     name : string;
@@ -52,5 +58,10 @@ export interface TemplateRootNode {
     children : GeneratorAstNode[];
 }
 
-export type HasChildrenAstNode = TemplateRootNode | ScopedBlockNode | ObjectIterationNode | ArrayIterationNode;
+export type HasChildrenAstNode =
+    TemplateRootNode
+    | ScopedBlockNode
+    | ObjectIterationNode
+    | ArrayIterationNode
+    | IfStatementNode;
 export type GeneratorAstNode = AssignmentNode | HasChildrenAstNode | ParameterNode;

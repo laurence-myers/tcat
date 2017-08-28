@@ -1,6 +1,6 @@
 import {Either} from 'monet';
 import {AttributeParserError} from "./core";
-import {arrayIteration, assign, objectIteration, parameter, scopedBlock} from "./generator/dsl";
+import {arrayIteration, assign, ifStatement, objectIteration, parameter, scopedBlock} from "./generator/dsl";
 import {
     ArrayIterationNode,
     GeneratorAstNode,
@@ -114,6 +114,17 @@ export function parseScopeEnd(_expression? : string) : ParserResult {
     return Either.Right({
         nodes: [],
         isScopeEnd: true
+    });
+}
+
+export function parseNgIf(expression : string) : ParserResult {
+    const node = ifStatement(expression);
+    return Either.Right({
+        nodes: [node],
+        scopeData: {
+            root: node,
+            childParent: node
+        }
     });
 }
 

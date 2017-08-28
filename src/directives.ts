@@ -4,7 +4,7 @@ import {
     parseInterpolatedText,
     parseNgRepeat,
     parseScopeEnd,
-    parseNgRepeatStart
+    parseNgRepeatStart, parseNgIf
 } from "./parsers";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 
@@ -79,7 +79,6 @@ const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ng-disabled',
     'ng-focus',
     'ng-hide',
-    'ng-if',
     'ng-init',
     'ng-keydown',
     'ng-keypress',
@@ -132,7 +131,8 @@ builtinDirectiveMap.set('ng-show-end', singleAttribute('ng-show-end', parseScope
 builtinDirectiveMap.set('ng-hide-start', singleAttribute('ng-hide-start'));
 builtinDirectiveMap.set('ng-hide-end', singleAttribute('ng-hide-end', parseScopeEnd));
 
-builtinDirectiveMap.set('ng-if-start', singleAttribute('ng-if-start'));
+builtinDirectiveMap.set('ng-if', singleAttribute('ng-if', parseNgIf));
+builtinDirectiveMap.set('ng-if-start', singleAttribute('ng-if-start', parseNgIf));
 builtinDirectiveMap.set('ng-if-end', singleAttribute('ng-if-end', parseScopeEnd));
 
 builtinDirectiveMap.set('script', {

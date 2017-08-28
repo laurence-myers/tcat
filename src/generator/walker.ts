@@ -4,7 +4,7 @@ import {
     GeneratorAstNode,
     ObjectIterationNode,
     TemplateRootNode,
-    ScopedBlockNode, ParameterNode
+    ScopedBlockNode, ParameterNode, IfStatementNode
 } from "./ast";
 import {assertNever} from "../core";
 import {ExpressionScopeRectifier} from "../ngExpression/expressionWalker";
@@ -13,6 +13,7 @@ import {ProgramNode} from "../ngExpression/ast";
 export abstract class BaseWalker {
     protected abstract walkArrayIterationNode(node : ArrayIterationNode) : void;
     protected abstract walkAssignmentNode(node : AssignmentNode) : void;
+    protected abstract walkIfStatementNode(node : IfStatementNode) : void;
     protected abstract walkObjectIterationNode(node : ObjectIterationNode) : void;
     protected abstract walkParameterNode(node : ParameterNode) : void;
     protected abstract walkScopedBlockNode(node : ScopedBlockNode) : void;
@@ -28,6 +29,8 @@ export abstract class BaseWalker {
                 return this.walkArrayIterationNode(node);
             case 'AssignmentNode':
                 return this.walkAssignmentNode(node);
+            case 'IfStatementNode':
+                return this.walkIfStatementNode(node);
             case 'ObjectIterationNode':
                 return this.walkObjectIterationNode(node);
             case 'ParameterNode':
@@ -45,15 +48,19 @@ export abstract class BaseWalker {
 
 export class SkippingWalker extends BaseWalker {
     protected walkArrayIterationNode(node : ArrayIterationNode) : void {
-        return this.dispatchAll(node.children);
+        this.dispatchAll(node.children);
     }
 
     protected walkAssignmentNode(_node : AssignmentNode) {
 
     }
 
+    protected walkIfStatementNode(node : IfStatementNode) : void {
+        this.dispatchAll(node.children);
+    }
+
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {
-        return this.dispatchAll(node.children);
+        this.dispatchAll(node.children);
     }
 
     protected walkParameterNode(_node : ParameterNode) : void {
@@ -132,6 +139,14 @@ export class TypeScriptGenerator extends SkippingWalker {
                 ? this.formatExpression(node.expression)
                 : node.expression;
         this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ expression };`);
+    }
+
+    protected walkIfStatementNode(node : IfStatementNode) : void {
+        this.writeLine(`if (${ this.formatExpression(node.expression) }) {`);
+        this.indentLevel++;
+        super.walkIfStatementNode(node);
+        this.indentLevel--;
+        this.writeLine(`}`);
     }
 
     protected walkObjectIterationNode(node : ObjectIterationNode) : void {

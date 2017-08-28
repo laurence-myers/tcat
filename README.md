@@ -71,12 +71,11 @@ Create a new tsconfig-tcat.json, extending your existing config, that is set to 
 Run TSC, specifying "tsconfig-tcat.json" for your project file.
 
 If "template.html" refers to anything you haven't explicitly specified in the file "template.html.ts", the TypeScript
-compiler will fail.
+compiler will fail to compile "template.html.typeview.ts".
 
 ## TODO
 
 - Warn on unrecognised HTML elements or attributes, since this could indicate a directive that should be type checked.
-- Support for multi-element directives, like `ng-repeat-start`.
 - Support for multiple directives per tag/attribute.
 - Support normalised element/attribute names, e.g. `ng-bind`, `ng:bind`, `ng_bind`, `data-ng-bind`, and `x-ng-bind` 
 should all normalise to `ngBind`.
@@ -96,4 +95,3 @@ should all normalise to `ngBind`.
 - Automatically allow built-in AngularJS filters, like `date`.
 - Expose the `$event` local for event-handling directives.
 - Process directives in order of priority.
-- Generate "if" statements for `ng-if`, to support compiling TS with strict null checks enabled. 

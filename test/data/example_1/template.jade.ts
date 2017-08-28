@@ -5,6 +5,9 @@ interface TemplateScope {
         name : string;
         values : string[];
     }>;
+    someOptionalProperty : undefined | {
+        name : string;
+    };
 }
 
 type FirstSecondThirdPartHtmlScope = any;

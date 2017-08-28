@@ -2,6 +2,7 @@ import {
     ArrayIterationNode,
     AssignmentNode,
     GeneratorAstNode,
+    IfStatementNode,
     ObjectIterationNode,
     ParameterNode,
     ScopedBlockNode,
@@ -41,6 +42,14 @@ export function arrayIteration(valueName : string, iterable : string, children :
         type: "ArrayIterationNode",
         valueName,
         iterable: parseExpression(iterable),
+        children
+    };
+}
+
+export function ifStatement(expression : string, children : GeneratorAstNode[] = []) : IfStatementNode {
+    return {
+        type: "IfStatementNode",
+        expression: parseExpression(expression),
         children
     };
 }

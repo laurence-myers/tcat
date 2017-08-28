@@ -6,6 +6,9 @@ interface TemplateScope {
         name : string;
         values : string[];
     }>;
+    someOptionalProperty : undefined | {
+        name : string;
+    };
 }
 
 type FirstSecondThirdPartHtmlScope = any;
@@ -52,8 +55,11 @@ const _block_1 = function () {
             const _expr_4 = (item.name);
         }
     };
+    if ((_scope_1.someOptionalProperty)) {
+        const _expr_5 = (_scope_1.someOptionalProperty.name);
+    }
 };
 declare const _scope_2 : FirstSecondThirdPartHtmlScope;
 const _block_5 = function () {
-    const _expr_5 = (_scope_2.someValue);
+    const _expr_6 = (_scope_2.someValue);
 };

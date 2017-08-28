@@ -1,6 +1,6 @@
 import {parseHtml} from "../../src/parser/templateParser";
 import * as assert from "assert";
-import {assign, templateRoot, scopedBlock, parameter, arrayIteration} from "../../src/generator/dsl";
+import {assign, templateRoot, scopedBlock, parameter, arrayIteration, ifStatement} from "../../src/generator/dsl";
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
@@ -199,8 +199,9 @@ describe(`Template parsers`, function () {
 <div ng-if-end</div> {{ someProperty.name }}`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`someProperty`),
-                    assign(`someProperty.name`),
+                    ifStatement(`someProperty`, [
+                        assign(`someProperty.name`)
+                    ]),
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, expected, []);

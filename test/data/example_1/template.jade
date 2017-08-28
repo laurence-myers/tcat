@@ -7,5 +7,8 @@ div(ng-repeat-start="item in items")
     div(ng-repeat-end) {{ value }}
 div(ng-repeat-end) {{ item.name }}
 
+div(ng-if="someOptionalProperty")
+    p {{ someOptionalProperty.name }}
+
 script(type="text/ng-template" id="first/second/thirdPart.html")
     p {{ someValue }}
