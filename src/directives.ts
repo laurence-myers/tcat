@@ -4,7 +4,7 @@ import {
     parseInterpolatedText,
     parseNgRepeat,
     parseScopeEnd,
-    parseNgRepeatStart, parseNgIf
+    parseNgRepeatStart, parseNgIf, parseEventDirective
 } from "./parsers";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 
@@ -65,37 +65,19 @@ const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ng-bind',
     'ng-bind-html',
     'ng-bind-template',
-    'ng-blur',
-    'ng-change',
     'ng-checked',
     'ng-class',
     'ng-class-even',
     'ng-class-odd',
-    'ng-click',
     'ng-cloak',
-    'ng-copy',
-    'ng-cut',
-    'ng-dblclick',
     'ng-disabled',
-    'ng-focus',
     'ng-hide',
     'ng-init',
-    'ng-keydown',
-    'ng-keypress',
-    'ng-keyup',
     'ng-maxlength', // do ng-maxlength and ng-minlength allow expressions? hmm.
     'ng-minlength',
     'ng-model',
     'ng-model-options',
-    'ng-mousedown',
-    'ng-mouseenter',
-    'ng-mouseleave',
-    'ng-mousemove',
-    'ng-mouseout',
-    'ng-mouseover',
-    'ng-mouseup',
     'ng-open',
-    'ng-paste',
     'ng-pattern',
     'ng-readonly',
     'ng-required',
@@ -113,12 +95,36 @@ const BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES = [
     'ng-srcset'
 ];
 
+const BUILTIN_EVENT_DIRECTIVE_NAMES = [
+    'ng-blur',
+    'ng-change',
+    'ng-click',
+    'ng-copy',
+    'ng-cut',
+    'ng-dblclick',
+    'ng-focus',
+    'ng-keydown',
+    'ng-keypress',
+    'ng-keyup',
+    'ng-mousedown',
+    'ng-mouseenter',
+    'ng-mouseleave',
+    'ng-mousemove',
+    'ng-mouseout',
+    'ng-mouseover',
+    'ng-mouseup',
+    'ng-paste',
+];
+
 export const builtinDirectiveMap : Map<string, DirectiveData> = new Map<string, DirectiveData>();
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES) {
     builtinDirectiveMap.set(name, singleAttribute(name));
 }
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES) {
     builtinDirectiveMap.set(name, singleAttribute(name, parseInterpolatedText));
+}
+for (const name of BUILTIN_EVENT_DIRECTIVE_NAMES) {
+    builtinDirectiveMap.set(name, singleAttribute(name, parseEventDirective));
 }
 
 builtinDirectiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));

@@ -201,5 +201,4 @@ should all normalise to `ngBind`.
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
 - Support for micro-syntax in custom directives, like `ng-repeat`. (Plugins?)
 - Automatically allow built-in AngularJS filters, like `date`.
-- Expose the `$event` local for event-handling directives.
 - Process directives in order of priority.

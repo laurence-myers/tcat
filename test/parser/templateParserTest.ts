@@ -26,7 +26,11 @@ describe(`Template parsers`, function () {
                 scopedBlock([], [
                 ], `TemplateScope`),
                 scopedBlock([], [
-                    assign(`someFunc()`)
+                    scopedBlock([
+                        parameter(`$event`, `IAngularEvent`)
+                    ], [
+                        assign(`someFunc()`)
+                    ])
                 ], `SomeNestedTemplateHtmlScope`)
             ]);
             verifyHtml(html, expected, []);
@@ -44,7 +48,11 @@ describe(`Template parsers`, function () {
                 scopedBlock([], [
                 ], `SomeNestedTemplateHtmlScope`),
                 scopedBlock([], [
-                    assign(`someFunc()`)
+                    scopedBlock([
+                        parameter(`$event`, `IAngularEvent`)
+                    ], [
+                        assign(`someFunc()`)
+                    ])
                 ], `AnotherNestedTemplateHtmlScope`)
             ]);
             verifyHtml(html, expected, []);
@@ -202,6 +210,21 @@ describe(`Template parsers`, function () {
                     ifStatement(`someProperty`, [
                         assign(`someProperty.name`)
                     ]),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`parses ng-click and provides an $event local`, function () {
+            const html =
+                `<div ng-click="doSomething($event)"></div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    scopedBlock([
+                        parameter(`$event`, `IAngularEvent`)
+                    ], [
+                        assign(`doSomething($event)`)
+                    ])
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, expected, []);

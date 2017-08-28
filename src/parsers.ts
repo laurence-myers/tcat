@@ -128,6 +128,22 @@ export function parseNgIf(expression : string) : ParserResult {
     });
 }
 
+export function parseEventDirective(expression : string) : ParserResult {
+    const node = scopedBlock([
+        // not ideal, consumers need to manually import IAngularEvent
+        parameter(`$event`, `IAngularEvent`)
+    ], [
+        assign(expression)
+    ]);
+    return Either.Right({
+        nodes: [node],
+        scopeData: {
+            root: node,
+            childParent: node
+        }
+    });
+}
+
 // Derived from: https://github.com/angular/angular.js/blob/aee5d02cb789e178f3f80f95cdabea38e0090501/src/ng/interpolate.js#L240
 export function parseInterpolatedText(text : string, symbols = {
     startSymbol: '{{',
