@@ -44,6 +44,7 @@ Write a directives.json file. This defines your custom directives used in your a
 ```
 
 Assuming you have a single "tsconfig.json" for your AngularJS project:
+
 - Move all settings everything to a new "tsconfig_base.json", except properties that specify the files to compile, such
   as "includes", "files", or "excludes".
 - Modify "tsconfig.json" to extend from "tsconfig.json".
@@ -173,6 +174,7 @@ typeview files. This could happen as a "postinstall" npm script.
 ## Supported templates
 
 tcat can read templates in the following formats:
+
 - HTML
 - Jade
 - Pug
