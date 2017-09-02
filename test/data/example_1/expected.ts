@@ -11,6 +11,14 @@ interface TemplateScope {
     };
 }
 
+interface FooControllerScope {
+    fooValue : string;
+}
+
+interface BarControllerScope {
+    barValue : string;
+}
+
 type FirstSecondThirdPartHtmlScope = any;
 
 const _block_1 = function (
@@ -59,9 +67,19 @@ const _block_1 = function (
     if ((_scope_1.someOptionalProperty)) {
         const _expr_5 = (_scope_1.someOptionalProperty.name);
     }
+    const _block_5 = function (
+        _scope_2 : FooControllerScope,
+    ) {
+        const _expr_6 = (_scope_2.fooValue);
+    };
+    const _block_6 = function (
+        _scope_3 : { ctrl : BarControllerScope },
+    ) {
+        const _expr_7 = (_scope_3.ctrl.barValue);
+    };
 };
-const _block_5 = function (
-    _scope_2 : FirstSecondThirdPartHtmlScope,
+const _block_7 = function (
+    _scope_4 : FirstSecondThirdPartHtmlScope,
 ) {
-    const _expr_6 = (_scope_2.someValue);
+    const _expr_8 = (_scope_4.someValue);
 };

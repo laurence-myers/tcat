@@ -80,7 +80,7 @@ export class ElementWalker {
         const scopeData = result.scopeData;
         context.isScopeEnd = result.isScopeEnd !== undefined
             ? result.isScopeEnd
-            : context.scopeData !== undefined;
+            : result.scopeData !== undefined || context.scopeData !== undefined; // by default, end scopes opened on this element.
         if (scopeData) {
             context.scopeData = result.scopeData;
             if (scopeData.attachToTemplateRoot) {
@@ -257,8 +257,6 @@ export function parseNgTemplateElement(element : CheerioElement, directives : Ma
             return {
                 nodes: [rootNode],
                 scopeData: {
-                    isStart: true,
-                    isEnd: true,
                     root: rootNode,
                     childParent: rootNode,
                     attachToTemplateRoot: true
@@ -268,7 +266,7 @@ export function parseNgTemplateElement(element : CheerioElement, directives : Ma
     }
 }
 
-export function parseFormElement(element : CheerioElement, _directives : Map<string, DirectiveData>) : ElementDirectiveParserResult {
+export function parseFormElement(element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
     if (!isFormNode(element)) {
         return Either.Left([new ElementDirectiveParserError(`form parser expected a "form" element, but got "${ element.type }" instead.`)]);
     } else if (!element.attribs.name) {
@@ -282,8 +280,6 @@ export function parseFormElement(element : CheerioElement, _directives : Map<str
         return Either.Right({
             nodes: [node],
             scopeData: {
-                isStart: true,
-                isEnd: true,
                 root: node,
                 childParent: node,
                 attachToTemplateRoot: false

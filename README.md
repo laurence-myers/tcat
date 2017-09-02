@@ -194,7 +194,6 @@ should all normalise to `ngBind`.
 - CLI: don't parse directives.json for every processed template file.
 - Support for the following directives:
   - All `input` variants, and their attributes
-  - ng-controller
   - ng-include
   - ng-non-bindable
   - ng-pluralize

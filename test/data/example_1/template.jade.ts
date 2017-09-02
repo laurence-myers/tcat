@@ -10,4 +10,12 @@ interface TemplateScope {
     };
 }
 
+interface FooControllerScope {
+    fooValue : string;
+}
+
+interface BarControllerScope {
+    barValue : string;
+}
+
 type FirstSecondThirdPartHtmlScope = any;

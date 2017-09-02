@@ -36,6 +36,26 @@ describe(`Template parsers`, function () {
             verifyHtml(html, expected, []);
         });
 
+        it(`parses ng-template with proceeding sibling elements`, function () {
+            const html = `<script type="text/ng-template" id="some/nested/template.html">
+    <div ng-click="someFunc()"></div>
+</script>
+<div>{{ someValue }}</div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`someValue`)
+                ], `TemplateScope`),
+                scopedBlock([], [
+                    scopedBlock([
+                        parameter(`$event`, `IAngularEvent`)
+                    ], [
+                        assign(`someFunc()`)
+                    ])
+                ], `SomeNestedTemplateHtmlScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
         it(`parses ng-template with nested ng-template`, function () {
             const html = `<script type="text/ng-template" id="some/nested/template.html">
     <script type="text/ng-template" id="another/nested/template.html">
@@ -204,12 +224,26 @@ describe(`Template parsers`, function () {
         it(`parses multi-element ng-if`, function () {
             const html =
 `<div ng-if-start="someProperty"></div>
-<div ng-if-end</div> {{ someProperty.name }}`;
+<div ng-if-end>{{ someProperty.name }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     ifStatement(`someProperty`, [
                         assign(`someProperty.name`)
                     ]),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`ng-if does not encapsulate following sibling expressions`, function () {
+            const html =
+                `<div ng-if="someProperty"></div>
+<div>{{ someProperty.name }}`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    ifStatement(`someProperty`, [
+                    ]),
+                    assign(`someProperty.name`)
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, expected, []);
@@ -225,6 +259,25 @@ describe(`Template parsers`, function () {
                     ], [
                         assign(`doSomething($event)`)
                     ])
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
+
+        it(`parses ng-controller directives`, function () {
+            const html = `
+<div ng-controller="FooController">{{ fooValue }}</div>
+<div ng-controller="BarController as ctrl">{{ ctrl.barValue }}</div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    scopedBlock([
+                    ], [
+                        assign(`fooValue`)
+                    ], `FooControllerScope`),
+                    scopedBlock([
+                    ], [
+                        assign(`ctrl.barValue`)
+                    ], `{ ctrl : BarControllerScope }`)
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, expected, []);

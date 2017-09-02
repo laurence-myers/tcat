@@ -99,15 +99,16 @@ export function parseNgRepeat(expression : string) : ParserResult {
     });
 }
 
-export function parseNgRepeatStart(expression : string) : ParserResult {
-    return parseNgRepeat(expression)
-        .map((result) => {
-            return {
-                nodes: result.nodes,
-                isScopeEnd: false,
-                scopeData: result.scopeData
-            };
-        });
+export function wrapParseScopeStart(parser : AttributeParser) : AttributeParser {
+    return (expression : string) => {
+        return parser(expression)
+            .map((result : SuccessfulParserResult) => {
+                return {
+                    ...result,
+                    isScopeEnd: false
+                };
+            });
+    };
 }
 
 export function parseScopeEnd(_expression? : string) : ParserResult {
@@ -236,5 +237,32 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
 
     return Either.Right({
         nodes
+    });
+}
+
+const CNTRL_REG = /^(\S+)(\s+as\s+([\w$]+))?$/;
+export function parseNgController(expression : string) : ParserResult {
+    const match = expression.match(CNTRL_REG);
+    if (!match) {
+        return Either.Left(new AttributeParserError(
+            `Badly formed controller string '${ expression }'. ` +
+            'Must match `__name__ as __id__` or `__name__`.'));
+    }
+    const constructorInterface = match[1] + 'Scope';
+    const identifier = match[3];
+
+    const scopeInterface = identifier
+        ? `{ ${ identifier } : ${ constructorInterface } }`
+        : constructorInterface;
+
+
+    const scope = scopedBlock([], [], scopeInterface);
+
+    return Either.Right({
+        nodes: [scope],
+        scopeData: <ScopeData> {
+            root: scope,
+            childParent: scope
+        }
     });
 }

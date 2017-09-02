@@ -12,3 +12,9 @@ div(ng-if="someOptionalProperty")
 
 script(type="text/ng-template" id="first/second/thirdPart.html")
     p {{ someValue }}
+
+div(ng-controller="FooController")
+    p {{ fooValue }}
+
+div(ng-controller="BarController as ctrl")
+    p {{ ctrl.barValue }}

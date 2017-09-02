@@ -1,10 +1,13 @@
 import {
     AttributeParser,
     defaultParser,
+    parseEventDirective,
     parseInterpolatedText,
+    parseNgController,
+    parseNgIf,
     parseNgRepeat,
     parseScopeEnd,
-    parseNgRepeatStart, parseNgIf, parseEventDirective
+    wrapParseScopeStart
 } from "./parsers";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 
@@ -128,17 +131,17 @@ for (const name of BUILTIN_EVENT_DIRECTIVE_NAMES) {
 }
 
 builtinDirectiveMap.set('ng-repeat', singleAttribute('ng-repeat', parseNgRepeat));
-builtinDirectiveMap.set('ng-repeat-start', singleAttribute('ng-repeat-start', parseNgRepeatStart));
+builtinDirectiveMap.set('ng-repeat-start', singleAttribute('ng-repeat-start', wrapParseScopeStart(parseNgRepeat)));
 builtinDirectiveMap.set('ng-repeat-end', singleAttribute('ng-repeat-end', parseScopeEnd));
 
-builtinDirectiveMap.set('ng-show-start', singleAttribute('ng-show-start'));
+builtinDirectiveMap.set('ng-show-start', singleAttribute('ng-show-start', wrapParseScopeStart(defaultParser)));
 builtinDirectiveMap.set('ng-show-end', singleAttribute('ng-show-end', parseScopeEnd));
 
-builtinDirectiveMap.set('ng-hide-start', singleAttribute('ng-hide-start'));
+builtinDirectiveMap.set('ng-hide-start', singleAttribute('ng-hide-start', wrapParseScopeStart(defaultParser)));
 builtinDirectiveMap.set('ng-hide-end', singleAttribute('ng-hide-end', parseScopeEnd));
 
 builtinDirectiveMap.set('ng-if', singleAttribute('ng-if', parseNgIf));
-builtinDirectiveMap.set('ng-if-start', singleAttribute('ng-if-start', parseNgIf));
+builtinDirectiveMap.set('ng-if-start', singleAttribute('ng-if-start', wrapParseScopeStart(parseNgIf)));
 builtinDirectiveMap.set('ng-if-end', singleAttribute('ng-if-end', parseScopeEnd));
 
 builtinDirectiveMap.set('script', {
@@ -155,6 +158,8 @@ builtinDirectiveMap.set('form', {
     parser: (el, directives) => parseFormElement(el, directives),
     attributes: []
 });
+builtinDirectiveMap.set('ng-controller', singleAttribute('ng-controller', parseNgController));
+
 
 // TODO: support multiple directives per tag/element name. (1:M)
 export function createDirectiveMap(directives : DirectiveData[]) : Map<string, DirectiveData> {
