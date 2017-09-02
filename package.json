@@ -2,7 +2,7 @@
   "name": "tcat",
   "version": "0.0.1",
   "description": "Type Checker for AngularJS Templates",
-  "main": "build/src/main.js",
+  "main": "build/src/cli.js",
   "scripts": {
     "lint": "tslint -c tslint.json ./src/**/*.ts ./test/**/*.ts",
     "start": "node build/src/cli.js",
