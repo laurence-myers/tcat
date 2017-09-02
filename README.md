@@ -49,7 +49,7 @@ Assuming you have a single "tsconfig.json" for your AngularJS project:
   as "includes", "files", or "excludes".
 - Modify "tsconfig.json" to extend from "tsconfig.json".
 - Create a new "tsconfig-tcat.json", extending from "tsconfig_base.json". Make sure it has the following settings:
-  - Only compile files ending in ".typeview.ts".
+  - Only compile files ending in ".tcat.ts".
   - Do not emit any JS.
 
 
@@ -108,7 +108,7 @@ interface MyFancyNestedTemplateHtmlScope {
 }
 ```
 
-### Generating typeviews 
+### Generating tcats 
 
 Run tcat. Pass it the name of the directives files, and the template file.
 
@@ -121,7 +121,7 @@ You can also specify multiple files or directories.
 ./node_modules/.bin/tcat directives.json template_1.html template_2.jade ./views/ 
 ```
 
-You'll find a new file has been generated, caled "template.html.typeview.ts". It will look something like this:
+You'll find a new file has been generated, caled "template.html.tcat.ts". It will look something like this:
 
 ```typescript
 import {date} from "./filters";
@@ -160,17 +160,17 @@ const _block_1 = function (
 Run TSC, specifying "tsconfig-tcat.json" for your project file. This will compile the generated file.
 
 If "template.html" refers to anything you haven't explicitly specified in the file "template.html.ts", the TypeScript
-compiler will fail to compile "template.html.typeview.ts".
+compiler will fail to compile "template.html.tcat.ts".
 
 ## Incorporating into your build
 
 This is up to you!
 
 You could make this a precommit action, where you run tcat for all changed template files, then run TSC on the generated
-typeview files.
+tcat files.
 
 Or, you could compile all files in one go, by running tcat across your entire directory, then compiling the generated
-typeview files. This could happen as a "postinstall" npm script.
+tcat files. This could happen as a "postinstall" npm script.
 
 ## Supported templates
 

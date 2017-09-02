@@ -57,7 +57,7 @@ export function convertPugFileToTypeScript(templateFileName : PugFileName, direc
 }
 
 function generateTypeScriptOutputFileName(templateFileName : FileName) : FileName {
-    return asFileName(`${ templateFileName }.typeview.ts`);
+    return asFileName(`${ templateFileName }.tcat.ts`);
 }
 
 export function convertHtmlFileToTypeScriptFile(templateFileName : HtmlFileName, directivesFileName : FileName) : Either<TcatError[], void> {

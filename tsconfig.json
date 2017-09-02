@@ -8,7 +8,7 @@
     "sourceMap": true,
     "outDir": "build",
     "noEmitOnError": true,
-    
+
     "strict": true,
 
     "noUnusedLocals": true,
