@@ -1,4 +1,4 @@
-import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "../parsers";
+import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "./attributes";
 import {Either} from "monet";
 import {
     asHtmlContents,

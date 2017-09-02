@@ -4,11 +4,11 @@ import {
     parseNgOptions,
     parseNgRepeat,
     SuccessfulParserResult
-} from "../src/parsers";
+} from "../../src/parser/attributes";
 import * as assert from "assert";
-import {AttributeParserError} from "../src/core";
-import {GeneratorAstNode} from "../src/generator/ast";
-import {arrayIteration, assign, objectIteration, scopedBlock} from "../src/generator/dsl";
+import {AttributeParserError} from "../../src/core";
+import {GeneratorAstNode} from "../../src/generator/ast";
+import {arrayIteration, assign, objectIteration, scopedBlock} from "../../src/generator/dsl";
 
 describe(`Parsers`, function() {
     describe(`expressions with filters`, function () {

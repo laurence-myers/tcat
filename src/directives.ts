@@ -8,7 +8,7 @@ import {
     parseNgRepeat,
     parseScopeEnd,
     wrapParseScopeStart
-} from "./parsers";
+} from "./parser/attributes";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 
 export function singleAttribute(name : string, parser : AttributeParser = defaultParser) : DirectiveData {

@@ -1,13 +1,13 @@
 import {Either} from 'monet';
-import {AttributeParserError} from "./core";
-import {arrayIteration, assign, ifStatement, objectIteration, parameter, scopedBlock} from "./generator/dsl";
+import {AttributeParserError} from "../core";
+import {arrayIteration, assign, ifStatement, objectIteration, parameter, scopedBlock} from "../generator/dsl";
 import {
     ArrayIterationNode,
     GeneratorAstNode,
     HasChildrenAstNode,
     ObjectIterationNode,
     ParameterNode
-} from "./generator/ast";
+} from "../generator/ast";
 
 export interface ScopeData {
     root : HasChildrenAstNode;

@@ -2,7 +2,7 @@ import * as assert from "assert";
 import {GeneratorAstNode} from "../../src/generator/ast";
 import {TypeScriptGenerator} from "../../src/generator/walker";
 import {arrayIteration, assign, objectIteration, scopedBlock, templateRoot} from "../../src/generator/dsl";
-import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parsers";
+import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
 
 describe(`Generator walker`, function () {
     describe(`TypeScriptGenerator`, function () {

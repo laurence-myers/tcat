@@ -4,7 +4,7 @@ import {assign, templateRoot, scopedBlock, parameter, arrayIteration, ifStatemen
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
-import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parsers";
+import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
 
 describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
