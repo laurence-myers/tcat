@@ -164,5 +164,46 @@ describe(`Generator walker`, function () {
 `;
             assert.equal(actual, expected);
         });
+
+        it(`should de-allocate scope numbers`, function () {
+            const actual = walk(
+                templateRoot([
+                    scopedBlock([], [
+                        scopedBlock([], [
+
+                        ], `NestedScope`),
+                        assign(`someValue`)
+                    ], 'TemplateScope')
+                ])
+            );
+            const expected = `const _block_1 = function (
+    _scope_1 : TemplateScope,
+) {
+    const _block_2 = function (
+        _scope_2 : NestedScope,
+    ) {
+    };
+    const _expr_1 = (_scope_1.someValue);
+};
+`;
+            assert.equal(actual, expected);
+        });
+
+        it(`should not look for object literal keys on the scope`, function () {
+            const actual = walk(
+                templateRoot([
+                    scopedBlock([], [
+                        assign(`{ active: isActive }`)
+                    ], 'TemplateScope')
+                ])
+            );
+            const expected = `const _block_1 = function (
+    _scope_1 : TemplateScope,
+) {
+    const _expr_1 = ({ active: _scope_1.isActive });
+};
+`;
+            assert.equal(actual, expected);
+        });
     });
 });

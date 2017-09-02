@@ -3,7 +3,7 @@ import {Either} from "monet";
 import {
     asHtmlContents,
     AttributeParserError,
-    ElementDirectiveParserError,
+    ElementDirectiveParserError, last,
     TcatError,
     UnexpectedStateError
 } from "../core";
@@ -69,7 +69,7 @@ export class ElementWalker {
     }
 
     protected getCurrentScope() : HasChildrenAstNode {
-        const node = this.scopeStack[this.scopeStack.length - 1];
+        const node = last(this.scopeStack);
         if (node === undefined) {
             throw new UnexpectedStateError(`ElementWalker should always have at least one scope on the stack.`);
         }

@@ -6,7 +6,7 @@ import {
     TemplateRootNode,
     ScopedBlockNode, ParameterNode, IfStatementNode
 } from "./ast";
-import {assertNever} from "../core";
+import { assertNever, last } from "../core";
 import {ExpressionScopeRectifier} from "../ngExpression/expressionWalker";
 import {ProgramNode} from "../ngExpression/ast";
 
@@ -85,6 +85,7 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected indentLevel = 0;
     protected indentString = '    ';
     protected localsStack : Set<string>[] = [];
+    protected scopeNumberStack : number[] = [];
 
     protected writeLine(value : string) : void {
         for (let i = 0; i < this.indentLevel; i++) {
@@ -105,14 +106,13 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected addLocal(name : string) : void {
         if (this.localsStack.length === 0) {
             this.pushLocalsScope();
-
         }
-        const locals = this.localsStack[this.localsStack.length - 1];
-        locals.add(name);
+        const locals = last(this.localsStack);
+        locals!.add(name);
     }
 
     protected formatExpression(expression : ProgramNode) : string {
-        const expressionWalker = new ExpressionScopeRectifier(this.counters.scopes, this.localsStack);
+        const expressionWalker = new ExpressionScopeRectifier(last(this.scopeNumberStack) || 0, this.localsStack);
         return `(${ expressionWalker.walk(expression) })`;
     }
 
@@ -176,6 +176,7 @@ export class TypeScriptGenerator extends SkippingWalker {
             this.indentLevel++;
             if (node.scopeInterface) {
                 this.writeLine(`_scope_${ ++this.counters.scopes } : ${ node.scopeInterface },`);
+                this.scopeNumberStack.push(this.counters.scopes);
             }
             this.dispatchAll(node.parameters);
             this.indentLevel--;
@@ -187,6 +188,9 @@ export class TypeScriptGenerator extends SkippingWalker {
         super.walkScopedBlockNode(node);
         this.popLocalsScope();
         this.indentLevel--;
+        if (node.scopeInterface) {
+            this.scopeNumberStack.pop();
+        }
         this.writeLine(`};`);
     }
 

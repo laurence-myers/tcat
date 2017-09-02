@@ -307,6 +307,8 @@ export class ExpressionScopeRectifier extends ExpressionFilterRectifier {
             case "MemberExpression": // Don't rectify nested member expressions, like "bar" in "foo.bar.baz"
                 return parent.object === node
                     || (parent.property === node && parent.computed);
+            case "Property":
+                return parent.key !== node;
             default:
                 return true;
         }

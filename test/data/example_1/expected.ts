@@ -9,6 +9,7 @@ interface TemplateScope {
     someOptionalProperty : undefined | {
         name : string;
     };
+    isActive : boolean;
 }
 
 interface FooControllerScope {
@@ -77,9 +78,10 @@ const _block_1 = function (
     ) {
         const _expr_7 = (_scope_3.ctrl.barValue);
     };
+    const _expr_8 = ({ active: _scope_1.isActive });
 };
 const _block_7 = function (
     _scope_4 : FirstSecondThirdPartHtmlScope,
 ) {
-    const _expr_8 = (_scope_4.someValue);
+    const _expr_9 = (_scope_4.someValue);
 };

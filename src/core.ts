@@ -44,6 +44,10 @@ export function writeFile(fileName : string, contents : string) : Either<FileWri
     }
 }
 
+export function last<T>(arr : T[]) : T | undefined {
+    return arr[arr.length - 1];
+}
+
 export const enum AsFileName {}
 export type FileName = string & AsFileName;
 export function asFileName(value : string) { return value as FileName; }

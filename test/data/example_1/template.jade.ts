@@ -8,6 +8,7 @@ interface TemplateScope {
     someOptionalProperty : undefined | {
         name : string;
     };
+    isActive : boolean;
 }
 
 interface FooControllerScope {
