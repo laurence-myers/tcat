@@ -15,7 +15,8 @@ import {Directory, File} from "clime/bld/castable";
 import * as fs from "fs";
 import * as path from "path";
 import {Either} from "monet";
-import {FileFilter, walk} from "../files";
+import {FileFilter, readDirectiveDataFile, walk} from "../files";
+import {DirectiveData} from "../directives";
 
 class FileOrDirectory {
     static cast(name : string, context : CastingContext<File | Directory>) : File | Directory {
@@ -57,13 +58,13 @@ export default class extends Command {
         }
     }
 
-    protected processFile(templateName : FileName, directivesName : FileName) : Either<TcatError[], void> {
+    protected processFile(templateName : FileName, directives : DirectiveData[]) : Either<TcatError[], void> {
         this.debug(templateName);
         const extension = path.extname(templateName).toLowerCase();
         if (['.jade', '.pug'].indexOf(extension) > -1) {
-            return convertPugFileToTypeScriptFile(asPugFileName(templateName), directivesName);
+            return convertPugFileToTypeScriptFile(asPugFileName(templateName), directives);
         } else if (['.html'].indexOf(extension) > -1) {
-            return convertHtmlFileToTypeScriptFile(asHtmlFileName(templateName), directivesName);
+            return convertHtmlFileToTypeScriptFile(asHtmlFileName(templateName), directives);
         } else {
             return Either.Left([new UnsupportedTemplateFileError(`Unsupported template file: ${ templateName }`)]);
         }
@@ -97,7 +98,7 @@ export default class extends Command {
             required: true,
             type: File,
         })
-        directives : File,
+        directivesFileName : File,
         @params({
             description: 'The directories or file names of the templates you wish to type check.',
             required: true,
@@ -108,7 +109,7 @@ export default class extends Command {
         options : CliOptions
     ) {
         this.verbose = options.verbose;
-        await directives.assert();
+        await directivesFileName.assert();
         await Promise.all(filesOrDirectories.map(async (templateName) => templateName.assert()));
         console.log("Starting...");
         const fileFilter = this.createFileFilter(options);
@@ -121,20 +122,24 @@ export default class extends Command {
                 }
             })
         );
-        fileNames.map((fileName : FileName) => {
-            return this.processFile(fileName, asFileName(directives.fullName))
-                .leftMap(
-                    (errors) => {
-                        console.error(`Errors were encountered processing template "${ fileName }".`);
-                        errors.forEach((err) => console.error(err));
-                        return errors;
-                    }
-                );
-        }).reduce((result : Either<TcatError[], void>, current) => result.takeLeft(current), Either.Right<TcatError[], void>(undefined))
-            .cata(() => {
-                console.log("Done, with errors.");
-            }, () => {
-                console.log("Done!");
-            });
+        readDirectiveDataFile(asFileName(directivesFileName.fullName))
+            .map((directives) => fileNames.map((fileName : FileName) => {
+                return this.processFile(fileName, directives)
+                    .leftMap(
+                        (errors) => {
+                            console.error(`Errors were encountered processing template "${ fileName }".`);
+                            errors.forEach((err) => console.error(err));
+                            return errors;
+                        }
+                    );
+            }).reduce(
+                (result : Either<TcatError[], void>, current) => result.takeLeft(current),
+                Either.Right<TcatError[], void>(undefined)
+            )
+        ).cata(() => {
+            console.log("Done, with errors.");
+        }, () => {
+            console.log("Done!");
+        });
     }
 }

@@ -3,6 +3,7 @@ import {readFileSync} from "fs";
 import {asFileName, asPugFileName, asTypeScriptContents, TypeScriptContents} from "../src/core";
 import {convertPugFileToTypeScript} from "../src/converter";
 import * as assert from "assert";
+import {readDirectiveDataFile} from "../src/files";
 
 describe("Converter", function () {
     describe("Examples", function () {
@@ -14,9 +15,11 @@ describe("Converter", function () {
                 readFileSync(`${ dir }/expected.ts`, 'utf8')
                     .replace(/\r\n/g, '\n')
             );
-            convertPugFileToTypeScript(templateName, directivesName)
-                .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents))
-                .leftMap((errors) => { throw errors[0]; });
+            readDirectiveDataFile(directivesName)
+                .map((directives) => convertPugFileToTypeScript(templateName, directives)
+                    .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents))
+                ).leftMap((errors) => { throw errors[0]; });
+
         }
 
         const NUM_EXAMPLES = 2;

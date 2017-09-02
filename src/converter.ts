@@ -5,7 +5,9 @@ import {
     asPugContents,
     asTypeScriptContents,
     FileName,
-    HtmlContents, HtmlFileName, PugFileName,
+    HtmlContents,
+    HtmlFileName,
+    PugFileName,
     readFile,
     TcatError,
     TypeScriptContents,
@@ -14,7 +16,7 @@ import {
 import {generateTypeScript} from "./generator/walker";
 import {Either} from "monet";
 import {createDirectiveMap, DirectiveData} from "./directives";
-import {readDirectiveDataFile, readTypeScriptFile} from "./files";
+import {readTypeScriptFile} from "./files";
 
 function readExistingTypeScriptFile(templateFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readTypeScriptFile(asFileName(templateFileName + `.ts`));
@@ -29,29 +31,28 @@ export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, bas
         });
 }
 
-function readFilesAndConvertContents(templateFileName : FileName, directivesFileName : FileName, htmlContents : HtmlContents) : Either<TcatError[], TypeScriptContents> {
+function readFilesAndConvertContents(templateFileName : FileName, directives : DirectiveData[], htmlContents : HtmlContents) : Either<TcatError[], TypeScriptContents> {
     return readExistingTypeScriptFile(templateFileName)
         .flatMap((baseTypescriptContents) =>
-            readDirectiveDataFile(directivesFileName)
-                .flatMap((directives) => convertHtmlContentsToTypeScript(htmlContents, baseTypescriptContents, directives))
+            convertHtmlContentsToTypeScript(htmlContents, baseTypescriptContents, directives)
         );
 }
 
-export function convertHtmlFileToTypeScript(templateFileName : HtmlFileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+export function convertHtmlFileToTypeScript(templateFileName : HtmlFileName, directives : DirectiveData[]) : Either<TcatError[], TypeScriptContents> {
     return readFile(templateFileName)
         .flatMap(
             (htmlContents) =>
-                readFilesAndConvertContents(templateFileName, directivesFileName, asHtmlContents(htmlContents))
+                readFilesAndConvertContents(templateFileName, directives, asHtmlContents(htmlContents))
         );
 }
 
-export function convertPugFileToTypeScript(templateFileName : PugFileName, directivesFileName : FileName) : Either<TcatError[], TypeScriptContents> {
+export function convertPugFileToTypeScript(templateFileName : PugFileName, directives : DirectiveData[]) : Either<TcatError[], TypeScriptContents> {
     return readFile(templateFileName)
         .flatMap(
             (pugContents) =>
                 parsePugToHtml(asPugContents(pugContents), templateFileName)
                     .flatMap((htmlContents) =>
-                        readFilesAndConvertContents(templateFileName, directivesFileName, htmlContents)
+                        readFilesAndConvertContents(templateFileName, directives, htmlContents)
                     )
         );
 }
@@ -60,15 +61,15 @@ function generateTypeScriptOutputFileName(templateFileName : FileName) : FileNam
     return asFileName(`${ templateFileName }.tcat.ts`);
 }
 
-export function convertHtmlFileToTypeScriptFile(templateFileName : HtmlFileName, directivesFileName : FileName) : Either<TcatError[], void> {
-    return convertHtmlFileToTypeScript(templateFileName, directivesFileName)
+export function convertHtmlFileToTypeScriptFile(templateFileName : HtmlFileName, directives : DirectiveData[]) : Either<TcatError[], void> {
+    return convertHtmlFileToTypeScript(templateFileName, directives)
         .flatMap(
             (typeScriptContents) => writeFile(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
         );
 }
 
-export function convertPugFileToTypeScriptFile(templateFileName : PugFileName, directivesFileName : FileName) : Either<TcatError[], void> {
-    return convertPugFileToTypeScript(templateFileName, directivesFileName)
+export function convertPugFileToTypeScriptFile(templateFileName : PugFileName, directives : DirectiveData[]) : Either<TcatError[], void> {
+    return convertPugFileToTypeScript(templateFileName, directives)
         .flatMap(
             (typeScriptContents) => writeFile(generateTypeScriptOutputFileName(templateFileName), typeScriptContents)
         );
