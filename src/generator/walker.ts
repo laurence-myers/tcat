@@ -168,16 +168,15 @@ export class TypeScriptGenerator extends SkippingWalker {
     }
 
     protected walkScopedBlockNode(node : ScopedBlockNode) : void {
-        if (node.scopeInterface) {
-            // TODO: just make the scope object a parameter of the function/scoped block.
-            this.writeLine(`declare const _scope_${ ++this.counters.scopes } : ${ node.scopeInterface };`);
-        }
         this.pushLocalsScope();
         const blockStart = `const _block_${ ++this.counters.blocks } = function (`;
         const blockStartSuffix = `) {`;
-        if (node.parameters.length > 0) {
+        if (node.parameters.length > 0 || node.scopeInterface) {
             this.writeLine(blockStart);
             this.indentLevel++;
+            if (node.scopeInterface) {
+                this.writeLine(`_scope_${ ++this.counters.scopes } : ${ node.scopeInterface },`);
+            }
             this.dispatchAll(node.parameters);
             this.indentLevel--;
             this.writeLine(blockStartSuffix);

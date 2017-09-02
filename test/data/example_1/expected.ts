@@ -13,8 +13,9 @@ interface TemplateScope {
 
 type FirstSecondThirdPartHtmlScope = any;
 
-declare const _scope_1 : TemplateScope;
-const _block_1 = function () {
+const _block_1 = function (
+    _scope_1 : TemplateScope,
+) {
     const _expr_1 = (translate("SOME.KEY"));
     const _block_2 = function (
         $index : number,
@@ -59,7 +60,8 @@ const _block_1 = function () {
         const _expr_5 = (_scope_1.someOptionalProperty.name);
     }
 };
-declare const _scope_2 : FirstSecondThirdPartHtmlScope;
-const _block_5 = function () {
+const _block_5 = function (
+    _scope_2 : FirstSecondThirdPartHtmlScope,
+) {
     const _expr_6 = (_scope_2.someValue);
 };
