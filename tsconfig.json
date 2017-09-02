@@ -6,7 +6,7 @@
     "checkJs": false,
     "declaration": true,
     "sourceMap": true,
-    "outDir": "build",
+    "outDir": "dist",
     "noEmitOnError": true,
 
     "strict": true,

@@ -63,5 +63,5 @@ typings/
 
 *.iml
 .idea/
-build/
+dist/
 **/*.tcat.ts
