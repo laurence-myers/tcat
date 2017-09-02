@@ -14,7 +14,7 @@
     "tcat": "dist/src/cli.js"
   },
   "scripts": {
-    "build": "npm run tsc && npm run lint && npm run test",
+    "build": "rimraf ./dist && npm run tsc && npm run lint && npm run test",
     "lint": "tslint -c tslint.json ./src/**/*.ts ./test/**/*.ts",
     "prepublish": "npm run build",
     "start": "node dist/src/cli.js",
@@ -42,6 +42,7 @@
     "@types/uppercamelcase": "3.0.0",
     "app-root-path": "2.0.1",
     "mocha": "3.4.2",
+    "rimraf": "2.6.1",
     "source-map-support": "0.4.11",
     "tslint": "4.4.2"
   }
