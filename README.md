@@ -131,8 +131,9 @@ interface TemplateScope {
     receiveUpdate : (value : string) => void;
 }
 
-declare const _scope_1 : TemplateScope;
-const _block_1 = function () {
+const _block_1 = function (
+    _scope_1 : TemplateScope,
+) {
     const _block_2 = function (
             $index : number,
             $first : boolean,
