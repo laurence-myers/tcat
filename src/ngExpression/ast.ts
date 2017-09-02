@@ -37,7 +37,7 @@ export interface LocalsExpressionNode {
     type : 'LocalsExpression';
 }
 
-type SelfReferentialNode = ThisExpressionNode | LocalsExpressionNode;
+export type SelfReferentialNode = ThisExpressionNode | LocalsExpressionNode;
 
 export interface CallExpressionNode {
     type : 'CallExpression';
@@ -62,7 +62,7 @@ export interface MemberExpressionIdentifierNode {
 
 export type MemberExpressionNode = MemberExpressionExpressionNode | MemberExpressionIdentifierNode;
 
-type BasePrimaryType =
+export type BasePrimaryType =
     // FilterChainPrecedence
     ArrayExpressionNode
     | ObjectExpressionNode
@@ -71,12 +71,12 @@ type BasePrimaryType =
     | IdentifierNode
     | ConstantNode;
 
-type PrimaryNode =
+export type PrimaryNode =
     BasePrimaryType
     | CallExpressionNode
     | MemberExpressionNode;
 
-type FilterNode = CallExpressionNode;
+export type FilterNode = CallExpressionNode;
 
 export interface UnaryExpressionNode {
     type : 'UnaryExpression';
@@ -162,19 +162,19 @@ export interface ProgramNode {
 }
 
 // Daft workaround to avoid circular type alias error in TypeScript.
-type StartPrecedence<TNode> = TNode | FilterChainPrecedence;
+export type StartPrecedence<TNode> = TNode | FilterChainPrecedence;
 
-type FilterChainPrecedence = FilterNode | ExpressionPrecedence;
-type ExpressionPrecedence = AssignmentPrecedence;
-type AssignmentPrecedence = AssignmentExpressionNode | TernaryPrecedence;
-type TernaryPrecedence = ConditionalExpressionNode | LogicalOrPrecedence;
-type LogicalOrPrecedence = LogicalExpressionOrNode | LogicalAndPrecedence;
-type LogicalAndPrecedence = LogicalExpressionAndNode | EqualityPrecedence;
-type EqualityPrecedence = BinaryExpressionEqualityNode | RelationalPrecedence;
-type RelationalPrecedence = BinaryExpressionRelationalNode | AdditivePrecedence;
-type AdditivePrecedence = BinaryExpressionAdditiveNode | MultiplicativePrecedence;
-type MultiplicativePrecedence = BinaryExpressionMultiplicativeNode | UnaryPrecedence;
-type UnaryPrecedence = UnaryExpressionNode | PrimaryNode;
+export type FilterChainPrecedence = FilterNode | ExpressionPrecedence;
+export type ExpressionPrecedence = AssignmentPrecedence;
+export type AssignmentPrecedence = AssignmentExpressionNode | TernaryPrecedence;
+export type TernaryPrecedence = ConditionalExpressionNode | LogicalOrPrecedence;
+export type LogicalOrPrecedence = LogicalExpressionOrNode | LogicalAndPrecedence;
+export type LogicalAndPrecedence = LogicalExpressionAndNode | EqualityPrecedence;
+export type EqualityPrecedence = BinaryExpressionEqualityNode | RelationalPrecedence;
+export type RelationalPrecedence = BinaryExpressionRelationalNode | AdditivePrecedence;
+export type AdditivePrecedence = BinaryExpressionAdditiveNode | MultiplicativePrecedence;
+export type MultiplicativePrecedence = BinaryExpressionMultiplicativeNode | UnaryPrecedence;
+export type UnaryPrecedence = UnaryExpressionNode | PrimaryNode;
 
 export type AngularJsAstNode =
     | PropertyNode

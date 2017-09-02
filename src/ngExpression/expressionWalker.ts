@@ -20,7 +20,7 @@ import {
 } from "./ast";
 import {assertNever} from "../core";
 
-abstract class BaseWalker {
+export abstract class BaseWalker {
     protected abstract walkArrayExpressionNode(node : ArrayExpressionNode) : void;
     protected abstract walkAssignmentExpressionNode(node : AssignmentExpressionNode) : void;
     protected abstract walkBinaryExpressionNode(node : BinaryExpressionNode) : void;

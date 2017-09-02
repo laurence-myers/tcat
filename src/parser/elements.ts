@@ -44,7 +44,7 @@ function isFormNode(node : CheerioElement) : node is FormNode {
 
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
-interface ElementParserContext {
+export interface ElementParserContext {
     readonly errors : AttributeParserError[];
     scopeData : ScopeData | undefined;
     isScopeEnd : boolean;

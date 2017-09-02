@@ -2,8 +2,13 @@
   "name": "tcat",
   "version": "0.0.1",
   "description": "Type Checker for AngularJS Templates",
-  "main": "build/src/cli.js",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "bin": {
+    "tcat": "build/src/cli.js"
+  },
   "scripts": {
+    "build": "npm run tsc && npm run lint && npm run test",
     "lint": "tslint -c tslint.json ./src/**/*.ts ./test/**/*.ts",
     "start": "node build/src/cli.js",
     "test": "mocha --require source-map-support/register --recursive build/test",

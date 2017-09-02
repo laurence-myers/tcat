@@ -44,30 +44,30 @@ export function writeFile(fileName : string, contents : string) : Either<FileWri
     }
 }
 
-const enum AsFileName {}
+export const enum AsFileName {}
 export type FileName = string & AsFileName;
 export function asFileName(value : string) { return value as FileName; }
 
-const enum AsDirectoryName {}
+export const enum AsDirectoryName {}
 export type DirectoryName = string & AsDirectoryName;
 export function asDirectoryName(value : string) { return value as DirectoryName; }
 
-const enum AsHtmlFileName {}
+export const enum AsHtmlFileName {}
 export type HtmlFileName = FileName & AsHtmlFileName;
 export function asHtmlFileName(value : string) { return value as HtmlFileName; }
 
-const enum AsPugFileName {}
+export const enum AsPugFileName {}
 export type PugFileName = FileName & AsPugFileName;
 export function asPugFileName(value : string) { return value as PugFileName; }
 
-const enum AsPugContents {}
+export const enum AsPugContents {}
 export type PugContents = string & AsPugContents;
 export function asPugContents(value : string) { return value as PugContents; }
 
-const enum AsHtmlContents {}
+export const enum AsHtmlContents {}
 export type HtmlContents = string & AsHtmlContents;
 export function asHtmlContents(value : string) { return value as HtmlContents; }
 
-const enum AsTypeScriptContents {}
+export const enum AsTypeScriptContents {}
 export type TypeScriptContents = string & AsTypeScriptContents;
 export function asTypeScriptContents(value : string) { return value as TypeScriptContents; }

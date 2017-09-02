@@ -29,7 +29,7 @@ class FileOrDirectory {
 }
 
 const DEFAULT_FILTER_VALUE = '.html,.pug,.jade';
-class CliOptions extends Options {
+export class CliOptions extends Options {
     @option({
         flag: 'f',
         description: `Filter for file extensions. Specify multiple extensions using commas, e.g. .jade,.html. Defaults to ${ DEFAULT_FILTER_VALUE }`,

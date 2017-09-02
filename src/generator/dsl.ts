@@ -10,7 +10,7 @@ import {
 } from "./ast";
 import {parseExpression} from "../ngExpression/ngAstBuilder";
 
-interface AssignOptions {
+export interface AssignOptions {
     name? : string;
     variableType? : 'let' | 'const';
     typeAnnotation? : string;

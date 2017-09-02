@@ -156,7 +156,7 @@ interface Token {
     isString? : boolean;
 }
 
-export class Lexer {
+class Lexer {
     text : string;
     index : number;
     tokens : Token[];
@@ -369,7 +369,7 @@ function isAssignable(ast : any) {
     return ast.type === AstBuilder.Identifier || ast.type === AstBuilder.MemberExpression;
 }
 
-export class AstBuilder {
+class AstBuilder {
     static Program : 'Program' = 'Program';
     static ExpressionStatement : 'ExpressionStatement' = 'ExpressionStatement';
     static AssignmentExpression : 'AssignmentExpression' = 'AssignmentExpression';
