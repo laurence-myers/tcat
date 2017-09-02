@@ -5,7 +5,6 @@
   "main": "build/src/main.js",
   "scripts": {
     "lint": "tslint -c tslint.json ./src/**/*.ts ./test/**/*.ts",
-    "schema": "typescript-json-schema ./tsconfig.json DirectiveData --ignore-errors",
     "start": "node build/src/cli.js",
     "test": "mocha --require source-map-support/register --recursive build/test",
     "tsc": "tsc",
@@ -38,7 +37,6 @@
     "app-root-path": "2.0.1",
     "mocha": "3.4.2",
     "source-map-support": "0.4.11",
-    "tslint": "4.4.2",
-    "typescript-json-schema": "0.16.0"
+    "tslint": "4.4.2"
   }
 }
