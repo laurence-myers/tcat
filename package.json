@@ -2,6 +2,12 @@
   "name": "tcat",
   "version": "0.0.1",
   "description": "Type Checker for AngularJS Templates",
+  "author": "Laurence Dougal Myers",
+  "license": "ISC",
+  "engines": {
+    "node": "6.9.1",
+    "npm": "3.10.10"
+  },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "bin": {
@@ -15,12 +21,6 @@
     "test": "mocha --require source-map-support/register --recursive dist/test",
     "tsc": "tsc",
     "tscw": "tsc -w"
-  },
-  "author": "Laurence Dougal Myers",
-  "license": "ISC",
-  "engines": {
-    "node": "6.9.1",
-    "npm": "3.10.10"
   },
   "dependencies": {
     "ajv": "5.2.2",
