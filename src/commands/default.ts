@@ -111,7 +111,7 @@ export default class extends Command {
         this.verbose = options.verbose;
         await directivesFileName.assert();
         await Promise.all(filesOrDirectories.map(async (templateName) => templateName.assert()));
-        console.log("Starting...");
+        console.log("Starting tcat...");
         const fileFilter = this.createFileFilter(options);
         const fileNames : FileName[] = flatten(
             filesOrDirectories.map((fileOrDirectory) => {
@@ -122,24 +122,30 @@ export default class extends Command {
                 }
             })
         );
-        readDirectiveDataFile(asFileName(directivesFileName.fullName))
-            .map((directives) => fileNames.map((fileName : FileName) => {
-                return this.processFile(fileName, directives)
-                    .leftMap(
-                        (errors) => {
-                            console.error(`Errors were encountered processing template "${ fileName }".`);
-                            errors.forEach((err) => console.error(this.verbose ? err : err.message));
-                            return errors;
-                        }
-                    );
-            }).reduce(
-                (result : Either<TcatError[], void>, current) => result.takeLeft(current),
-                Either.Right<TcatError[], void>(undefined)
-            )
-        ).cata(() => {
-            console.log("Done, with errors.");
-        }, () => {
-            console.log("Done!");
-        });
+        const result = readDirectiveDataFile(asFileName(directivesFileName.fullName))
+            .flatMap((directives) =>
+                fileNames.map((fileName : FileName) =>
+                    this.processFile(fileName, directives)
+                        .leftMap(
+                            (errors) => {
+                                console.error(`Errors were encountered processing template "${ fileName }".`);
+                                errors.forEach((err) => console.error(this.verbose ? err : '- ' + err.message));
+                                return errors;
+                            }
+                        )
+                ).reduce((current : Either<TcatError[], void>, previous : Either<TcatError[], void>) : Either<TcatError[], void> => {
+                    if (current.isLeft()) {
+                        return current;
+                    } else {
+                        return previous;
+                    }
+                }, Either.Right(undefined))
+            );
+        return result.cata(() => {
+                console.log("Done, with errors.");
+                process.exitCode = 1;
+            }, () => {
+                console.log("Done!");
+            });
     }
 }
