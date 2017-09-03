@@ -128,7 +128,7 @@ export default class extends Command {
                     .leftMap(
                         (errors) => {
                             console.error(`Errors were encountered processing template "${ fileName }".`);
-                            errors.forEach((err) => console.error(err));
+                            errors.forEach((err) => console.error(this.verbose ? err : err.message));
                             return errors;
                         }
                     );
