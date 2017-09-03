@@ -203,7 +203,6 @@ should all normalise to `ngBind`.
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
 - Support for micro-syntax in custom directives, like `ng-repeat`. (Plugins?)
 - Automatically allow built-in AngularJS filters, like `date`.
-- Process directives in order of priority.
 - It would be nice to somehow detect issues caused by prototype inheritence. e.g. Scope A has property "myText", the
   the template has an "ng-if" which creates Scope B, and there's a form input with "ng-model" bound to "myText". In
   this scenario, the input would read the value of "myText" from Scope A, but would write the value back to Scope B. 

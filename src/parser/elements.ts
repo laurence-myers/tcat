@@ -126,20 +126,33 @@ export class ElementWalker {
         }
     }
 
-    protected parseElementDirective(node : CheerioElement, context : ElementParserContext) {
-        // Parse element directives
-        const tagLookup = this.directives.get(node.tagName);
-        if (tagLookup && tagLookup.canBeElement) {
-            const elemParser = tagLookup.parser;
-            if (elemParser) {
-                this.handleElementDirectiveParseResult(
-                    context,
-                    elemParser(node, this.directives)
-                );
+    protected identifyDirectives(node : CheerioElement) : DirectiveData[] {
+        const directivesToParse = [];
+        const elementDirectiveData : DirectiveData | undefined = this.directives.get(node.tagName);
+        if (elementDirectiveData !== undefined
+            && elementDirectiveData.canBeElement) {
+            directivesToParse.push(elementDirectiveData);
+        }
+        for (const key in node.attribs) {
+            const attributeDirective : DirectiveData | undefined = this.directives.get(key);
+            if (attributeDirective
+                && attributeDirective.canBeAttribute) {
+                directivesToParse.push(attributeDirective);
             }
-            for (const subAttribEntry of tagLookup.attributes) {
-                this.parseDirectiveSubAttribute(node, subAttribEntry, context);
-            }
+        }
+        return directivesToParse.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    }
+
+    protected parseElementDirective(node : CheerioElement, context : ElementParserContext, elementDirective : DirectiveData) {
+        const elemParser = elementDirective.parser;
+        if (elemParser) {
+            this.handleElementDirectiveParseResult(
+                context,
+                elemParser(node, this.directives)
+            );
+        }
+        for (const subAttribEntry of elementDirective.attributes) {
+            this.parseDirectiveSubAttribute(node, subAttribEntry, context);
         }
     }
 
@@ -166,15 +179,20 @@ export class ElementWalker {
         );
     }
 
-    protected parseDirectiveAttributes(node : CheerioElement, context : ElementParserContext) {
-        // Parse attributes: directives and interpolated text
+    protected parseAttributeDirective(node : CheerioElement, context : ElementParserContext, attributeDirective : DirectiveData) {
+        // Parse attributes of a single directive
+        for (const subAttribEntry of attributeDirective.attributes) {
+            this.parseDirectiveSubAttribute(node, subAttribEntry, context);
+        }
+    }
+
+    protected parseNonDirectiveAttributes(node : CheerioElement, context : ElementParserContext) {
+        // Parse attributes: interpolated text
         for (const key in node.attribs) {
             const attribLookup = this.directives.get(key);
             const value = node.attribs[key];
             if (attribLookup && attribLookup.canBeAttribute) {
-                for (const subAttribEntry of attribLookup.attributes) {
-                    this.parseDirectiveSubAttribute(node, subAttribEntry, context);
-                }
+                continue;
             } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
                 this.handleAttributeDirectiveParseResult(
                     context,
@@ -194,6 +212,16 @@ export class ElementWalker {
         }
     }
 
+    protected parseDirectives(node : CheerioElement, context : ElementParserContext, directiveData : DirectiveData[]) {
+        for (const directive of directiveData) {
+            if (directive.canBeElement) {
+                this.parseElementDirective(node, context, directive);
+            } else {
+                this.parseAttributeDirective(node, context, directive);
+            }
+        }
+    }
+
     protected parseElement(node : CheerioElement) : Either<AttributeParserError[], void> {
         const context : ElementParserContext = {
             errors: [],
@@ -201,8 +229,9 @@ export class ElementWalker {
             isScopeEnd: false
         };
 
-        this.parseElementDirective(node, context);
-        this.parseDirectiveAttributes(node, context);
+        this.parseDirectives(node, context,
+            this.identifyDirectives(node));
+        this.parseNonDirectiveAttributes(node, context);
         this.parseInterpolatedText(node, context);
         this.parseChildren(node, context);
 

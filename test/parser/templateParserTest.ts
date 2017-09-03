@@ -282,5 +282,19 @@ describe(`Template parsers`, function () {
             ]);
             verifyHtml(html, expected, []);
         });
+
+        it(`parses directives in order of priority - ng-repeat is parsed before ng-class`, function () {
+            const html = `<a ng-class="item.class" ng-repeat="item in items"></a>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
+                        arrayIteration(`item`, `items`, [
+                            assign(`item.class`)
+                        ])
+                    ])
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, expected, []);
+        });
     });
 });
