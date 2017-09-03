@@ -15,6 +15,7 @@ import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
 const htmlTagNames : string[] = require("html-tag-names");
 const htmlElementAttributes : { [key : string] : string[] } = require("html-element-attributes");
+const ariaAttributes : string[] = require("aria-attributes");
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>;
 export type ElementDirectiveParser = (element : CheerioElement, directives : Map<string, DirectiveData>) => ElementDirectiveParserResult;
@@ -45,6 +46,15 @@ function isFormNode(node : CheerioElement) : node is FormNode {
     return node.type === 'tag' && node.tagName === 'form';
 }
 
+interface SvgNode extends CheerioElement {
+    type : 'tag';
+    tagName : 'svg';
+}
+
+function isSvgNode(node : CheerioElement) : node is SvgNode {
+    return node.type === 'tag' && node.tagName === 'svg';
+}
+
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
 export interface ElementParserContext {
@@ -67,6 +77,7 @@ export class ElementWalker {
     protected root : TemplateRootNode = templateRoot();
     protected readonly scopeStack : HasChildrenAstNode[] = [];
     protected readonly htmlElementNames : Set<string> = new Set<string>(htmlTagNames);
+    protected shouldSkipHtmlValidation = false;
 
     constructor(
         protected readonly directives : DirectiveMap) {
@@ -150,47 +161,50 @@ export class ElementWalker {
 
     protected validateElement(node : CheerioElement, context : ElementParserContext, directives : DirectiveData[]) : void {
         if (node.type === 'tag') {
-            const elementDirectiveNames = directives
-                .filter((directive) => directive.canBeElement)
-                .map((directive) => directive.name);
-            if (!this.htmlElementNames.has(node.tagName)
-                && elementDirectiveNames.indexOf(node.tagName) === -1) {
-                context.errors.push(new HtmlValidationError(`Unrecognised HTML tag "${ node.tagName }". Is this a custom directive?`));
-            } else {
-                // Check that all attributes in the HTML are recognised
-                const directiveAttributes : string[] = flatten(
-                    directives.map((directive) => {
-                        const names = [];
-                        if (directive.canBeAttribute) {
-                            names.push(directive.name);
+            if (!this.shouldSkipHtmlValidation) {
+                const elementDirectiveNames = directives
+                    .filter((directive) => directive.canBeElement)
+                    .map((directive) => directive.name);
+                if (!this.htmlElementNames.has(node.tagName)
+                    && elementDirectiveNames.indexOf(node.tagName) === -1) {
+                    context.errors.push(new HtmlValidationError(`Unrecognised HTML tag "${ node.tagName }". Is this a custom directive?`));
+                } else {
+                    // Check that all attributes in the HTML are recognised
+                    const directiveAttributes : string[] = flatten(
+                        directives.map((directive) => {
+                            const names = [];
+                            if (directive.canBeAttribute) {
+                                names.push(directive.name);
+                            }
+                            return names.concat(
+                                directive.attributes.map((attrib) => attrib.name)
+                            );
+                        })
+                    );
+                    const standardHtmlElementAttributes =
+                        htmlElementAttributes['*']
+                            .concat(ariaAttributes)
+                            .concat(htmlElementAttributes[node.tagName] || []);
+                    const recognisedAttributes = new Set<string>([
+                        ...standardHtmlElementAttributes,
+                        ...directiveAttributes
+                    ]);
+                    for (const attrib in node.attribs) {
+                        if (!recognisedAttributes.has(attrib)
+                            && !attrib.startsWith('data-')) {
+                            context.errors.push(new HtmlValidationError(`HTML tag "${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
                         }
-                        return names.concat(
-                            directive.attributes.map((attrib) => attrib.name)
-                        );
-                    })
-                );
-                const standardHtmlElementAttributes =
-                    htmlElementAttributes['*']
-                        .concat(htmlElementAttributes[node.tagName] || []);
-                const recognisedAttributes = new Set<string>([
-                    ...standardHtmlElementAttributes,
-                    ...directiveAttributes
-                ]);
-                for (const attrib in node.attribs) {
-                    if (!recognisedAttributes.has(attrib)
-                        && !attrib.startsWith('data-')) {
-                        context.errors.push(new HtmlValidationError(`HTML tag "${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
                     }
                 }
+            }
 
-                // Check that each directive has all of its required attributes
-                for (const directive of directives) {
-                    for (const attribute of directive.attributes) {
-                        if ((attribute.optional === undefined
+            // Check that each directive has all of its required attributes
+            for (const directive of directives) {
+                for (const attribute of directive.attributes) {
+                    if ((attribute.optional === undefined
                             || attribute.optional === false)
-                            && node.attribs[attribute.name] === undefined) {
-                            context.errors.push(new HtmlValidationError(`"${ directive.name }" is missing a required attribute "${ attribute.name }".`));
-                        }
+                        && node.attribs[attribute.name] === undefined) {
+                        context.errors.push(new HtmlValidationError(`"${ directive.name }" is missing a required attribute "${ attribute.name }".`));
                     }
                 }
             }
@@ -309,7 +323,15 @@ export class ElementWalker {
         this.parseDirectives(node, context, directives);
         this.parseNonDirectiveAttributes(node, context);
         this.parseInterpolatedText(node, context);
+        // If this is an SVG element, skip validation for child elements.
+        const shouldChildrenSkipHtmlValidation = isSvgNode(node);
+        if (shouldChildrenSkipHtmlValidation) {
+            this.shouldSkipHtmlValidation = true;
+        }
         this.parseChildren(node, context);
+        if (shouldChildrenSkipHtmlValidation) {
+            this.shouldSkipHtmlValidation = false;
+        }
 
         if (context.isScopeEnd) {
             this.scopeStack.pop();

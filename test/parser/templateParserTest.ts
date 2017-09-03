@@ -430,6 +430,24 @@ describe(`Template parsers`, function () {
                     ], `TemplateScope`)
                 ]));
             });
+
+            it(`Passes validation for ARIA attributes`, function () {
+                const html = `<div role="button" aria-hidden="false"></div>`;
+                const directives : DirectiveData[] = [];
+                verifyHtml(html, directives, templateRoot([
+                    scopedBlock([], [
+                    ], `TemplateScope`)
+                ]));
+            });
+
+            it(`Passes validation for SVG elements`, function () {
+                const html = `<svg><ellipse rx="12" ry="34"></ellipse></svg>`;
+                const directives : DirectiveData[] = [];
+                verifyHtml(html, directives, templateRoot([
+                    scopedBlock([], [
+                    ], `TemplateScope`)
+                ]));
+            });
         });
     });
 });

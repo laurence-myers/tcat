@@ -5,8 +5,8 @@
   "author": "Laurence Dougal Myers",
   "license": "MIT",
   "engines": {
-    "node": "6.9.1",
-    "npm": "3.10.10"
+    "node": ">=6.9.1",
+    "npm": ">=3.10.10"
   },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "ajv": "5.2.2",
+    "aria-attributes": "1.2.2",
     "cheerio": "^1.0.0-rc.2",
     "clime": "0.5.4",
     "html-element-attributes": "1.3.0",
