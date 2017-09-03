@@ -43,7 +43,7 @@ describe(`Generator walker`, function () {
     $middle : boolean,
     $even : boolean,
     $odd : boolean,
-    $id : (value : any) => "",
+    $id : (value : any) => string,
 ) {
     for (const item of (_scope_0.items)) {
     }
@@ -63,7 +63,7 @@ describe(`Generator walker`, function () {
     $middle : boolean,
     $even : boolean,
     $odd : boolean,
-    $id : (value : any) => "",
+    $id : (value : any) => string,
 ) {
     for (const key in (_scope_0.items)) {
         const value = (_scope_0.items)[key];
@@ -87,7 +87,7 @@ describe(`Generator walker`, function () {
     $middle : boolean,
     $even : boolean,
     $odd : boolean,
-    $id : (value : any) => "",
+    $id : (value : any) => string,
 ) {
     for (const item of (_scope_0.items)) {
         const _expr_1 = (item.name);
@@ -133,7 +133,7 @@ describe(`Generator walker`, function () {
         $middle : boolean,
         $even : boolean,
         $odd : boolean,
-        $id : (value : any) => "",
+        $id : (value : any) => string,
     ) {
         for (const item of (_scope_1.items)) {
             const _expr_1 = (item.name);
@@ -148,7 +148,7 @@ describe(`Generator walker`, function () {
         $middle : boolean,
         $even : boolean,
         $odd : boolean,
-        $id : (value : any) => "",
+        $id : (value : any) => string,
     ) {
         for (const someKey in (_scope_1.someObject)) {
             const someValue = (_scope_1.someObject)[someKey];

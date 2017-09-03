@@ -38,7 +38,7 @@ export const NG_REPEAT_SPECIAL_PROPERTIES : ParameterNode[] = [
     parameter(`$middle`, `boolean`),
     parameter(`$even`, `boolean`),
     parameter(`$odd`, `boolean`),
-    parameter(`$id`, `(value : any) => ""`)
+    parameter(`$id`, `(value : any) => string`)
 ];
 /**
  * This code is derived from the AngularJS source code.

@@ -33,7 +33,7 @@ const _block_1 = function (
         $middle : boolean,
         $even : boolean,
         $odd : boolean,
-        $id : (value : any) => "",
+        $id : (value : any) => string,
     ) {
         for (const item of (_scope_1.items)) {
             const _expr_2 = ($id(item));
@@ -46,7 +46,7 @@ const _block_1 = function (
         $middle : boolean,
         $even : boolean,
         $odd : boolean,
-        $id : (value : any) => "",
+        $id : (value : any) => string,
     ) {
         for (const item of (_scope_1.items)) {
             const _block_4 = function (
@@ -56,7 +56,7 @@ const _block_1 = function (
                 $middle : boolean,
                 $even : boolean,
                 $odd : boolean,
-                $id : (value : any) => "",
+                $id : (value : any) => string,
             ) {
                 for (const value of (item.values)) {
                     const _expr_3 = (value);

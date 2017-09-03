@@ -141,7 +141,7 @@ const _block_1 = function (
             $middle : boolean,
             $even : boolean,
             $odd : boolean,
-            $id : (value : any) => "",
+            $id : (value : any) => string,
         ) {
         for (const item of (_scope_1.items)) {
             const _expr_1 = (item.name);
