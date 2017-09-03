@@ -13,6 +13,7 @@ import {DirectiveAttribute, DirectiveData, DirectiveMap} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
+const htmlTagNames : string[] = require("html-tag-names");
 const htmlElementAttributes : { [key : string] : string[] } = require("html-element-attributes");
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>;
@@ -65,7 +66,7 @@ export function parseElement(element : CheerioElement, directives : DirectiveMap
 export class ElementWalker {
     protected root : TemplateRootNode = templateRoot();
     protected readonly scopeStack : HasChildrenAstNode[] = [];
-    protected readonly htmlElementNames : Set<string> = new Set<string>(Object.keys(htmlElementAttributes));
+    protected readonly htmlElementNames : Set<string> = new Set<string>(htmlTagNames);
 
     constructor(
         protected readonly directives : DirectiveMap) {

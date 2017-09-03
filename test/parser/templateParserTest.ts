@@ -421,6 +421,15 @@ describe(`Template parsers`, function () {
                     `"my-custom-directive" is missing a required attribute "my-first-arg".`
                 ]);
             });
+
+            it(`Passes validation for a span element`, function () {
+                const html = `<span></span>`;
+                const directives : DirectiveData[] = [];
+                verifyHtml(html, directives, templateRoot([
+                    scopedBlock([], [
+                    ], `TemplateScope`)
+                ]));
+            });
         });
     });
 });
