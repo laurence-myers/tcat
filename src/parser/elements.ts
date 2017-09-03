@@ -148,12 +148,12 @@ export class ElementWalker {
     }
 
     protected validateElement(node : CheerioElement, context : ElementParserContext, directives : DirectiveData[]) : void {
-        if (node.type == 'tag') {
+        if (node.type === 'tag') {
             const elementDirectiveNames = directives
                 .filter((directive) => directive.canBeElement)
                 .map((directive) => directive.name);
             if (!this.htmlElementNames.has(node.tagName)
-                && elementDirectiveNames.indexOf(node.tagName) == -1) {
+                && elementDirectiveNames.indexOf(node.tagName) === -1) {
                 context.errors.push(new HtmlValidationError(`Unrecognised HTML tag "${ node.tagName }". Is this a custom directive?`));
             } else {
                 // Check that all attributes in the HTML are recognised
