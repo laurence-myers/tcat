@@ -10,6 +10,7 @@ import {
     wrapParseScopeStart
 } from "./parser/attributes";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
+import {Either} from "monet";
 
 export function singleAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     map.set(name, {
@@ -24,14 +25,22 @@ export function singleAttribute(map : DirectiveMap, name : string, parser : Attr
     });
 }
 
-export function multiElementAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
+export function multiElementAttributeWithScope(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     singleAttribute(map, name, parser, priority);
     singleAttribute(map, name + '-start', wrapParseScopeStart(parser), priority);
     singleAttribute(map, name + '-end', parseScopeEnd, priority);
 }
 
+export function multiElementAttributeWithoutScope(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
+    singleAttribute(map, name, parser, priority);
+    singleAttribute(map, name + '-start', parser, priority);
+    singleAttribute(map, name + '-end', () => Either.Right({ nodes: [] }), priority);
+}
+
 export interface DirectiveAttribute {
     name : string;
+    optional? : boolean;
+    type? : 'expression' | 'interpolated';
     locals? : { name : string, type : string }[];
     parser? : AttributeParser;
 }
@@ -139,15 +148,15 @@ builtinDirectiveMap.set('form', {
 singleAttribute(builtinDirectiveMap, 'ng-controller', parseNgController, 500);
 singleAttribute(builtinDirectiveMap, 'ng-checked', defaultParser, 100);
 singleAttribute(builtinDirectiveMap, 'ng-disabled', defaultParser, 100);
-multiElementAttribute(builtinDirectiveMap, 'ng-hide', defaultParser);
-multiElementAttribute(builtinDirectiveMap, 'ng-if', parseNgIf, 600);
+multiElementAttributeWithoutScope(builtinDirectiveMap, 'ng-hide', defaultParser);
+multiElementAttributeWithScope(builtinDirectiveMap, 'ng-if', parseNgIf, 600);
 singleAttribute(builtinDirectiveMap, 'ng-init', defaultParser, 450);
 singleAttribute(builtinDirectiveMap, 'ng-model', defaultParser, 1);
 singleAttribute(builtinDirectiveMap, 'ng-open', defaultParser, 100);
 singleAttribute(builtinDirectiveMap, 'ng-readonly', defaultParser, 100);
-multiElementAttribute(builtinDirectiveMap, 'ng-repeat', parseNgRepeat, 1000);
+multiElementAttributeWithScope(builtinDirectiveMap, 'ng-repeat', parseNgRepeat, 1000);
 singleAttribute(builtinDirectiveMap, 'ng-selected', defaultParser, 100);
-multiElementAttribute(builtinDirectiveMap, 'ng-show', defaultParser);
+multiElementAttributeWithoutScope(builtinDirectiveMap, 'ng-show', defaultParser);
 singleAttribute(builtinDirectiveMap, 'ng-switch', defaultParser, 1200);
 
 builtinDirectiveMap.set('script', {

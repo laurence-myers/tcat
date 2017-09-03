@@ -186,13 +186,9 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
 
 ## TODO
 
-- Warn on unrecognised HTML elements or attributes, since this could indicate a directive that should be type checked.
 - Support for multiple directives per tag/attribute.
 - Support normalised element/attribute names, e.g. `ng-bind`, `ng:bind`, `ng_bind`, `data-ng-bind`, and `x-ng-bind` 
 should all normalise to `ngBind`.
-- Verify required/optional attributes in directives.
-- Support for translcuded content in directives, referencing values in the directive's scope.
-- CLI: don't parse directives.json for every processed template file.
 - Support for the following directives:
   - All `input` variants, and their attributes
   - ng-include

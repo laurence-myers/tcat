@@ -1,9 +1,10 @@
 import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "./attributes";
 import {Either} from "monet";
 import {
-    asHtmlContents,
+    asHtmlContents, assertNever,
     AttributeParserError,
-    ElementDirectiveParserError, last,
+    ElementDirectiveParserError, flatten, HtmlValidationError,
+    last,
     TcatError,
     UnexpectedStateError
 } from "../core";
@@ -12,6 +13,7 @@ import {DirectiveAttribute, DirectiveData, DirectiveMap} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
+const htmlElementAttributes : { [key : string] : string[] } = require("html-element-attributes");
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>;
 export type ElementDirectiveParser = (element : CheerioElement, directives : Map<string, DirectiveData>) => ElementDirectiveParserResult;
@@ -46,6 +48,7 @@ const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
 export interface ElementParserContext {
     readonly errors : AttributeParserError[];
+    readonly parsedAttributes : string[];
     scopeData : ScopeData | undefined;
     isScopeEnd : boolean;
 }
@@ -62,6 +65,7 @@ export function parseElement(element : CheerioElement, directives : DirectiveMap
 export class ElementWalker {
     protected root : TemplateRootNode = templateRoot();
     protected readonly scopeStack : HasChildrenAstNode[] = [];
+    protected readonly htmlElementNames : Set<string> = new Set<string>(Object.keys(htmlElementAttributes));
 
     constructor(
         protected readonly directives : DirectiveMap) {
@@ -143,6 +147,55 @@ export class ElementWalker {
         return directivesToParse.sort((a, b) => (b.priority || 0) - (a.priority || 0));
     }
 
+    protected validateElement(node : CheerioElement, context : ElementParserContext, directives : DirectiveData[]) : void {
+        if (node.type == 'tag') {
+            const elementDirectiveNames = directives
+                .filter((directive) => directive.canBeElement)
+                .map((directive) => directive.name);
+            if (!this.htmlElementNames.has(node.tagName)
+                && elementDirectiveNames.indexOf(node.tagName) == -1) {
+                context.errors.push(new HtmlValidationError(`Unrecognised HTML tag "${ node.tagName }". Is this a custom directive?`));
+            } else {
+                // Check that all attributes in the HTML are recognised
+                const directiveAttributes : string[] = flatten(
+                    directives.map((directive) => {
+                        const names = [];
+                        if (directive.canBeAttribute) {
+                            names.push(directive.name);
+                        }
+                        return names.concat(
+                            directive.attributes.map((attrib) => attrib.name)
+                        );
+                    })
+                );
+                const standardHtmlElementAttributes =
+                    htmlElementAttributes['*']
+                        .concat(htmlElementAttributes[node.tagName] || []);
+                const recognisedAttributes = new Set<string>([
+                    ...standardHtmlElementAttributes,
+                    ...directiveAttributes
+                ]);
+                for (const attrib in node.attribs) {
+                    if (!recognisedAttributes.has(attrib)
+                        && !attrib.startsWith('data-')) {
+                        context.errors.push(new HtmlValidationError(`HTML tag "${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
+                    }
+                }
+
+                // Check that each directive has all of its required attributes
+                for (const directive of directives) {
+                    for (const attribute of directive.attributes) {
+                        if ((attribute.optional === undefined
+                            || attribute.optional === false)
+                            && node.attribs[attribute.name] === undefined) {
+                            context.errors.push(new HtmlValidationError(`"${ directive.name }" is missing a required attribute "${ attribute.name }".`));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     protected parseElementDirective(node : CheerioElement, context : ElementParserContext, elementDirective : DirectiveData) {
         const elemParser = elementDirective.parser;
         if (elemParser) {
@@ -158,25 +211,43 @@ export class ElementWalker {
 
     protected parseDirectiveSubAttribute(node : CheerioElement, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
         const subAttribValue = node.attribs[subAttribEntry.name];
-        let containingBlock : ScopedBlockNode | undefined;
-        if (subAttribEntry.locals && subAttribEntry.locals.length > 0) {
-            containingBlock = scopedBlock(subAttribEntry.locals.map(convertToParameter));
+        if (subAttribValue === undefined && subAttribEntry.optional === true) {
+            return;
         }
-        const parser = subAttribEntry.parser || defaultParser;
-        return parser(subAttribValue).bimap(
-            (errs) => context.errors.push(errs),
-            (result : SuccessfulParserResult) => {
-                // TODO: make this better
-                if (containingBlock) {
-                    containingBlock.children.push(...result.nodes);
-                    result.nodes = [containingBlock];
-                    if (result.scopeData) {
-                        result.scopeData.root = containingBlock;
-                    }
+        switch (subAttribEntry.type) {
+            case undefined:
+            case "expression":
+                let containingBlock : ScopedBlockNode | undefined;
+                if (subAttribEntry.locals && subAttribEntry.locals.length > 0) {
+                    containingBlock = scopedBlock(subAttribEntry.locals.map(convertToParameter));
                 }
-                this.addParseResult(context, result);
-            }
-        );
+                const parser = subAttribEntry.parser || defaultParser;
+                parser(subAttribValue).bimap(
+                    (errs) => context.errors.push(errs),
+                    (result : SuccessfulParserResult) => {
+                        // TODO: make this better
+                        if (containingBlock) {
+                            containingBlock.children.push(...result.nodes);
+                            result.nodes = [containingBlock];
+                            if (result.scopeData) {
+                                result.scopeData.root = containingBlock;
+                            }
+                        }
+                        this.addParseResult(context, result);
+                    }
+                );
+                context.parsedAttributes.push(subAttribEntry.name);
+                break;
+            case "interpolated":
+                this.handleAttributeDirectiveParseResult(
+                    context,
+                    parseInterpolatedText(subAttribValue)
+                );
+                context.parsedAttributes.push(subAttribEntry.name);
+                break;
+            default:
+                assertNever(subAttribEntry.type);
+        }
     }
 
     protected parseAttributeDirective(node : CheerioElement, context : ElementParserContext, attributeDirective : DirectiveData) {
@@ -189,15 +260,17 @@ export class ElementWalker {
     protected parseNonDirectiveAttributes(node : CheerioElement, context : ElementParserContext) {
         // Parse attributes: interpolated text
         for (const key in node.attribs) {
-            const attribLookup = this.directives.get(key);
-            const value = node.attribs[key];
-            if (attribLookup && attribLookup.canBeAttribute) {
-                continue;
-            } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
-                this.handleAttributeDirectiveParseResult(
-                    context,
-                    parseInterpolatedText(value)
-                );
+            if (context.parsedAttributes.indexOf(key) === -1) {
+                const attribLookup = this.directives.get(key);
+                const value = node.attribs[key];
+                if (attribLookup && attribLookup.canBeAttribute) {
+                    continue;
+                } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
+                    this.handleAttributeDirectiveParseResult(
+                        context,
+                        parseInterpolatedText(value)
+                    );
+                }
             }
         }
     }
@@ -225,12 +298,14 @@ export class ElementWalker {
     protected parseElement(node : CheerioElement) : Either<AttributeParserError[], void> {
         const context : ElementParserContext = {
             errors: [],
+            parsedAttributes: [],
             scopeData: undefined,
             isScopeEnd: false
         };
 
-        this.parseDirectives(node, context,
-            this.identifyDirectives(node));
+        const directives = this.identifyDirectives(node);
+        this.validateElement(node, context, directives);
+        this.parseDirectives(node, context, directives);
         this.parseNonDirectiveAttributes(node, context);
         this.parseInterpolatedText(node, context);
         this.parseChildren(node, context);

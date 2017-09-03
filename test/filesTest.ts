@@ -153,5 +153,116 @@ describe(`Files`, function () {
                 },
             ]);
         });
+
+        it(`Passes when attribute specifies type`, function () {
+            verifySuccess([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "type": "expression",
+                        }
+                    ]
+                },
+            ]);
+            verifySuccess([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "type": "interpolated",
+                        }
+                    ]
+                },
+            ]);
+            verifyFailure([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "type": "someOtherValue",
+                        }
+                    ]
+                },
+            ]);
+        });
+
+        it(`Passes when attribute specifies "optional" as a boolean`, function () {
+            verifySuccess([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "optional": true,
+                        }
+                    ]
+                },
+            ]);
+            verifySuccess([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "optional": false,
+                        }
+                    ]
+                },
+            ]);
+            verifyFailure([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "optional": "true",
+                        }
+                    ]
+                },
+            ]);
+        });
+
+        it(`Parses priority`, function () {
+            verifySuccess([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "priority": 0
+                },
+            ]);
+            verifySuccess([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "priority": 100
+                },
+            ]);
+            verifyFailure([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "priority": "0"
+                },
+            ]);
+        });
     });
 });

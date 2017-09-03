@@ -30,16 +30,25 @@ const directiveDataSchema = {
                             }
                         },
                         "required": ["name", "type"],
-                        "type": "object"
+                        "type": "object",
+                        "additionalProperties": false
                     },
                     "type": "array"
                 },
                 "name": {
                     "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": ["expression", "interpolated"]
                 }
             },
             "required": ["name"],
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         },
         "DirectiveData": {
             "properties": {
@@ -57,10 +66,14 @@ const directiveDataSchema = {
                 },
                 "name": {
                     "type": "string"
+                },
+                "priority": {
+                    "type": "number"
                 }
             },
             "required": ["name", "canBeElement", "canBeAttribute"],
-            "type": "object"
+            "type": "object",
+            "additionalProperties": false
         }
     },
     "items": {

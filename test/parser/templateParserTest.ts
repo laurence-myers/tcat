@@ -1,6 +1,6 @@
 import {parseHtml} from "../../src/parser/templateParser";
 import * as assert from "assert";
-import {assign, templateRoot, scopedBlock, parameter, arrayIteration, ifStatement} from "../../src/generator/dsl";
+import {arrayIteration, assign, ifStatement, parameter, scopedBlock, templateRoot} from "../../src/generator/dsl";
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
@@ -8,13 +8,24 @@ import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
 
 describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
-        function verifyHtml(html : string, expected : TemplateRootNode, directives : DirectiveData[]) {
+        function verifyHtml(html : string, directives : DirectiveData[], expected : TemplateRootNode) {
             const either = parseHtml(asHtmlContents(html), 'TemplateScope', createDirectiveMap(directives));
             either.bimap((errors) => {
                 assert.ok(either.isRight(), "Expected to parse HTML successfully, got errors: " + errors.join('\n'));
             }, () => {
                 const result = either.right();
                 assert.deepEqual(result, expected);
+            });
+        }
+
+        function verifyParseFailure(html : string, directives : DirectiveData[], expectedErrorMessages : string[]) {
+            const either = parseHtml(asHtmlContents(html), 'TemplateScope', createDirectiveMap(directives));
+            either.bimap((errors) => {
+                assert.equal(errors.length, expectedErrorMessages.length);
+                const messages = errors.map((err) => err.message);
+                assert.deepEqual(messages, expectedErrorMessages);
+            }, () => {
+                assert.ok(either.isLeft(), "Expected to fail parsing HTML");
             });
         }
 
@@ -33,7 +44,7 @@ describe(`Template parsers`, function () {
                     ])
                 ], `SomeNestedTemplateHtmlScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses ng-template with proceeding sibling elements`, function () {
@@ -53,7 +64,7 @@ describe(`Template parsers`, function () {
                     ])
                 ], `SomeNestedTemplateHtmlScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses ng-template with nested ng-template`, function () {
@@ -75,7 +86,7 @@ describe(`Template parsers`, function () {
                     ])
                 ], `AnotherNestedTemplateHtmlScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses custom element directives`, function () {
@@ -97,11 +108,37 @@ describe(`Template parsers`, function () {
                     assign(`scopeProperty1`)
                 ], `TemplateScope`),
             ]);
-            verifyHtml(html, expected, directives);
+            verifyHtml(html, directives, expected);
         });
 
-        xit(`parses custom element directives with transcluded content`, function () {
-
+        /**
+         * Translcuded content reads from the _outer_ scope. From the AngularJS docs:
+         * "The transclude option changes the way scopes are nested.
+         *  It makes it so that the contents of a transcluded directive have whatever scope is outside the directive,
+         *  rather than whatever scope is on the inside.
+         *  In doing so, it gives the contents access to the outside scope."
+         */
+        it(`parses custom element directives with transcluded content`, function () {
+            const html = `<my-element-directive first-arg="scopeProperty1"><p>{{ someValue }}</p></my-element-directive>`;
+            const directives = [
+                {
+                    name: "my-element-directive",
+                    canBeElement: true,
+                    canBeAttribute: false,
+                    attributes: [
+                        {
+                            name: "first-arg"
+                        }
+                    ]
+                }
+            ];
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`scopeProperty1`),
+                    assign(`someValue`)
+                ], `TemplateScope`),
+            ]);
+            verifyHtml(html, directives, expected);
         });
 
         it(`parses custom attribute directives`, function () {
@@ -123,7 +160,7 @@ describe(`Template parsers`, function () {
                     assign(`scopeProperty1`)
                 ], `TemplateScope`),
             ]);
-            verifyHtml(html, expected, directives);
+            verifyHtml(html, directives, expected);
         });
 
         it(`parses custom attribute directives with expression locals`, function () {
@@ -153,7 +190,52 @@ describe(`Template parsers`, function () {
                     ])
                 ], `TemplateScope`),
             ]);
-            verifyHtml(html, expected, directives);
+            verifyHtml(html, directives, expected);
+        });
+
+        it(`parses directive attributes that contain interpolated text (e.g. scope bindings that use "@")`, function () {
+            const html = `<div my-attribute-directive interpolated-arg="hello {{ name }}"></div>`;
+            const directives : DirectiveData[] = [
+                {
+                    name: "my-attribute-directive",
+                    canBeElement: false,
+                    canBeAttribute: true,
+                    attributes: [
+                        {
+                            name: "interpolated-arg",
+                            type: "interpolated"
+                        }
+                    ]
+                }
+            ];
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`name`)
+                ], `TemplateScope`),
+            ]);
+            verifyHtml(html, directives, expected);
+        });
+
+        it(`parses optional directive attributes`, function () {
+            const html = `<div my-attribute-directive></div>`;
+            const directives : DirectiveData[] = [
+                {
+                    name: "my-attribute-directive",
+                    canBeElement: false,
+                    canBeAttribute: true,
+                    attributes: [
+                        {
+                            name: "first-arg",
+                            optional: true
+                        }
+                    ]
+                }
+            ];
+            const expected = templateRoot([
+                scopedBlock([], [
+                ], `TemplateScope`),
+            ]);
+            verifyHtml(html, directives, expected);
         });
 
         it(`parses a form element with a name`, function () {
@@ -167,7 +249,7 @@ describe(`Template parsers`, function () {
                     ])
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses a form element without a name`, function () {
@@ -177,7 +259,7 @@ describe(`Template parsers`, function () {
                     assign(`myForm.$error.required`)
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses nested multi-element ng-repeat directives`, function () {
@@ -201,13 +283,13 @@ describe(`Template parsers`, function () {
                     ])
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses multi-element ng-show and ng-hide`, function () {
             const html =
 `<div ng-show-start="items.length > 0"></div>
-<div ng-show-end</div> {{ items[0] }}
+<div ng-show-end>{{ items[0] }}</div>
 <div ng-hide-start="items.length == 0"></div>
 <p ng-hide-end>{{ items.length }} items found</p>`;
             const expected = templateRoot([
@@ -218,7 +300,7 @@ describe(`Template parsers`, function () {
                     assign(`items.length`)
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses multi-element ng-if`, function () {
@@ -232,7 +314,7 @@ describe(`Template parsers`, function () {
                     ]),
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`ng-if does not encapsulate following sibling expressions`, function () {
@@ -246,7 +328,7 @@ describe(`Template parsers`, function () {
                     assign(`someProperty.name`)
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses ng-click and provides an $event local`, function () {
@@ -261,7 +343,7 @@ describe(`Template parsers`, function () {
                     ])
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses ng-controller directives`, function () {
@@ -280,7 +362,7 @@ describe(`Template parsers`, function () {
                     ], `{ ctrl : BarControllerScope }`)
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
         });
 
         it(`parses directives in order of priority - ng-repeat is parsed before ng-class`, function () {
@@ -294,7 +376,51 @@ describe(`Template parsers`, function () {
                     ])
                 ], `TemplateScope`)
             ]);
-            verifyHtml(html, expected, []);
+            verifyHtml(html, [], expected);
+        });
+
+        describe(`HTML validation`, function () {
+            it(`Fails validation for an unrecognised HTML tag`, function () {
+                const html = `<my-custom-directive></my-custom-directive>>`;
+                const directives : DirectiveData[] = [];
+                verifyParseFailure(html, directives, [
+                    `Unrecognised HTML tag "my-custom-directive". Is this a custom directive?`
+                ]);
+            });
+
+            it(`Fails validation for an unrecognised HTML tag attribute`, function () {
+                const html = `<my-custom-directive my-first-arg="ctrl.someValue"></my-custom-directive>>`;
+                const directives : DirectiveData[] = [
+                    {
+                        name: 'my-custom-directive',
+                        canBeElement: true,
+                        canBeAttribute: false,
+                        attributes: []
+                    }
+                ];
+                verifyParseFailure(html, directives, [
+                    `HTML tag "my-custom-directive" has an unrecognised attribute "my-first-arg". Is this a directive scope binding?`
+                ]);
+            });
+
+            it(`Fails validation for a missing required directive attribute`, function () {
+                const html = `<my-custom-directive></my-custom-directive>>`;
+                const directives : DirectiveData[] = [
+                    {
+                        name: 'my-custom-directive',
+                        canBeElement: true,
+                        canBeAttribute: false,
+                        attributes: [
+                            {
+                                name: 'my-first-arg'
+                            }
+                        ]
+                    }
+                ];
+                verifyParseFailure(html, directives, [
+                    `"my-custom-directive" is missing a required attribute "my-first-arg".`
+                ]);
+            });
         });
     });
 });
