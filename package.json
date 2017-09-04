@@ -1,9 +1,15 @@
 {
   "name": "tcat",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Type Checker for AngularJS Templates",
   "author": "Laurence Dougal Myers",
   "license": "MIT",
+  "homepage": "https://github.com/laurence-myers/tcat",
+  "bugs": "https://github.com/laurence-myers/tcat/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/laurence-myers/tcat.git"
+  },
   "engines": {
     "node": ">=6.9.1",
     "npm": ">=3.10.10"
