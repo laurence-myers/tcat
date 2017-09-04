@@ -448,6 +448,26 @@ describe(`Template parsers`, function () {
                     ], `TemplateScope`)
                 ]));
             });
+
+            it(`Fails validation for a missing required interpolated directive attribute`, function () {
+                const html = `<my-custom-directive></my-custom-directive>>`;
+                const directives : DirectiveData[] = [
+                    {
+                        name: 'my-custom-directive',
+                        canBeElement: true,
+                        canBeAttribute: false,
+                        attributes: [
+                            {
+                                name: 'my-first-arg',
+                                type: 'interpolated'
+                            }
+                        ]
+                    }
+                ];
+                verifyParseFailure(html, directives, [
+                    `"my-custom-directive" is missing a required attribute "my-first-arg".`
+                ]);
+            });
         });
     });
 });

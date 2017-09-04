@@ -226,7 +226,7 @@ export class ElementWalker {
 
     protected parseDirectiveSubAttribute(node : CheerioElement, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
         const subAttribValue = node.attribs[subAttribEntry.name];
-        if (subAttribValue === undefined && subAttribEntry.optional === true) {
+        if (subAttribValue === undefined) {
             return;
         }
         switch (subAttribEntry.type) {
