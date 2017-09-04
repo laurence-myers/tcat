@@ -384,7 +384,7 @@ describe(`Template parsers`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;
                 const directives : DirectiveData[] = [];
                 verifyParseFailure(html, directives, [
-                    `Unrecognised HTML tag "my-custom-directive". Is this a custom directive?`
+                    `"my-custom-directive" is an unrecognised HTML tag. Is this a custom directive?`
                 ]);
             });
 
@@ -399,7 +399,7 @@ describe(`Template parsers`, function () {
                     }
                 ];
                 verifyParseFailure(html, directives, [
-                    `HTML tag "my-custom-directive" has an unrecognised attribute "my-first-arg". Is this a directive scope binding?`
+                    `"my-custom-directive" has an unrecognised attribute "my-first-arg". Is this a directive scope binding?`
                 ]);
             });
 
@@ -418,7 +418,7 @@ describe(`Template parsers`, function () {
                     }
                 ];
                 verifyParseFailure(html, directives, [
-                    `"my-custom-directive" is missing a required attribute "my-first-arg".`
+                    `"my-custom-directive" is missing the required attribute "my-first-arg".`
                 ]);
             });
 
@@ -465,7 +465,7 @@ describe(`Template parsers`, function () {
                     }
                 ];
                 verifyParseFailure(html, directives, [
-                    `"my-custom-directive" is missing a required attribute "my-first-arg".`
+                    `"my-custom-directive" is missing the required attribute "my-first-arg".`
                 ]);
             });
         });

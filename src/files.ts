@@ -104,6 +104,26 @@ export function readDirectiveDataFile(directiveFileName : FileName) : Either<Tca
         .flatMap(validateDirectiveDataJson);
 }
 
+export function findLongestCommonPath(fileNames : FileName[]) : string {
+    if (fileNames.length >= 2) {
+        const commonComponents = fileNames[0].split(path.sep);
+        for (let i = 1; i < fileNames.length; i++) {
+            const pathComponents = fileNames[i].split(path.sep);
+            for (let j = 0; j < pathComponents.length; j++) {
+                if (commonComponents[j] !== pathComponents[j]) {
+                    if (commonComponents[j] !== undefined) {
+                        commonComponents.splice(j);
+                    }
+                    break;
+                }
+            }
+        }
+        return commonComponents.join(path.sep);
+    } else {
+        return '';
+    }
+}
+
 export type FileFilter = (fileName : string) => boolean;
 export function walk(dir : DirectoryName, filter : FileFilter) : FileName[] {
     const results : FileName[] = [];

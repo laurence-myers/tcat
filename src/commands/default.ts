@@ -15,7 +15,7 @@ import {Directory, File} from "clime/bld/castable";
 import * as fs from "fs";
 import * as path from "path";
 import {Either} from "monet";
-import {FileFilter, readDirectiveDataFile, walk} from "../files";
+import {FileFilter, findLongestCommonPath, readDirectiveDataFile, walk} from "../files";
 import {DirectiveData} from "../directives";
 
 class FileOrDirectory {
@@ -122,20 +122,29 @@ export default class extends Command {
                 }
             })
         );
+        const commonPath = findLongestCommonPath(fileNames) + path.sep;
         const result = readDirectiveDataFile(asFileName(directivesFileName.fullName))
             .flatMap((directives) =>
                 fileNames.map((fileName : FileName) =>
                     this.processFile(fileName, directives)
                         .leftMap(
                             (errors) => {
-                                console.error(`Errors were encountered processing template "${ fileName }".`);
-                                errors.forEach((err) => console.error(this.verbose ? err : '- ' + err.message));
+                                errors.forEach((err) => {
+                                    console.error(
+                                        fileName.replace(commonPath, '') + ':',
+                                        this.verbose ? err : err.message
+                                    );
+                                });
                                 return errors;
                             }
                         )
                 ).reduce((current : Either<TcatError[], void>, previous : Either<TcatError[], void>) : Either<TcatError[], void> => {
                     if (current.isLeft()) {
-                        return current;
+                        if (previous.isLeft()) {
+                            return Either.Left(previous.left().concat(current.left()));
+                        } else {
+                            return current;
+                        }
                     } else {
                         return previous;
                     }

@@ -167,7 +167,7 @@ export class ElementWalker {
                     .map((directive) => directive.name);
                 if (!this.htmlElementNames.has(node.tagName)
                     && elementDirectiveNames.indexOf(node.tagName) === -1) {
-                    context.errors.push(new HtmlValidationError(`Unrecognised HTML tag "${ node.tagName }". Is this a custom directive?`));
+                    context.errors.push(new HtmlValidationError(`"${ node.tagName }" is an unrecognised HTML tag. Is this a custom directive?`));
                 } else {
                     // Check that all attributes in the HTML are recognised
                     const directiveAttributes : string[] = flatten(
@@ -192,7 +192,7 @@ export class ElementWalker {
                     for (const attrib in node.attribs) {
                         if (!recognisedAttributes.has(attrib)
                             && !attrib.startsWith('data-')) {
-                            context.errors.push(new HtmlValidationError(`HTML tag "${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
+                            context.errors.push(new HtmlValidationError(`"${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
                         }
                     }
                 }
@@ -204,7 +204,7 @@ export class ElementWalker {
                     if ((attribute.optional === undefined
                             || attribute.optional === false)
                         && node.attribs[attribute.name] === undefined) {
-                        context.errors.push(new HtmlValidationError(`"${ directive.name }" is missing a required attribute "${ attribute.name }".`));
+                        context.errors.push(new HtmlValidationError(`"${ directive.name }" is missing the required attribute "${ attribute.name }".`));
                     }
                 }
             }

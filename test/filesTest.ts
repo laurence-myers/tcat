@@ -1,5 +1,7 @@
-import {validateDirectiveDataJson} from "../src/files";
+import {findLongestCommonPath, validateDirectiveDataJson} from "../src/files";
 import * as assert from "assert";
+import {asFileName} from "../src/core";
+import * as path from "path";
 
 describe(`Files`, function () {
     describe(`validateDirectiveDataJson()`, function () {
@@ -263,6 +265,34 @@ describe(`Files`, function () {
                     "priority": "0"
                 },
             ]);
+        });
+    });
+
+    describe(`findLongestCommonPath`, function () {
+        it(`finds the longest common path between two FileNames`, function () {
+            let result = findLongestCommonPath([
+                asFileName(path.join('d:', 'code', 'myProject', 'subDir1', 'someFile.ts')),
+                asFileName(path.join('d:', 'code', 'myProject', 'subDir1', 'someOtherFile.ts'))
+            ]);
+            assert.strictEqual(result, path.join('d:', 'code', 'myProject', 'subDir1'));
+        });
+
+        it(`finds the longest common path for more than two FileNames`, function () {
+            let result = findLongestCommonPath([
+                asFileName(path.join('d:', 'code', 'myProject', 'subDir1', 'someFile.ts')),
+                asFileName(path.join('d:', 'code', 'myProject', 'subDir1', 'someOtherFile.ts')),
+                asFileName(path.join('d:', 'code', 'myProject', 'subDir2', 'aThirdFile.ts'))
+            ]);
+            assert.strictEqual(result, path.join('d:', 'code', 'myProject'));
+        });
+
+        it(`returns an empty string if passed less than two FileNames`, function () {
+            let result = findLongestCommonPath([]);
+            assert.strictEqual(result, "");
+            result = findLongestCommonPath([
+                asFileName('D:\\Code\\someFile.ts')
+            ]);
+            assert.strictEqual(result, "");
         });
     });
 });
