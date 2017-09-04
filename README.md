@@ -21,25 +21,30 @@ Write a directives.json file. This defines your custom directives used in your a
 
 ```json
 [
-	{
-		"name": "my-custom-directive",
-		"canBeElement": true,
-		"canBeAttribute": false,
-		"attributes": [
-			{
-				"name": "the-item"
-			},
-			{
-			    "name": "some-update",
-			    "locals": [
-			        {
-			            "name": "updatedValue",
-			            "type": "string"
-			        }
-			    ]
-			}
-		]
-	}
+  {
+    "name": "my-custom-directive",
+    "canBeElement": true,
+    "canBeAttribute": false,
+    "attributes": [
+      {
+        "name": "the-item"
+      },
+      {
+        "name": "optional-string-property",
+        "type": "interpolated",
+        "optional": true
+      },
+      {
+        "name": "some-update",
+        "locals": [
+          {
+            "name": "updatedValue",
+            "type": "string"
+          }
+        ]
+      }
+    ]
+  }
 ]
 ```
 
@@ -59,9 +64,9 @@ Create a template file. Let's call it "template.jade".
 
 ```html
 <div ng-repeat="item in items">
-	<p>{{ item.name }}</p>
-	<p>{{ item.date | date }}</p>
-	<my-custom-directive the-item="item" some-update="receiveUpdate(updatedValue)" />	
+    <p>{{ item.name }}</p>
+    <p>{{ item.date | date }}</p>
+    <my-custom-directive the-item="item" some-update="receiveUpdate(updatedValue)" />	
 </div>
 ```
 
@@ -201,4 +206,5 @@ should all normalise to `ngBind`.
 - Automatically allow built-in AngularJS filters, like `date`.
 - It would be nice to somehow detect issues caused by prototype inheritence. e.g. Scope A has property "myText", the
   the template has an "ng-if" which creates Scope B, and there's a form input with "ng-model" bound to "myText". In
-  this scenario, the input would read the value of "myText" from Scope A, but would write the value back to Scope B. 
+  this scenario, the input would read the value of "myText" from Scope A, but would write the value back to Scope B.
+- Add a tool to generate the directive data JSON from (augmented) AngularJS directive config objects. 
