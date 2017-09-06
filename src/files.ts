@@ -1,3 +1,4 @@
+import "./metadataShim";
 import {
     asDirectoryName,
     asFileName,
@@ -5,83 +6,79 @@ import {
     DirectoryName,
     FileName,
     JsonValidationError,
-    readFile, requireFile,
+    readFile,
+    requireFile,
     TcatError,
     TypeScriptContents
 } from "./core";
 import {Either} from "monet";
-import {DirectiveData} from "./directives";
-import * as Ajv from "ajv";
+import {DirectiveAttribute, DirectiveData} from "./directives";
 import * as fs from "fs";
 import * as path from "path";
+import {AnyConstraints, FunctionConstraints, NestedArray, StringConstraints, Validator} from "tsdv-joi";
+import {ElementDirectiveParser} from "./parser/elements";
+import {AttributeParser} from "./parser/attributes";
 
-const directiveDataSchema = {
-    "definitions": {
-        "DirectiveAttribute": {
-            "properties": {
-                "locals": {
-                    "items": {
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "type": {
-                                "type": "string"
-                            }
-                        },
-                        "required": ["name", "type"],
-                        "type": "object",
-                        "additionalProperties": false
-                    },
-                    "type": "array"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "optional": {
-                    "type": "boolean"
-                },
-                "type": {
-                    "type": "string",
-                    "enum": ["expression", "interpolated"]
-                }
-            },
-            "required": ["name"],
-            "type": "object",
-            "additionalProperties": false
-        },
-        "DirectiveData": {
-            "properties": {
-                "attributes": {
-                    "items": {
-                        "$ref": "#/definitions/DirectiveAttribute"
-                    },
-                    "type": "array"
-                },
-                "canBeAttribute": {
-                    "type": "boolean"
-                },
-                "canBeElement": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "priority": {
-                    "type": "number"
-                }
-            },
-            "required": ["name", "canBeElement", "canBeAttribute"],
-            "type": "object",
-            "additionalProperties": false
-        }
-    },
-    "items": {
-        "$ref": "#/definitions/DirectiveData"
-    },
-    "type": "array"
-};
-const ajv = new Ajv();
+const { Required, Only, Optional } = AnyConstraints;
+const { Arity } = FunctionConstraints;
+const { StringSchema } = StringConstraints;
+
+class DirectiveAttributeLocalSchema {
+    @Required()
+    @StringSchema()
+    name : string;
+
+    @Required()
+    @StringSchema()
+    type : string;
+}
+
+class DirectiveAttributeSchema implements DirectiveAttribute {
+    @Required()
+    name : string;
+
+    @Optional()
+    optional? : boolean;
+
+    @Only('expression', 'interpolated')
+    @Optional()
+    type? : 'expression' | 'interpolated';
+
+    @Optional()
+    @NestedArray(DirectiveAttributeLocalSchema)
+    locals? : DirectiveAttributeLocalSchema[];
+
+    @Arity(1)
+    @Optional()
+    parser? : AttributeParser;
+}
+
+class DirectiveDataSchema implements DirectiveData {
+    @Required()
+    name : string;
+
+    @Required()
+    canBeElement : boolean;
+
+    @Required()
+    canBeAttribute : boolean;
+
+    @Optional()
+    @NestedArray(DirectiveAttributeSchema)
+    attributes : DirectiveAttributeSchema[];
+
+    @Arity(2)
+    @Optional()
+    parser? : ElementDirectiveParser;
+
+    @Optional()
+    priority? : number;
+}
+
+const validator = new Validator({
+    convert: false,
+    presence: 'required'
+});
 
 export function readTypeScriptFile(typeScriptFileName : FileName) : Either<TcatError[], TypeScriptContents> {
     return readFile(asFileName(typeScriptFileName))
@@ -89,10 +86,9 @@ export function readTypeScriptFile(typeScriptFileName : FileName) : Either<TcatE
 }
 
 export function validateDirectiveDataJson(possibleDirectiveData : any) : Either<TcatError[], DirectiveData[]> {
-    const schemaValidator = ajv.compile(directiveDataSchema);
-    const valid = schemaValidator(possibleDirectiveData);
-    if (!valid) {
-        return Either.Left(schemaValidator.errors!.map((err) => new JsonValidationError(err.message)));
+    const result = validator.validateArrayAsClass<DirectiveData>(possibleDirectiveData, DirectiveDataSchema);
+    if (result.error) {
+        return Either.Left(result.error.details.map((err) => new JsonValidationError(err.message)));
     } else {
         return Either.Right(possibleDirectiveData);
     }
