@@ -1,5 +1,9 @@
 # tcat - Type Checker for AngularJS Templates
 
+### IN ALPHA!
+
+**Before version 1.0.0, the API could change dramatically and without warning.**
+
 ## Description
 
 This tool will inspect your template files, and generate a TypeScript file, based on the AngularJS expressions found in
