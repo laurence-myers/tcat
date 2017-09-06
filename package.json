@@ -38,7 +38,6 @@
     "jade": "1.11.0",
     "monet": "0.8.10",
     "pug": "2.0.0-rc.3",
-    "typescript": "2.4.2",
     "uppercamelcase": "3.0.0"
   },
   "devDependencies": {
@@ -53,6 +52,7 @@
     "mocha": "3.4.2",
     "rimraf": "2.6.1",
     "source-map-support": "0.4.11",
-    "tslint": "4.4.2"
+    "tslint": "4.4.2",
+    "typescript": "2.5.2"
   }
 }
