@@ -6,6 +6,7 @@ export class TcatError extends Error {}
 export class UnexpectedStateError extends TcatError {}
 export class UnsupportedTemplateFileError extends TcatError {}
 export class FileReadError extends TcatError {}
+export class FileRequireError extends TcatError {}
 export class FileWriteError extends TcatError {}
 export class TemplateParserError extends TcatError {}
 export class AttributeParserError extends TcatError {}
@@ -29,7 +30,7 @@ export function objectToString(obj : any) : string {
     return util.inspect(obj, false, <any> null);
 }
 
-export function readFile(fileName : string) : Either<FileReadError[], string> {
+export function readFile(fileName : FileName) : Either<FileReadError[], string> {
     try {
         return Either.Right(readFileSync(fileName, 'utf8'));
     } catch (err) {
@@ -37,7 +38,15 @@ export function readFile(fileName : string) : Either<FileReadError[], string> {
     }
 }
 
-export function writeFile(fileName : string, contents : string) : Either<FileWriteError[], void> {
+export function requireFile<T>(fileName : FileName) : Either<FileReadError[], T> {
+    try {
+        return Either.Right(require(fileName));
+    } catch (err) {
+        return Either.Left([new FileRequireError(err)]);
+    }
+}
+
+export function writeFile(fileName : FileName, contents : string) : Either<FileWriteError[], void> {
     try {
         return Either.Right(writeFileSync(fileName, contents));
     } catch (err) {

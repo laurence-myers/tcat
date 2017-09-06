@@ -5,7 +5,7 @@ import {
     DirectoryName,
     FileName,
     JsonValidationError,
-    readFile,
+    readFile, requireFile,
     TcatError,
     TypeScriptContents
 } from "./core";
@@ -88,19 +88,18 @@ export function readTypeScriptFile(typeScriptFileName : FileName) : Either<TcatE
         .map(asTypeScriptContents);
 }
 
-export function validateDirectiveDataJson(contents : string) : Either<TcatError[], DirectiveData[]> {
-    const directiveData = JSON.parse(contents);
+export function validateDirectiveDataJson(possibleDirectiveData : any) : Either<TcatError[], DirectiveData[]> {
     const schemaValidator = ajv.compile(directiveDataSchema);
-    const valid = schemaValidator(directiveData);
+    const valid = schemaValidator(possibleDirectiveData);
     if (!valid) {
         return Either.Left(schemaValidator.errors!.map((err) => new JsonValidationError(err.message)));
     } else {
-        return Either.Right(directiveData);
+        return Either.Right(possibleDirectiveData);
     }
 }
 
 export function readDirectiveDataFile(directiveFileName : FileName) : Either<TcatError[], DirectiveData[]> {
-    return readFile(directiveFileName)
+    return requireFile<DirectiveData[]>(directiveFileName)
         .flatMap(validateDirectiveDataJson);
 }
 

@@ -5,16 +5,16 @@ import * as path from "path";
 
 describe(`Files`, function () {
     describe(`validateDirectiveDataJson()`, function () {
-        function verifySuccess(input : object) {
-            const result = validateDirectiveDataJson(JSON.stringify(input));
+        function verifySuccess(input : object[]) {
+            const result = validateDirectiveDataJson(input);
             if (result.isLeft()) {
                 console.log(result.left());
             }
             assert.ok(result.isRight());
         }
 
-        function verifyFailure(input : object) {
-            const result = validateDirectiveDataJson(JSON.stringify(input));
+        function verifyFailure(input : object[]) {
+            const result = validateDirectiveDataJson(input);
             assert.ok(result.isLeft());
         }
 
