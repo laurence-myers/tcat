@@ -37,11 +37,16 @@ export function multiElementAttributeWithoutScope(map : DirectiveMap, name : str
     singleAttribute(map, name + '-end', () => Either.Right({ nodes: [] }), priority);
 }
 
+export interface AttributeLocal {
+    name : string;
+    type : string;
+}
+
 export interface DirectiveAttribute {
     name : string;
     optional? : boolean;
     type? : 'expression' | 'interpolated';
-    locals? : { name : string, type : string }[];
+    locals? : AttributeLocal[];
     parser? : AttributeParser;
 }
 

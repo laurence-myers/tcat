@@ -12,7 +12,7 @@ import {
     TypeScriptContents
 } from "./core";
 import {Either} from "monet";
-import {DirectiveAttribute, DirectiveData} from "./directives";
+import {AttributeLocal, DirectiveAttribute, DirectiveData} from "./directives";
 import * as fs from "fs";
 import * as path from "path";
 import {AnyConstraints, FunctionConstraints, NestedArray, StringConstraints, Validator} from "tsdv-joi";
@@ -23,7 +23,7 @@ const { Required, Only, Optional } = AnyConstraints;
 const { Arity } = FunctionConstraints;
 const { StringSchema } = StringConstraints;
 
-class DirectiveAttributeLocalSchema {
+class DirectiveAttributeLocalSchema implements AttributeLocal {
     @Required()
     @StringSchema()
     name : string;

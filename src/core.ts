@@ -8,6 +8,7 @@ export class UnsupportedTemplateFileError extends TcatError {}
 export class FileReadError extends TcatError {}
 export class FileRequireError extends TcatError {}
 export class FileWriteError extends TcatError {}
+export class DirectiveDefinitionError extends TcatError {}
 export class TemplateParserError extends TcatError {}
 export class AttributeParserError extends TcatError {}
 export class ElementDirectiveParserError extends TcatError {}
@@ -56,6 +57,13 @@ export function writeFile(fileName : FileName, contents : string) : Either<FileW
 
 export function last<T>(arr : T[]) : T | undefined {
     return arr[arr.length - 1];
+}
+
+export function unwrapEither<E extends Error, V>(either : Either<E, V>) : V | never {
+    return either.cata(
+        (err) => { throw err },
+        (value) => value
+    );
 }
 
 export const enum AsFileName {}
