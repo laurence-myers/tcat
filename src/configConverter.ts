@@ -101,7 +101,7 @@ function convertBindingsToAttributes(bindings : BindingsMap) : DirectiveAttribut
         attributes.push(<DirectiveAttribute> {
             name: attributeName,
             optional: directiveBinding.optional,
-            type: convertBindingModeToAttributeType(directiveBinding.mode)
+            mode: convertBindingModeToAttributeType(directiveBinding.mode)
         });
     }
     return attributes;

@@ -35,22 +35,22 @@ describe(`configConverter`, function () {
                     attributes: [
                         {
                             name: 'someTwoWayBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: false
                         },
                         {
                             name: 'someInterpolatedBinding',
-                            type: 'interpolated',
+                            mode: 'interpolated',
                             optional: true
                         },
                         {
                             name: 'someExpressionBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: false
                         },
                         {
                             name: 'someOneWayBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: true
                         }
                     ]
@@ -76,22 +76,22 @@ describe(`configConverter`, function () {
                     attributes: [
                         {
                             name: 'someTwoWayBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: true
                         },
                         {
                             name: 'someInterpolatedBinding',
-                            type: 'interpolated',
+                            mode: 'interpolated',
                             optional: false
                         },
                         {
                             name: 'someExpressionBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: true
                         },
                         {
                             name: 'someOneWayBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: false
                         }
                     ]
@@ -119,22 +119,22 @@ describe(`configConverter`, function () {
                     attributes: [
                         {
                             name: 'someTwoWayBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: false
                         },
                         {
                             name: 'someInterpolatedBinding',
-                            type: 'interpolated',
+                            mode: 'interpolated',
                             optional: true
                         },
                         {
                             name: 'someExpressionBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: false
                         },
                         {
                             name: 'someOneWayBinding',
-                            type: 'expression',
+                            mode: 'expression',
                             optional: true
                         }
                     ]
@@ -245,7 +245,7 @@ describe(`configConverter`, function () {
                         attributes: [
                             {
                                 name: 'firstProperty',
-                                type: 'expression',
+                                mode: 'expression',
                                 optional: false,
                                 parser: attributeParser
                             }
@@ -285,7 +285,7 @@ describe(`configConverter`, function () {
                         attributes: [
                             {
                                 name: 'firstProperty',
-                                type: 'expression',
+                                mode: 'expression',
                                 optional: false,
                                 locals: attributeLocals
                             }

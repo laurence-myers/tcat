@@ -156,7 +156,7 @@ describe(`Files`, function () {
             ]);
         });
 
-        it(`Passes when attribute specifies type`, function () {
+        it(`Passes when attribute specifies mode`, function () {
             verifySuccess([
                 {
                     "name": "my-directive",
@@ -165,7 +165,7 @@ describe(`Files`, function () {
                     "attributes": [
                         {
                             "name": "some-arg",
-                            "type": "expression",
+                            "mode": "expression",
                         }
                     ]
                 },
@@ -178,7 +178,7 @@ describe(`Files`, function () {
                     "attributes": [
                         {
                             "name": "some-arg",
-                            "type": "interpolated",
+                            "mode": "interpolated",
                         }
                     ]
                 },
@@ -191,7 +191,20 @@ describe(`Files`, function () {
                     "attributes": [
                         {
                             "name": "some-arg",
-                            "type": "someOtherValue",
+                            "mode": "someOtherValue",
+                        }
+                    ]
+                },
+            ]);
+            verifyFailure([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            "name": "some-arg",
+                            "type": "interpolated", // "mode" used to be called "type"
                         }
                     ]
                 },

@@ -203,7 +203,7 @@ describe(`Template parsers`, function () {
                     attributes: [
                         {
                             name: "interpolatedArg",
-                            type: "interpolated"
+                            mode: "interpolated"
                         }
                     ]
                 }
@@ -459,13 +459,28 @@ describe(`Template parsers`, function () {
                         attributes: [
                             {
                                 name: 'myFirstArg',
-                                type: 'interpolated'
+                                mode: 'interpolated'
                             }
                         ]
                     }
                 ];
                 verifyParseFailure(html, directives, [
                     `"myCustomDirective" is missing the required attribute "myFirstArg".`
+                ]);
+            });
+
+            it(`Fails validation for a directive with the wrong case in the directive data`, function () {
+                const html = `<my-custom-directive></my-custom-directive>>`;
+                const directives : DirectiveData[] = [
+                    {
+                        name: 'my-custom-directive',
+                        canBeElement: true,
+                        canBeAttribute: false,
+                        attributes: []
+                    }
+                ];
+                verifyParseFailure(html, directives, [
+                    `"my-custom-directive" is an unrecognised HTML tag. Is this a custom directive?`
                 ]);
             });
         });

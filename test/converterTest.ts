@@ -1,31 +1,42 @@
 import {path as root} from "app-root-path";
-import {readFileSync} from "fs";
-import {asFileName, asPugFileName, asTypeScriptContents, TypeScriptContents} from "../src/core";
+import {readdirSync, readFileSync, statSync} from "fs";
+import {
+    asDirectoryName,
+    asFileName,
+    asPugFileName,
+    asTypeScriptContents,
+    DirectoryName,
+    TypeScriptContents
+} from "../src/core";
 import {convertPugFileToTypeScript} from "../src/converter";
 import * as assert from "assert";
 import {readDirectiveDataFile} from "../src/files";
+import * as path from "path";
 
 describe("Converter", function () {
     describe("Examples", function () {
-        function verifyExample(exampleNumber : number) : void {
-            const dir = `${ root }/test/data/example_${ exampleNumber }`;
-            const templateName = asPugFileName(`${ dir }/template.jade`);
-            const directivesName = asFileName(`${ dir }/directives.json`);
+        function verifyExample(dir : DirectoryName) : void {
+            const templateName = asPugFileName(path.join(dir, `template.jade`));
+            const directivesName = asFileName(path.join(dir, `directives.json`));
             const expectedContents : TypeScriptContents = asTypeScriptContents(
-                readFileSync(`${ dir }/expected.ts`, 'utf8')
+                readFileSync(path.join(dir, `expected.ts`), 'utf8')
                     .replace(/\r\n/g, '\n')
             );
-            readDirectiveDataFile(directivesName)
-                .map((directives) => convertPugFileToTypeScript(templateName, directives)
-                    .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents))
-                ).leftMap((errors) => { throw errors[0]; });
-
+            const result = readDirectiveDataFile(directivesName)
+                .flatMap((directives) => convertPugFileToTypeScript(templateName, directives))
+                .map((tsContents) => assert.equal(tsContents.replace(/\r\n/g, '\n'), expectedContents));
+            if (result.isLeft()) {
+                assert.deepStrictEqual(result.left(), undefined);
+            }
         }
 
-        const NUM_EXAMPLES = 2;
-        for (let i = 0; i < NUM_EXAMPLES; i++) {
-            it(`produces expected output for example #${ i + 1 }`, function () {
-                verifyExample(i + 1);
+        const examplesContainingDirectory = path.join(root, `test`, `data`);
+        const exampleDirectories = readdirSync(examplesContainingDirectory)
+            .map((name) => path.join(examplesContainingDirectory, name))
+            .filter((entry : string) => statSync(entry).isDirectory());
+        for (const exampleDir of exampleDirectories) {
+            it(`produces expected output for ${ exampleDir }`, function () {
+                verifyExample(asDirectoryName(exampleDir));
             });
         }
     });

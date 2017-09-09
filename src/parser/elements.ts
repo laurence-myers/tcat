@@ -236,7 +236,7 @@ export class ElementWalker {
         if (subAttribValue === undefined) {
             return;
         }
-        switch (subAttribEntry.type) {
+        switch (subAttribEntry.mode) {
             case undefined:
             case "expression":
                 let containingBlock : ScopedBlockNode | undefined;
@@ -268,7 +268,7 @@ export class ElementWalker {
                 context.parsedAttributes.push(subAttribEntry.name);
                 break;
             default:
-                assertNever(subAttribEntry.type);
+                assertNever(subAttribEntry.mode);
         }
     }
 

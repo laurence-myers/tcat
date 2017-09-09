@@ -46,7 +46,7 @@ export interface AttributeLocal {
 export interface DirectiveAttribute {
     name : string;
     optional? : boolean;
-    type? : 'expression' | 'interpolated';
+    mode? : 'expression' | 'interpolated';
     locals? : AttributeLocal[];
     parser? : AttributeParser;
 }

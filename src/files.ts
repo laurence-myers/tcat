@@ -42,7 +42,7 @@ class DirectiveAttributeSchema implements DirectiveAttribute {
 
     @Only('expression', 'interpolated')
     @Optional()
-    type? : 'expression' | 'interpolated';
+    mode? : 'expression' | 'interpolated';
 
     @Optional()
     @NestedArray(DirectiveAttributeLocalSchema)
