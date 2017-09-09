@@ -26,20 +26,20 @@ Write a directives.json file. This defines your custom directives used in your a
 ```json
 [
   {
-    "name": "my-custom-directive",
+    "name": "myCustomDirective",
     "canBeElement": true,
     "canBeAttribute": false,
     "attributes": [
       {
-        "name": "the-item"
+        "name": "theItem"
       },
       {
-        "name": "optional-string-property",
+        "name": "optionalStringProperty",
         "type": "interpolated",
         "optional": true
       },
       {
-        "name": "some-update",
+        "name": "someUpdate",
         "locals": [
           {
             "name": "updatedValue",
@@ -117,7 +117,7 @@ interface MyFancyNestedTemplateHtmlScope {
 }
 ```
 
-### Generating tcats 
+### Generating tcat files 
 
 Run tcat. Pass it the name of the directives files, and the template file.
 
@@ -196,8 +196,6 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
 ## TODO
 
 - Support for multiple directives per tag/attribute.
-- Support normalised element/attribute names, e.g. `ng-bind`, `ng:bind`, `ng_bind`, `data-ng-bind`, and `x-ng-bind` 
-should all normalise to `ngBind`.
 - Support for the following directives:
   - All `input` variants, and their attributes
   - ng-include
@@ -206,9 +204,7 @@ should all normalise to `ngBind`.
   - select
   - textarea
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
-- Support for micro-syntax in custom directives, like `ng-repeat`. (Plugins?)
 - Automatically allow built-in AngularJS filters, like `date`.
 - It would be nice to somehow detect issues caused by prototype inheritence. e.g. Scope A has property "myText", the
   the template has an "ng-if" which creates Scope B, and there's a form input with "ng-model" bound to "myText". In
   this scenario, the input would read the value of "myText" from Scope A, but would write the value back to Scope B.
-- Add a tool to generate the directive data JSON from (augmented) AngularJS directive config objects. 

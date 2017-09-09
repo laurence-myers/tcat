@@ -7,7 +7,7 @@ import {AttributeParser} from "../src/parser/attributes";
 describe(`configConverter`, function () {
     describe(`convertDirectiveConfigToDirectiveData`, function () {
         const DEFAULT_DIRECTIVE_NAME = 'testDirective';
-        const EXPECTED_DEFAULT_DIRECTIVE_NAME = 'test-directive';
+        const EXPECTED_DEFAULT_DIRECTIVE_NAME = DEFAULT_DIRECTIVE_NAME;
         function verifySuccess(config : IDirective, expected : DirectiveData) {
             const result = convertDirectiveConfigToDirectiveData(DEFAULT_DIRECTIVE_NAME, config);
             if (result.isLeft()) {
@@ -34,22 +34,22 @@ describe(`configConverter`, function () {
                     priority: 0,
                     attributes: [
                         {
-                            name: 'some-two-way-binding',
+                            name: 'someTwoWayBinding',
                             type: 'expression',
                             optional: false
                         },
                         {
-                            name: 'some-interpolated-binding',
+                            name: 'someInterpolatedBinding',
                             type: 'interpolated',
                             optional: true
                         },
                         {
-                            name: 'some-expression-binding',
+                            name: 'someExpressionBinding',
                             type: 'expression',
                             optional: false
                         },
                         {
-                            name: 'some-one-way-binding',
+                            name: 'someOneWayBinding',
                             type: 'expression',
                             optional: true
                         }
@@ -75,22 +75,22 @@ describe(`configConverter`, function () {
                     priority: 0,
                     attributes: [
                         {
-                            name: 'some-two-way-binding',
+                            name: 'someTwoWayBinding',
                             type: 'expression',
                             optional: true
                         },
                         {
-                            name: 'some-interpolated-binding',
+                            name: 'someInterpolatedBinding',
                             type: 'interpolated',
                             optional: false
                         },
                         {
-                            name: 'some-expression-binding',
+                            name: 'someExpressionBinding',
                             type: 'expression',
                             optional: true
                         },
                         {
-                            name: 'some-one-way-binding',
+                            name: 'someOneWayBinding',
                             type: 'expression',
                             optional: false
                         }
@@ -118,22 +118,22 @@ describe(`configConverter`, function () {
                     priority: 0,
                     attributes: [
                         {
-                            name: 'some-two-way-binding',
+                            name: 'someTwoWayBinding',
                             type: 'expression',
                             optional: false
                         },
                         {
-                            name: 'some-interpolated-binding',
+                            name: 'someInterpolatedBinding',
                             type: 'interpolated',
                             optional: true
                         },
                         {
-                            name: 'some-expression-binding',
+                            name: 'someExpressionBinding',
                             type: 'expression',
                             optional: false
                         },
                         {
-                            name: 'some-one-way-binding',
+                            name: 'someOneWayBinding',
                             type: 'expression',
                             optional: true
                         }
@@ -224,7 +224,7 @@ describe(`configConverter`, function () {
                 const extrasMap : TcatDirectiveExtrasMap = {};
                 extrasMap[DEFAULT_DIRECTIVE_NAME] = {
                     attributes: {
-                        'first-property': {
+                        'firstProperty': {
                             parser: attributeParser
                         }
                     }
@@ -244,7 +244,7 @@ describe(`configConverter`, function () {
                         priority: 0,
                         attributes: [
                             {
-                                name: 'first-property',
+                                name: 'firstProperty',
                                 type: 'expression',
                                 optional: false,
                                 parser: attributeParser
@@ -264,7 +264,7 @@ describe(`configConverter`, function () {
                 ];
                 extrasMap[DEFAULT_DIRECTIVE_NAME] = {
                     attributes: {
-                        'first-property': {
+                        'firstProperty': {
                             locals: attributeLocals
                         }
                     }
@@ -284,7 +284,7 @@ describe(`configConverter`, function () {
                         priority: 0,
                         attributes: [
                             {
-                                name: 'first-property',
+                                name: 'firstProperty',
                                 type: 'expression',
                                 optional: false,
                                 locals: attributeLocals

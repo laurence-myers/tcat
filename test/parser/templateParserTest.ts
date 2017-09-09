@@ -93,12 +93,12 @@ describe(`Template parsers`, function () {
             const html = `<my-element-directive first-arg="scopeProperty1"></my-element-directive>`;
             const directives = [
                 {
-                    name: "my-element-directive", // TODO: normalise names
+                    name: "myElementDirective",
                     canBeElement: true,
                     canBeAttribute: false,
                     attributes: [
                         {
-                            name: "first-arg"
+                            name: "firstArg"
                         }
                     ]
                 }
@@ -122,12 +122,12 @@ describe(`Template parsers`, function () {
             const html = `<my-element-directive first-arg="scopeProperty1"><p>{{ someValue }}</p></my-element-directive>`;
             const directives = [
                 {
-                    name: "my-element-directive",
+                    name: "myElementDirective",
                     canBeElement: true,
                     canBeAttribute: false,
                     attributes: [
                         {
-                            name: "first-arg"
+                            name: "firstArg"
                         }
                     ]
                 }
@@ -145,12 +145,12 @@ describe(`Template parsers`, function () {
             const html = `<div my-attribute-directive first-arg="scopeProperty1"></div>`;
             const directives = [
                 {
-                    name: "my-attribute-directive", // TODO: normalise names
+                    name: "myAttributeDirective",
                     canBeElement: false,
                     canBeAttribute: true,
                     attributes: [
                         {
-                            name: "first-arg"
+                            name: "firstArg"
                         }
                     ]
                 }
@@ -167,12 +167,12 @@ describe(`Template parsers`, function () {
             const html = `<div my-attribute-directive first-arg="updateSomeValue(localValue)"></div>`;
             const directives = [
                 {
-                    name: "my-attribute-directive", // TODO: normalise names
+                    name: "myAttributeDirective",
                     canBeElement: false,
                     canBeAttribute: true,
                     attributes: [
                         {
-                            name: "first-arg",
+                            name: "firstArg",
                             locals: [
                                 {
                                     name: "localValue",
@@ -197,12 +197,12 @@ describe(`Template parsers`, function () {
             const html = `<div my-attribute-directive interpolated-arg="hello {{ name }}"></div>`;
             const directives : DirectiveData[] = [
                 {
-                    name: "my-attribute-directive",
+                    name: "myAttributeDirective",
                     canBeElement: false,
                     canBeAttribute: true,
                     attributes: [
                         {
-                            name: "interpolated-arg",
+                            name: "interpolatedArg",
                             type: "interpolated"
                         }
                     ]
@@ -220,12 +220,12 @@ describe(`Template parsers`, function () {
             const html = `<div my-attribute-directive></div>`;
             const directives : DirectiveData[] = [
                 {
-                    name: "my-attribute-directive",
+                    name: "myAttributeDirective",
                     canBeElement: false,
                     canBeAttribute: true,
                     attributes: [
                         {
-                            name: "first-arg",
+                            name: "firstArg",
                             optional: true
                         }
                     ]
@@ -392,7 +392,7 @@ describe(`Template parsers`, function () {
                 const html = `<my-custom-directive my-first-arg="ctrl.someValue"></my-custom-directive>>`;
                 const directives : DirectiveData[] = [
                     {
-                        name: 'my-custom-directive',
+                        name: 'myCustomDirective',
                         canBeElement: true,
                         canBeAttribute: false,
                         attributes: []
@@ -407,18 +407,18 @@ describe(`Template parsers`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;
                 const directives : DirectiveData[] = [
                     {
-                        name: 'my-custom-directive',
+                        name: 'myCustomDirective',
                         canBeElement: true,
                         canBeAttribute: false,
                         attributes: [
                             {
-                                name: 'my-first-arg'
+                                name: 'myFirstArg'
                             }
                         ]
                     }
                 ];
                 verifyParseFailure(html, directives, [
-                    `"my-custom-directive" is missing the required attribute "my-first-arg".`
+                    `"myCustomDirective" is missing the required attribute "myFirstArg".`
                 ]);
             });
 
@@ -453,19 +453,19 @@ describe(`Template parsers`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;
                 const directives : DirectiveData[] = [
                     {
-                        name: 'my-custom-directive',
+                        name: 'myCustomDirective',
                         canBeElement: true,
                         canBeAttribute: false,
                         attributes: [
                             {
-                                name: 'my-first-arg',
+                                name: 'myFirstArg',
                                 type: 'interpolated'
                             }
                         ]
                     }
                 ];
                 verifyParseFailure(html, directives, [
-                    `"my-custom-directive" is missing the required attribute "my-first-arg".`
+                    `"myCustomDirective" is missing the required attribute "myFirstArg".`
                 ]);
             });
         });

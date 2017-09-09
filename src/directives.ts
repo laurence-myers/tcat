@@ -11,6 +11,7 @@ import {
 } from "./parser/attributes";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
 import {Either} from "monet";
+import camelCase = require('lodash.camelcase');
 
 export function singleAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     map.set(name, {
@@ -27,14 +28,14 @@ export function singleAttribute(map : DirectiveMap, name : string, parser : Attr
 
 export function multiElementAttributeWithScope(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     singleAttribute(map, name, parser, priority);
-    singleAttribute(map, name + '-start', wrapParseScopeStart(parser), priority);
-    singleAttribute(map, name + '-end', parseScopeEnd, priority);
+    singleAttribute(map, name + 'Start', wrapParseScopeStart(parser), priority);
+    singleAttribute(map, name + 'End', parseScopeEnd, priority);
 }
 
 export function multiElementAttributeWithoutScope(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     singleAttribute(map, name, parser, priority);
-    singleAttribute(map, name + '-start', parser, priority);
-    singleAttribute(map, name + '-end', () => Either.Right({ nodes: [] }), priority);
+    singleAttribute(map, name + 'Start', parser, priority);
+    singleAttribute(map, name + 'End', () => Either.Right({ nodes: [] }), priority);
 }
 
 export interface AttributeLocal {
@@ -86,49 +87,49 @@ TODO:
  */
 
 const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
-    'ng-bind',
-    'ng-bind-html',
-    'ng-bind-template',
-    'ng-class',
-    'ng-class-even',
-    'ng-class-odd',
-    'ng-cloak',
-    'ng-maxlength', // do ng-maxlength and ng-minlength allow expressions? hmm.
-    'ng-minlength',
-    'ng-model-options',
-    'ng-pattern',
-    'ng-required',
-    'ng-style',
-    'ng-submit',
-    'ng-switch', // This has ng-switch-where in child nodes
-    'ng-value'
+    'ngBind',
+    'ngBindHtml',
+    'ngBindTemplate',
+    'ngClass',
+    'ngClassEven',
+    'ngClassOdd',
+    'ngCloak',
+    'ngMaxlength', // do ngMaxlength and ngMinlength allow expressions? hmm.
+    'ngMinlength',
+    'ngModelOptions',
+    'ngPattern',
+    'ngRequired',
+    'ngStyle',
+    'ngSubmit',
+    'ngSwitch', // This has ngSwitchWhere in child nodes
+    'ngValue'
 ];
 
 const BUILTIN_SINGLE_ATTRIBUTE_INTERPOLATED_DIRECTIVE_NAMES = [
-    'ng-href',
-    'ng-src',
-    'ng-srcset'
+    'ngHref',
+    'ngSrc',
+    'ngSrcset'
 ];
 
 const BUILTIN_EVENT_DIRECTIVE_NAMES = [
-    'ng-blur',
-    'ng-change',
-    'ng-click',
-    'ng-copy',
-    'ng-cut',
-    'ng-dblclick',
-    'ng-focus',
-    'ng-keydown',
-    'ng-keypress',
-    'ng-keyup',
-    'ng-mousedown',
-    'ng-mouseenter',
-    'ng-mouseleave',
-    'ng-mousemove',
-    'ng-mouseout',
-    'ng-mouseover',
-    'ng-mouseup',
-    'ng-paste',
+    'ngBlur',
+    'ngChange',
+    'ngClick',
+    'ngCopy',
+    'ngCut',
+    'ngDblclick',
+    'ngFocus',
+    'ngKeydown',
+    'ngKeypress',
+    'ngKeyup',
+    'ngMousedown',
+    'ngMouseenter',
+    'ngMouseleave',
+    'ngMousemove',
+    'ngMouseout',
+    'ngMouseover',
+    'ngMouseup',
+    'ngPaste',
 ];
 
 export const builtinDirectiveMap : Map<string, DirectiveData> = new Map<string, DirectiveData>();
@@ -150,22 +151,22 @@ builtinDirectiveMap.set('form', {
     attributes: []
 });
 
-singleAttribute(builtinDirectiveMap, 'ng-controller', parseNgController, 500);
-singleAttribute(builtinDirectiveMap, 'ng-checked', defaultParser, 100);
-singleAttribute(builtinDirectiveMap, 'ng-disabled', defaultParser, 100);
-multiElementAttributeWithoutScope(builtinDirectiveMap, 'ng-hide', defaultParser);
-multiElementAttributeWithScope(builtinDirectiveMap, 'ng-if', parseNgIf, 600);
-singleAttribute(builtinDirectiveMap, 'ng-init', defaultParser, 450);
-singleAttribute(builtinDirectiveMap, 'ng-model', defaultParser, 1);
-singleAttribute(builtinDirectiveMap, 'ng-open', defaultParser, 100);
-singleAttribute(builtinDirectiveMap, 'ng-readonly', defaultParser, 100);
-multiElementAttributeWithScope(builtinDirectiveMap, 'ng-repeat', parseNgRepeat, 1000);
-singleAttribute(builtinDirectiveMap, 'ng-selected', defaultParser, 100);
-multiElementAttributeWithoutScope(builtinDirectiveMap, 'ng-show', defaultParser);
-singleAttribute(builtinDirectiveMap, 'ng-switch', defaultParser, 1200);
+singleAttribute(builtinDirectiveMap, 'ngController', parseNgController, 500);
+singleAttribute(builtinDirectiveMap, 'ngChecked', defaultParser, 100);
+singleAttribute(builtinDirectiveMap, 'ngDisabled', defaultParser, 100);
+multiElementAttributeWithoutScope(builtinDirectiveMap, 'ngHide', defaultParser);
+multiElementAttributeWithScope(builtinDirectiveMap, 'ngIf', parseNgIf, 600);
+singleAttribute(builtinDirectiveMap, 'ngInit', defaultParser, 450);
+singleAttribute(builtinDirectiveMap, 'ngModel', defaultParser, 1);
+singleAttribute(builtinDirectiveMap, 'ngOpen', defaultParser, 100);
+singleAttribute(builtinDirectiveMap, 'ngReadonly', defaultParser, 100);
+multiElementAttributeWithScope(builtinDirectiveMap, 'ngRepeat', parseNgRepeat, 1000);
+singleAttribute(builtinDirectiveMap, 'ngSelected', defaultParser, 100);
+multiElementAttributeWithoutScope(builtinDirectiveMap, 'ngShow', defaultParser);
+singleAttribute(builtinDirectiveMap, 'ngSwitch', defaultParser, 1200);
 
 builtinDirectiveMap.set('script', {
-    name: 'ng-template',
+    name: 'ngTemplate',
     canBeElement: true,
     canBeAttribute: false,
     parser: (el, directives) => parseNgTemplateElement(el, directives), // not sure why this wrapping function is required...
@@ -182,4 +183,8 @@ export function createDirectiveMap(directives : DirectiveData[]) : Map<string, D
         map.set(directive.name, directive);
     }
     return map;
+}
+
+export function normalize(attributeName : string | null | undefined) : string {
+    return attributeName ? camelCase(attributeName.replace(/^(x-|data-)/, '')) : '';
 }

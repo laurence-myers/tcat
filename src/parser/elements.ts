@@ -9,7 +9,7 @@ import {
     UnexpectedStateError
 } from "../core";
 import {HasChildrenAstNode, ParameterNode, ScopedBlockNode, TemplateRootNode} from "../generator/ast";
-import {DirectiveAttribute, DirectiveData, DirectiveMap} from "../directives";
+import {DirectiveAttribute, DirectiveData, DirectiveMap, normalize} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
@@ -144,13 +144,13 @@ export class ElementWalker {
 
     protected identifyDirectives(node : CheerioElement) : DirectiveData[] {
         const directivesToParse = [];
-        const elementDirectiveData : DirectiveData | undefined = this.directives.get(node.tagName);
+        const elementDirectiveData : DirectiveData | undefined = this.directives.get(normalize(node.tagName));
         if (elementDirectiveData !== undefined
             && elementDirectiveData.canBeElement) {
             directivesToParse.push(elementDirectiveData);
         }
         for (const key in node.attribs) {
-            const attributeDirective : DirectiveData | undefined = this.directives.get(key);
+            const attributeDirective : DirectiveData | undefined = this.directives.get(normalize(key));
             if (attributeDirective
                 && attributeDirective.canBeAttribute) {
                 directivesToParse.push(attributeDirective);
@@ -166,7 +166,7 @@ export class ElementWalker {
                     .filter((directive) => directive.canBeElement)
                     .map((directive) => directive.name);
                 if (!this.htmlElementNames.has(node.tagName)
-                    && elementDirectiveNames.indexOf(node.tagName) === -1) {
+                    && elementDirectiveNames.indexOf(normalize(node.tagName)) === -1) {
                     context.errors.push(new HtmlValidationError(`"${ node.tagName }" is an unrecognised HTML tag. Is this a custom directive?`));
                 } else {
                     // Check that all attributes in the HTML are recognised
@@ -181,16 +181,14 @@ export class ElementWalker {
                             );
                         })
                     );
-                    const standardHtmlElementAttributes =
+                    const standardHtmlElementAttributes = new Set(
                         htmlElementAttributes['*']
                             .concat(ariaAttributes)
-                            .concat(htmlElementAttributes[node.tagName] || []);
-                    const recognisedAttributes = new Set<string>([
-                        ...standardHtmlElementAttributes,
-                        ...directiveAttributes
-                    ]);
+                            .concat(htmlElementAttributes[node.tagName] || []));
+                    const directiveAttributesSet = new Set<string>(directiveAttributes);
                     for (const attrib in node.attribs) {
-                        if (!recognisedAttributes.has(attrib)
+                        if (!standardHtmlElementAttributes.has(attrib)
+                            && !directiveAttributesSet.has(normalize(attrib))
                             && !attrib.startsWith('data-')) {
                             context.errors.push(new HtmlValidationError(`"${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
                         }
@@ -203,7 +201,7 @@ export class ElementWalker {
                 for (const attribute of directive.attributes) {
                     if ((attribute.optional === undefined
                             || attribute.optional === false)
-                        && node.attribs[attribute.name] === undefined) {
+                        && this.findAttributeValue(node, attribute.name) === undefined) {
                         context.errors.push(new HtmlValidationError(`"${ directive.name }" is missing the required attribute "${ attribute.name }".`));
                     }
                 }
@@ -224,8 +222,17 @@ export class ElementWalker {
         }
     }
 
+    protected findAttributeValue(node : CheerioElement, directiveAttributeName : string) : string | undefined {
+        for (const attribName in node.attribs) {
+            if (normalize(attribName) == directiveAttributeName) {
+                return node.attribs[attribName];
+            }
+        }
+        return undefined;
+    }
+
     protected parseDirectiveSubAttribute(node : CheerioElement, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
-        const subAttribValue = node.attribs[subAttribEntry.name];
+        const subAttribValue = this.findAttributeValue(node, subAttribEntry.name);
         if (subAttribValue === undefined) {
             return;
         }
@@ -275,7 +282,7 @@ export class ElementWalker {
     protected parseNonDirectiveAttributes(node : CheerioElement, context : ElementParserContext) {
         // Parse attributes: interpolated text
         for (const key in node.attribs) {
-            if (context.parsedAttributes.indexOf(key) === -1) {
+            if (context.parsedAttributes.indexOf(normalize(key)) === -1) {
                 const attribLookup = this.directives.get(key);
                 const value = node.attribs[key];
                 if (attribLookup && attribLookup.canBeAttribute) {

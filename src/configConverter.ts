@@ -1,7 +1,6 @@
 import {AttributeLocal, DirectiveAttribute, DirectiveData} from "./directives";
 import {assertNever, DirectiveDefinitionError} from "./core";
 import {Either} from "monet";
-import kebabCase = require("lodash.kebabcase");
 import {ElementDirectiveParser} from "./parser/elements";
 import {AttributeParser} from "./parser/attributes";
 
@@ -100,7 +99,7 @@ function convertBindingsToAttributes(bindings : BindingsMap) : DirectiveAttribut
     for (const attributeName of Object.keys(bindings)) {
         const directiveBinding = bindings[attributeName];
         attributes.push(<DirectiveAttribute> {
-            name: kebabCase(attributeName),
+            name: attributeName,
             optional: directiveBinding.optional,
             type: convertBindingModeToAttributeType(directiveBinding.mode)
         });
@@ -120,7 +119,8 @@ export interface TcatDirectiveExtras {
 
 export type TcatDirectiveExtrasMap = { [key : string] : TcatDirectiveExtras };
 
-function combineWithExtras(directiveName : string, directiveData : DirectiveData, extraDataMap? : TcatDirectiveExtrasMap) : Either<DirectiveDefinitionError, DirectiveData> {
+function combineWithExtras(directiveData : DirectiveData, extraDataMap? : TcatDirectiveExtrasMap) : Either<DirectiveDefinitionError, DirectiveData> {
+    const directiveName = directiveData.name;
     if (extraDataMap !== undefined && extraDataMap[directiveName] !== undefined) {
         const extras = extraDataMap[directiveName];
         if (extras.parser) {
@@ -186,8 +186,8 @@ export function convertDirectiveConfigToDirectiveData(directiveName : string, di
 
                 }
             }).flatMap(() => {
-                return combineWithExtras(directiveName, <DirectiveData> {
-                    name: kebabCase(directiveName),
+                return combineWithExtras(<DirectiveData> {
+                    name: directiveName,
                     ...restrictions,
                     priority,
                     attributes: convertBindingsToAttributes(combinedBindings)
