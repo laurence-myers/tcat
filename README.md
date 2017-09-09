@@ -196,6 +196,7 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
 ## TODO
 
 - Support for multiple directives per tag/attribute.
+- Support for CSS class and comment directives. 
 - Support for the following directives:
   - All `input` variants, and their attributes
   - ng-include
