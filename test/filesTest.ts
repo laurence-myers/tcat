@@ -15,31 +15,31 @@ describe(`Files`, function () {
 
         function verifyFailure(input : object[]) {
             const result = validateDirectiveDataJson(input);
-            assert.ok(result.isLeft());
+            assert.ok(result.isLeft(), "Directive data validation should fail");
         }
 
         it(`Parses valid directives data`, function () {
             verifySuccess([
                 {
-                    "name": "my-element-directive",
+                    "name": "myElementDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg"
+                            "name": "someArg"
                         },
                         {
-                            "name": "another-arg"
+                            "name": "anotherArg"
                         }
                     ]
                 },
                 {
-                    "name": "my-attribute-directive",
+                    "name": "myAttributeDirective",
                     "canBeElement": false,
                     "canBeAttribute": true,
                     "attributes": [
                         {
-                            "name": "some-attrib-expression",
+                            "name": "someAttribExpression",
                             "locals": [
                                 {
                                     "name": "someLocal",
@@ -55,7 +55,7 @@ describe(`Files`, function () {
         it(`Success with minimal structure`, function () {
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                 },
@@ -65,7 +65,7 @@ describe(`Files`, function () {
         it(`Errors when missing "canBeElement"`, function () {
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeAttribute": false,
                 },
             ]);
@@ -74,7 +74,7 @@ describe(`Files`, function () {
         it(`Errors when missing "canBeAttribute"`, function () {
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                 },
             ]);
@@ -83,7 +83,7 @@ describe(`Files`, function () {
         it(`Errors when attributes are missing "name"`, function () {
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
@@ -98,12 +98,12 @@ describe(`Files`, function () {
         it(`Errors when attribute locals are missing "name"`, function () {
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "locals": [
                                 {
 
@@ -118,12 +118,12 @@ describe(`Files`, function () {
         it(`Errors when attribute locals are missing "type"`, function () {
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "locals": [
                                 {
                                     "name": "someLocal"
@@ -138,12 +138,12 @@ describe(`Files`, function () {
         it(`Passes when attribute locals have "type"`, function () {
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "locals": [
                                 {
                                     "name": "someLocal",
@@ -159,12 +159,12 @@ describe(`Files`, function () {
         it(`Passes when attribute specifies mode`, function () {
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "mode": "expression",
                         }
                     ]
@@ -172,12 +172,12 @@ describe(`Files`, function () {
             ]);
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "mode": "interpolated",
                         }
                     ]
@@ -185,12 +185,12 @@ describe(`Files`, function () {
             ]);
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "mode": "someOtherValue",
                         }
                     ]
@@ -198,12 +198,12 @@ describe(`Files`, function () {
             ]);
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "type": "interpolated", // "mode" used to be called "type"
                         }
                     ]
@@ -214,12 +214,12 @@ describe(`Files`, function () {
         it(`Passes when attribute specifies "optional" as a boolean`, function () {
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "optional": true,
                         }
                     ]
@@ -227,12 +227,12 @@ describe(`Files`, function () {
             ]);
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "optional": false,
                         }
                     ]
@@ -240,12 +240,12 @@ describe(`Files`, function () {
             ]);
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "attributes": [
                         {
-                            "name": "some-arg",
+                            "name": "someArg",
                             "optional": "true",
                         }
                     ]
@@ -256,7 +256,7 @@ describe(`Files`, function () {
         it(`Parses priority`, function () {
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "priority": 0
@@ -264,7 +264,7 @@ describe(`Files`, function () {
             ]);
             verifySuccess([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "priority": 100
@@ -272,10 +272,67 @@ describe(`Files`, function () {
             ]);
             verifyFailure([
                 {
-                    "name": "my-directive",
+                    "name": "myDirective",
                     "canBeElement": true,
                     "canBeAttribute": false,
                     "priority": "0"
+                },
+            ]);
+        });
+
+        it(`Errors when element names are not camelCase`, function () {
+            verifyFailure([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": []
+                },
+            ]);
+            verifySuccess([
+                {
+                    "name": "myDirective",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": []
+                },
+            ]);
+        });
+
+        it(`Passes on single-character element names`, function () {
+            verifySuccess([
+                {
+                    "name": "a",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": []
+                },
+            ]);
+        });
+
+        it(`Errors when attribute names are not camelCase`, function () {
+            verifyFailure([
+                {
+                    "name": "my-directive",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            name: 'first-arg'
+                        }
+                    ]
+                },
+            ]);
+            verifySuccess([
+                {
+                    "name": "myDirective",
+                    "canBeElement": true,
+                    "canBeAttribute": false,
+                    "attributes": [
+                        {
+                            name: 'firstArg'
+                        }
+                    ]
                 },
             ]);
         });

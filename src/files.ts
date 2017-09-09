@@ -18,10 +18,12 @@ import * as path from "path";
 import {AnyConstraints, FunctionConstraints, NestedArray, StringConstraints, Validator} from "tsdv-joi";
 import {ElementDirectiveParser} from "./parser/elements";
 import {AttributeParser} from "./parser/attributes";
+import Pattern = StringConstraints.Pattern;
 
 const { Required, Only, Optional } = AnyConstraints;
 const { Arity } = FunctionConstraints;
 const { StringSchema } = StringConstraints;
+const DIRECTIVE_NAME_PATTERN = /^[a-z][a-zA-Z]*$/;
 
 class DirectiveAttributeLocalSchema implements AttributeLocal {
     @Required()
@@ -34,6 +36,7 @@ class DirectiveAttributeLocalSchema implements AttributeLocal {
 }
 
 class DirectiveAttributeSchema implements DirectiveAttribute {
+    @Pattern(DIRECTIVE_NAME_PATTERN)
     @Required()
     name : string;
 
@@ -54,6 +57,7 @@ class DirectiveAttributeSchema implements DirectiveAttribute {
 }
 
 class DirectiveDataSchema implements DirectiveData {
+    @Pattern(DIRECTIVE_NAME_PATTERN)
     @Required()
     name : string;
 
