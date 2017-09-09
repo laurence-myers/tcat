@@ -21,7 +21,6 @@ describe(`Template parsers`, function () {
         function verifyParseFailure(html : string, directives : DirectiveData[], expectedErrorMessages : string[]) {
             const either = parseHtml(asHtmlContents(html), 'TemplateScope', createDirectiveMap(directives));
             either.bimap((errors) => {
-                assert.equal(errors.length, expectedErrorMessages.length);
                 const messages = errors.map((err) => err.message);
                 assert.deepEqual(messages, expectedErrorMessages);
             }, () => {
@@ -481,6 +480,43 @@ describe(`Template parsers`, function () {
                 ];
                 verifyParseFailure(html, directives, [
                     `"my-custom-directive" is an unrecognised HTML tag. Is this a custom directive?`
+                ]);
+            });
+
+            it(`Fails validation for an element directive with the wrong case in the HTML`, function () {
+                const html = `<myCustomDirective></myCustomDirective>>`;
+                const directives : DirectiveData[] = [
+                    {
+                        name: 'myCustomDirective',
+                        canBeElement: true,
+                        canBeAttribute: false,
+                        attributes: []
+                    }
+                ];
+                verifyParseFailure(html, directives, [
+                    // Ideally, this would say "myCustomDirective", but Cheerio lowercases all tag names, even when
+                    // you tell it not to.
+                    `"mycustomdirective" is an unrecognised HTML tag. Is this a custom directive?`
+                ]);
+            });
+
+            it(`Fails validation for an attribute directive with the wrong case in the HTML`, function () {
+                const html = `<my-custom-directive first-arg="blah"></my-custom-directive>>`;
+                const directives : DirectiveData[] = [
+                    {
+                        name: 'myCustomDirective',
+                        canBeElement: true,
+                        canBeAttribute: false,
+                        attributes: [
+                            {
+                                name: 'first-arg'
+                            }
+                        ]
+                    }
+                ];
+                verifyParseFailure(html, directives, [
+                    `Attribute definition for "first-arg" is kebab-case, but should be camelCase.`,
+                    `"myCustomDirective" is missing the required attribute "first-arg".`
                 ]);
             });
         });

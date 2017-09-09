@@ -190,7 +190,12 @@ export class ElementWalker {
                         if (!standardHtmlElementAttributes.has(attrib)
                             && !directiveAttributesSet.has(normalize(attrib))
                             && !attrib.startsWith('data-')) {
-                            context.errors.push(new HtmlValidationError(`"${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
+                            const miscasedAttributes = directiveAttributes.filter((attr) => attr === attrib);
+                            if (miscasedAttributes.length > 0) {
+                                context.errors.push(new HtmlValidationError(`Attribute definition for "${ miscasedAttributes[0] }" is kebab-case, but should be camelCase.`));
+                            } else {
+                                context.errors.push(new HtmlValidationError(`"${ node.tagName }" has an unrecognised attribute "${ attrib }". Is this a directive scope binding?`));
+                            }
                         }
                     }
                 }
