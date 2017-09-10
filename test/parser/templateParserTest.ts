@@ -378,6 +378,30 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`parses ngPluralize directives`, function () {
+            const html = `
+<ng-pluralize count="personCount" when="{'0': 'Nobody is viewing.',
+   '1': '{{person1}} is viewing.',
+   '2': '{{person1}} and {{person2}} are viewing.',
+   'one': '{{person1}}, {{person2}} and one other person are viewing.',
+   'other': '{{person1}}, {{person2}} and {} other people are viewing.'}"></ng-pluralize>
+<div count="anotherCount" when="{}" offset="2"></div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`personCount`),
+                    assign(`person1`),
+                    assign(`person1`),
+                    assign(`person2`),
+                    assign(`person1`),
+                    assign(`person2`),
+                    assign(`person1`),
+                    assign(`person2`),
+                    assign(`anotherCount`),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         describe(`HTML validation`, function () {
             it(`Fails validation for an unrecognised HTML tag`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;

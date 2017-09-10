@@ -79,8 +79,6 @@ TODO:
  input[week]
  ngInclude (priority 400)
  ngNonBindable - don't parse children (priority 1000)
- ngPluralize
- select
  textarea
 
  Expose $event on all event directives
@@ -159,6 +157,32 @@ multiElementAttributeWithScope(builtinDirectiveMap, 'ngIf', parseNgIf, 600);
 singleAttribute(builtinDirectiveMap, 'ngInit', defaultParser, 450);
 singleAttribute(builtinDirectiveMap, 'ngModel', defaultParser, 1);
 singleAttribute(builtinDirectiveMap, 'ngOpen', defaultParser, 100);
+builtinDirectiveMap.set('ngPluralize', {
+    name: 'ngPluralize',
+    canBeElement: true,
+    canBeAttribute: false,
+    attributes: []
+});
+builtinDirectiveMap.set('when', {
+    name: 'ngPluralize',
+    canBeElement: false,
+    canBeAttribute: true,
+    attributes: [
+        {
+            name: 'count',
+            mode: 'expression'
+        },
+        {
+            name: 'when',
+            mode: 'interpolated'
+        },
+        {
+            name: 'offset',
+            mode: 'interpolated',
+            optional: true
+        }
+    ]
+});
 singleAttribute(builtinDirectiveMap, 'ngReadonly', defaultParser, 100);
 multiElementAttributeWithScope(builtinDirectiveMap, 'ngRepeat', parseNgRepeat, 1000);
 singleAttribute(builtinDirectiveMap, 'ngSelected', defaultParser, 100);

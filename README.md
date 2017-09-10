@@ -201,8 +201,6 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
   - All `input` variants, and their attributes
   - ng-include
   - ng-non-bindable
-  - ng-pluralize
-  - select
   - textarea
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
 - Automatically allow built-in AngularJS filters, like `date`.
