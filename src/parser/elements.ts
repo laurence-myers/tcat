@@ -189,7 +189,7 @@ export class ElementWalker {
                     for (const attrib in node.attribs) {
                         if (!standardHtmlElementAttributes.has(attrib)
                             && !directiveAttributesSet.has(normalize(attrib))
-                            && !attrib.startsWith('data-')) {
+                            && !/^(data|ng-attr)-/.test(attrib)) {
                             const miscasedAttributes = directiveAttributes.filter((attr) => attr === attrib);
                             if (miscasedAttributes.length > 0) {
                                 context.errors.push(new HtmlValidationError(`Attribute definition for "${ miscasedAttributes[0] }" is kebab-case, but should be camelCase.`));

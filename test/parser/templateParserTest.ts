@@ -448,6 +448,25 @@ describe(`Template parsers`, function () {
                 ]));
             });
 
+            it(`Passes validation for attributes prefixed with "ng-data-"`, function () {
+                const html = `<div data-user-id="123"></div>`;
+                const directives : DirectiveData[] = [];
+                verifyHtml(html, directives, templateRoot([
+                    scopedBlock([], [
+                    ], `TemplateScope`)
+                ]));
+            });
+
+            it(`Passes validation for attributes prefixed with "ng-attr-"`, function () {
+                const html = `<svg ng-attr-view_box="{{ viewBox }}"></svg>`;
+                const directives : DirectiveData[] = [];
+                verifyHtml(html, directives, templateRoot([
+                    scopedBlock([], [
+                        assign(`viewBox`)
+                    ], `TemplateScope`)
+                ]));
+            });
+
             it(`Fails validation for a missing required interpolated directive attribute`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;
                 const directives : DirectiveData[] = [
