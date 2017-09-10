@@ -196,6 +196,10 @@ export class ElementWalker {
                         if (!standardHtmlElementAttributes.has(attrib)
                             && !directiveAttributesSet.has(normalize(attrib))
                             && !/^(data|ng-attr)-/.test(attrib)) {
+                            // If there's an directive directive whose name matches the HTML attribute, but doesn't match
+                            //  the normalised HTML attribute name, then the directive attribute name is not normalised.
+                            // e.g. given an directive name of "my-directive", HTML attribute "my-directive" will be
+                            //  normalised to "myDirective", which doesn't match "my-directive".
                             const miscasedAttributes = directiveAttributes.filter((attr) => attr === attrib);
                             if (miscasedAttributes.length > 0) {
                                 context.errors.push(new HtmlValidationError(`Attribute definition for "${ miscasedAttributes[0] }" is kebab-case, but should be camelCase.`));
