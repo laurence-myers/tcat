@@ -164,6 +164,7 @@ builtinDirectiveMap.elements.set('ngInclude', {
     name: 'ngInclude',
     canBeElement: true,
     canBeAttribute: false,
+    priority: 400,
     attributes: [
         {
             name: 'src'
@@ -182,6 +183,7 @@ builtinDirectiveMap.attributes.set('ngInclude', {
     name: 'ngInclude',
     canBeElement: false,
     canBeAttribute: true,
+    priority: 400,
     attributes: [
         {
             name: 'ngInclude'
