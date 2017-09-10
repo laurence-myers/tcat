@@ -199,7 +199,6 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
 - Support for CSS class and comment directives. 
 - Support for the following directives:
   - All `input` variants, and their attributes
-  - ng-include
   - ng-non-bindable
   - textarea
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 

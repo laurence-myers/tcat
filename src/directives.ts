@@ -14,7 +14,7 @@ import {Either} from "monet";
 import camelCase = require('lodash.camelcase');
 
 export function singleAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
-    map.set(name, {
+    map.attributes.set(name, {
         name,
         canBeElement: false,
         canBeAttribute: true,
@@ -60,7 +60,10 @@ export interface DirectiveData {
     priority? : number;
 }
 
-export type DirectiveMap = Map<string, DirectiveData>;
+export interface DirectiveMap {
+    elements : Map<string, DirectiveData>;
+    attributes : Map<string, DirectiveData>;
+}
 
 /*
 TODO:
@@ -130,7 +133,10 @@ const BUILTIN_EVENT_DIRECTIVE_NAMES = [
     'ngPaste',
 ];
 
-export const builtinDirectiveMap : Map<string, DirectiveData> = new Map<string, DirectiveData>();
+export const builtinDirectiveMap : DirectiveMap = {
+    elements: new Map<string, DirectiveData>(),
+    attributes: new Map<string, DirectiveData>()
+};
 for (const name of BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES) {
     singleAttribute(builtinDirectiveMap, name);
 }
@@ -141,7 +147,7 @@ for (const name of BUILTIN_EVENT_DIRECTIVE_NAMES) {
     singleAttribute(builtinDirectiveMap, name, parseEventDirective);
 }
 
-builtinDirectiveMap.set('form', {
+builtinDirectiveMap.elements.set('form', {
     name: 'form',
     canBeElement: true,
     canBeAttribute: false,
@@ -154,16 +160,52 @@ singleAttribute(builtinDirectiveMap, 'ngChecked', defaultParser, 100);
 singleAttribute(builtinDirectiveMap, 'ngDisabled', defaultParser, 100);
 multiElementAttributeWithoutScope(builtinDirectiveMap, 'ngHide', defaultParser);
 multiElementAttributeWithScope(builtinDirectiveMap, 'ngIf', parseNgIf, 600);
+builtinDirectiveMap.elements.set('ngInclude', {
+    name: 'ngInclude',
+    canBeElement: true,
+    canBeAttribute: false,
+    attributes: [
+        {
+            name: 'src'
+        },
+        {
+            name: 'onload',
+            optional: true
+        },
+        {
+            name: 'autoscroll',
+            optional: true
+        }
+    ]
+});
+builtinDirectiveMap.attributes.set('ngInclude', {
+    name: 'ngInclude',
+    canBeElement: false,
+    canBeAttribute: true,
+    attributes: [
+        {
+            name: 'ngInclude'
+        },
+        {
+            name: 'onload',
+            optional: true
+        },
+        {
+            name: 'autoscroll',
+            optional: true
+        }
+    ]
+});
 singleAttribute(builtinDirectiveMap, 'ngInit', defaultParser, 450);
 singleAttribute(builtinDirectiveMap, 'ngModel', defaultParser, 1);
 singleAttribute(builtinDirectiveMap, 'ngOpen', defaultParser, 100);
-builtinDirectiveMap.set('ngPluralize', {
+builtinDirectiveMap.elements.set('ngPluralize', {
     name: 'ngPluralize',
     canBeElement: true,
     canBeAttribute: false,
     attributes: []
 });
-builtinDirectiveMap.set('when', {
+builtinDirectiveMap.attributes.set('when', {
     name: 'ngPluralize',
     canBeElement: false,
     canBeAttribute: true,
@@ -189,7 +231,7 @@ singleAttribute(builtinDirectiveMap, 'ngSelected', defaultParser, 100);
 multiElementAttributeWithoutScope(builtinDirectiveMap, 'ngShow', defaultParser);
 singleAttribute(builtinDirectiveMap, 'ngSwitch', defaultParser, 1200);
 
-builtinDirectiveMap.set('script', {
+builtinDirectiveMap.elements.set('script', {
     name: 'ngTemplate',
     canBeElement: true,
     canBeAttribute: false,
@@ -198,15 +240,27 @@ builtinDirectiveMap.set('script', {
 });
 
 // TODO: support multiple directives per tag/element name. (1:M)
-export function createDirectiveMap(directives : DirectiveData[]) : Map<string, DirectiveData> {
-    const map = new Map<string, DirectiveData>();
-    for (const [key, value] of builtinDirectiveMap.entries()) {
-        map.set(key, value);
+export function createDirectiveMap(directives : DirectiveData[]) : DirectiveMap {
+    const elementMap = new Map<string, DirectiveData>();
+    const attributeMap = new Map<string, DirectiveData>();
+    for (const [key, value] of builtinDirectiveMap.elements.entries()) {
+        elementMap.set(key, value);
+    }
+    for (const [key, value] of builtinDirectiveMap.attributes.entries()) {
+        attributeMap.set(key, value);
     }
     for (const directive of directives) {
-        map.set(directive.name, directive);
+        if (directive.canBeElement) {
+            elementMap.set(directive.name, directive);
+        }
+        if (directive.canBeAttribute) {
+            attributeMap.set(directive.name, directive);
+        }
     }
-    return map;
+    return {
+        elements: elementMap,
+        attributes: attributeMap
+    };
 }
 
 export function normalize(attributeName : string | null | undefined) : string {

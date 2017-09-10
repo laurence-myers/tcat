@@ -402,6 +402,20 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`parses ngInclude directives`, function () {
+            const html = `<ng-include src="template.url"></ng-include>
+<div ng-include="anotherTemplate.url" onload="doSomething()" autoscroll="shouldAutoscroll"></div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`template.url`),
+                    assign(`anotherTemplate.url`),
+                    assign(`doSomething()`),
+                    assign(`shouldAutoscroll`),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         describe(`HTML validation`, function () {
             it(`Fails validation for an unrecognised HTML tag`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;

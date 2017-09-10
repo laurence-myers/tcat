@@ -1,9 +1,12 @@
 import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "./attributes";
 import {Either} from "monet";
 import {
-    asHtmlContents, assertNever,
+    asHtmlContents,
+    assertNever,
     AttributeParserError,
-    ElementDirectiveParserError, flatten, HtmlValidationError,
+    ElementDirectiveParserError,
+    flatten,
+    HtmlValidationError,
     last,
     TcatError,
     UnexpectedStateError
@@ -13,12 +16,13 @@ import {DirectiveAttribute, DirectiveData, DirectiveMap, normalize} from "../dir
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
+
 const htmlTagNames : string[] = require("html-tag-names");
 const htmlElementAttributes : { [key : string] : string[] } = require("html-element-attributes");
 const ariaAttributes : string[] = require("aria-attributes");
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>;
-export type ElementDirectiveParser = (element : CheerioElement, directives : Map<string, DirectiveData>) => ElementDirectiveParserResult;
+export type ElementDirectiveParser = (element : CheerioElement, directives : DirectiveMap) => ElementDirectiveParserResult;
 
 interface TextHtmlNode extends CheerioElement {
     type : 'text';
@@ -66,6 +70,10 @@ export interface ElementParserContext {
 
 function convertToParameter(entry : { name : string; type : string }) : ParameterNode {
     return parameter(entry.name, entry.type);
+}
+
+function compareDirectivesByPriority(a : DirectiveData, b : DirectiveData) : number {
+    return (b.priority || 0) - (a.priority || 0);
 }
 
 export function parseElement(element : CheerioElement, directives : DirectiveMap, scopeInterfaceName : string) {
@@ -143,20 +151,18 @@ export class ElementWalker {
     }
 
     protected identifyDirectives(node : CheerioElement) : DirectiveData[] {
-        const directivesToParse = [];
-        const elementDirectiveData : DirectiveData | undefined = this.directives.get(normalize(node.tagName));
-        if (elementDirectiveData !== undefined
-            && elementDirectiveData.canBeElement) {
-            directivesToParse.push(elementDirectiveData);
+        const identifiedDirectives = [];
+        const elementDirectiveData : DirectiveData | undefined = this.directives.elements.get(normalize(node.tagName));
+        if (elementDirectiveData !== undefined) {
+            identifiedDirectives.push(elementDirectiveData);
         }
         for (const key in node.attribs) {
-            const attributeDirective : DirectiveData | undefined = this.directives.get(normalize(key));
-            if (attributeDirective
-                && attributeDirective.canBeAttribute) {
-                directivesToParse.push(attributeDirective);
+            const attributeDirective : DirectiveData | undefined = this.directives.attributes.get(normalize(key));
+            if (attributeDirective !== undefined) {
+                identifiedDirectives.push(attributeDirective);
             }
         }
-        return directivesToParse.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+        return identifiedDirectives.sort(compareDirectivesByPriority);
     }
 
     protected validateElement(node : CheerioElement, context : ElementParserContext, directives : DirectiveData[]) : void {
@@ -288,7 +294,7 @@ export class ElementWalker {
         // Parse attributes: interpolated text
         for (const key in node.attribs) {
             if (context.parsedAttributes.indexOf(normalize(key)) === -1) {
-                const attribLookup = this.directives.get(key);
+                const attribLookup = this.directives.attributes.get(normalize(key));
                 const value = node.attribs[key];
                 if (attribLookup && attribLookup.canBeAttribute) {
                     continue;
@@ -373,7 +379,7 @@ function isNgTemplate(element : CheerioElement) : boolean {
     return element.attribs.type === 'text/ng-template';
 }
 
-export function parseNgTemplateElement(element : CheerioElement, directives : Map<string, DirectiveData>) : ElementDirectiveParserResult {
+export function parseNgTemplateElement(element : CheerioElement, directives : DirectiveMap) : ElementDirectiveParserResult {
     if (!isScriptNode(element)) {
         return Either.Left([new ElementDirectiveParserError(`ng-template parser expected a "script" element, but got "${ element.type }" instead.`)]);
     } else if (element.attribs.type !== 'text/ng-template') {
