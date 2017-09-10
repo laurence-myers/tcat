@@ -385,7 +385,7 @@ describe(`Template parsers`, function () {
    '2': '{{person1}} and {{person2}} are viewing.',
    'one': '{{person1}}, {{person2}} and one other person are viewing.',
    'other': '{{person1}}, {{person2}} and {} other people are viewing.'}"></ng-pluralize>
-<div count="anotherCount" when="{}" offset="2"></div>`;
+<div ng-pluralize count="anotherCount" when="{}" offset="2"></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`personCount`),

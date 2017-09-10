@@ -199,15 +199,9 @@ builtinDirectiveMap.attributes.set('ngInclude', {
 singleAttribute(builtinDirectiveMap, 'ngInit', defaultParser, 450);
 singleAttribute(builtinDirectiveMap, 'ngModel', defaultParser, 1);
 singleAttribute(builtinDirectiveMap, 'ngOpen', defaultParser, 100);
-builtinDirectiveMap.elements.set('ngPluralize', {
+const ngPluralizeConfig : DirectiveData = {
     name: 'ngPluralize',
     canBeElement: true,
-    canBeAttribute: false,
-    attributes: []
-});
-builtinDirectiveMap.attributes.set('when', {
-    name: 'ngPluralize',
-    canBeElement: false,
     canBeAttribute: true,
     attributes: [
         {
@@ -224,7 +218,9 @@ builtinDirectiveMap.attributes.set('when', {
             optional: true
         }
     ]
-});
+};
+builtinDirectiveMap.elements.set('ngPluralize', ngPluralizeConfig);
+builtinDirectiveMap.attributes.set('ngPluralize', ngPluralizeConfig);
 singleAttribute(builtinDirectiveMap, 'ngReadonly', defaultParser, 100);
 multiElementAttributeWithScope(builtinDirectiveMap, 'ngRepeat', parseNgRepeat, 1000);
 singleAttribute(builtinDirectiveMap, 'ngSelected', defaultParser, 100);
