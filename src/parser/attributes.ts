@@ -19,6 +19,7 @@ export interface SuccessfulParserResult {
     nodes : GeneratorAstNode[];
     scopeData? : ScopeData;
     isScopeEnd? : boolean;
+    terminate? : boolean;
 }
 export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 

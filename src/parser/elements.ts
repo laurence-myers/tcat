@@ -66,6 +66,7 @@ export interface ElementParserContext {
     readonly parsedAttributes : string[];
     scopeData : ScopeData | undefined;
     isScopeEnd : boolean;
+    terminated : boolean;
 }
 
 function convertToParameter(entry : { name : string; type : string }) : ParameterNode {
@@ -105,6 +106,7 @@ export class ElementWalker {
         context.isScopeEnd = result.isScopeEnd !== undefined
             ? result.isScopeEnd
             : result.scopeData !== undefined || context.scopeData !== undefined; // by default, end scopes opened on this element.
+        context.terminated = context.terminated || result.terminate === true;
         if (scopeData) {
             context.scopeData = result.scopeData;
             if (scopeData.attachToTemplateRoot) {
@@ -329,6 +331,9 @@ export class ElementWalker {
             } else {
                 this.parseAttributeDirective(node, context, directive);
             }
+            if (context.terminated) {
+                return;
+            }
         }
     }
 
@@ -337,22 +342,25 @@ export class ElementWalker {
             errors: [],
             parsedAttributes: [],
             scopeData: undefined,
-            isScopeEnd: false
+            isScopeEnd: false,
+            terminated: false
         };
 
         const directives = this.identifyDirectives(node);
         this.validateElement(node, context, directives);
         this.parseDirectives(node, context, directives);
-        this.parseNonDirectiveAttributes(node, context);
-        this.parseInterpolatedText(node, context);
-        // If this is an SVG element, skip validation for child elements.
-        const shouldChildrenSkipHtmlValidation = isSvgNode(node);
-        if (shouldChildrenSkipHtmlValidation) {
-            this.shouldSkipHtmlValidation = true;
-        }
-        this.parseChildren(node, context);
-        if (shouldChildrenSkipHtmlValidation) {
-            this.shouldSkipHtmlValidation = false;
+        if (!context.terminated) {
+            this.parseNonDirectiveAttributes(node, context);
+            this.parseInterpolatedText(node, context);
+            // If this is an SVG element, skip validation for child elements.
+            const shouldChildrenSkipHtmlValidation = isSvgNode(node);
+            if (shouldChildrenSkipHtmlValidation) {
+                this.shouldSkipHtmlValidation = true;
+            }
+            this.parseChildren(node, context);
+            if (shouldChildrenSkipHtmlValidation) {
+                this.shouldSkipHtmlValidation = false;
+            }
         }
 
         if (context.isScopeEnd) {

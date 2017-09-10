@@ -416,6 +416,17 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`parses ngNonBindable directives`, function () {
+            const html = `<div ng-non-bindable>{{ someValue + anotherValue }}</div>
+<div ng-non-bindable><div ng-include="someTemplate.url"></div></div>
+<div ng-class="{ 'someClass': showClass }" ng-non-bindable></div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         describe(`HTML validation`, function () {
             it(`Fails validation for an unrecognised HTML tag`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;

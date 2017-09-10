@@ -7,6 +7,7 @@ import {
     parseNgIf,
     parseNgRepeat,
     parseScopeEnd,
+    SuccessfulParserResult,
     wrapParseScopeStart
 } from "./parser/attributes";
 import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
@@ -80,8 +81,6 @@ TODO:
  input[time]
  input[url]
  input[week]
- ngInclude (priority 400)
- ngNonBindable - don't parse children (priority 1000)
  textarea
 
  Expose $event on all event directives
@@ -200,6 +199,7 @@ builtinDirectiveMap.attributes.set('ngInclude', {
 });
 singleAttribute(builtinDirectiveMap, 'ngInit', defaultParser, 450);
 singleAttribute(builtinDirectiveMap, 'ngModel', defaultParser, 1);
+singleAttribute(builtinDirectiveMap, 'ngNonBindable', () => Either.Right(<SuccessfulParserResult> { nodes: [], terminate: true }), 1000);
 singleAttribute(builtinDirectiveMap, 'ngOpen', defaultParser, 100);
 const ngPluralizeConfig : DirectiveData = {
     name: 'ngPluralize',
