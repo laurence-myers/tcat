@@ -1,3 +1,4 @@
+export * from "./filters";
 import {
     convertDirectiveConfigToDirectiveData as _convertDirectiveConfigToDirectiveData,
     IDirective, TcatDirectiveExtrasMap
