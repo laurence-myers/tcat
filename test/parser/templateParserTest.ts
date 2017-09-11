@@ -637,7 +637,137 @@ describe(`Template parsers`, function () {
                 });
             });
 
+            describe(`attribute exclusivity`, function () {
+                it(`does not allow ng-true-value or ng-false-value on text inputs`, function () {
+                    const html = `
+<input 
+    type="text"
+    ng-true-value="someTrueValue"
+    ng-false-value="someFalseValue"
+>`;
+                    verifyParseFailure(html, [], [
+                        `input with type "text" has attribute "ng-true-value", but this is only allowed on inputs with these types: "checkbox"`,
+                        `input with type "text" has attribute "ng-false-value", but this is only allowed on inputs with these types: "checkbox"`
+                    ]);
+                });
+            });
 
+            describe(`checkbox`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="checkbox"
+    ng-true-value="someTrueValue"
+    ng-false-value="someFalseValue"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someTrueValue`),
+                            assign(`someFalseValue`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`date`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="date"
+    min="{{ interpMin }}"
+    max="{{ interpMax }}"
+    ng-min="exprMin"
+    ng-max="exprMax"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprMin`),
+                            assign(`exprMax`),
+                            assign(`interpMin`),
+                            assign(`interpMax`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`datetime-local`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="datetime-local"
+    min="{{ interpMin }}"
+    max="{{ interpMax }}"
+    ng-min="exprMin"
+    ng-max="exprMax"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprMin`),
+                            assign(`exprMax`),
+                            assign(`interpMin`),
+                            assign(`interpMax`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`email`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="email"
+    name="myEmail"
+    required="{{ interpRequired }}"
+    ng-required="exprRequired"
+    ng-minlength="exprMinLength"
+    ng-maxlength="exprMaxLength"
+    pattern="{{ interpPattern }}"
+    ng-pattern="exprPattern"
+    ng-change="doSomething()"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprRequired`),
+                            assign(`exprMinLength`),
+                            assign(`exprMaxLength`),
+                            assign(`exprPattern`),
+                            scopedBlock([
+                                parameter(`$event`, `IAngularEvent`)
+                            ], [
+                                assign(`doSomething()`)
+                            ]),
+                            assign(`interpRequired`),
+                            assign(`interpPattern`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`month`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="month"
+    min="{{ interpMin }}"
+    max="{{ interpMax }}"
+    ng-min="exprMin"
+    ng-max="exprMax"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprMin`),
+                            assign(`exprMax`),
+                            assign(`interpMin`),
+                            assign(`interpMax`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
         });
     });
 });

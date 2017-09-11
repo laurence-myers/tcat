@@ -445,6 +445,29 @@ export function parseFormElement(element : CheerioElement, _directives : Directi
     }
 }
 
-export function parseInputElement(_element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
-    return Either.Right({ nodes: [] });
+const inputAttributesMap = new Map<string, string[]>([
+    ['ng-true-value', ['checkbox']],
+    ['ng-false-value', ['checkbox']],
+    ['ng-min', ['date', 'datetime-local', 'month']],
+    ['ng-max', ['date', 'datetime-local', 'month']],
+]);
+
+export function parseInputElement(element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
+    const errors : ElementDirectiveParserError[] = [];
+    const inputType = element.attribs['type'] || 'text';
+    for (const attrib in element.attribs) {
+        const allowedElements = inputAttributesMap.get(attrib);
+        if (allowedElements !== undefined) {
+            if (allowedElements.indexOf(inputType) === -1) {
+                const msg = `input with type "${ inputType }" has attribute "${ attrib }", but this is only allowed on inputs with these types: ${ allowedElements.map(ae => `"${ ae }"`).join(',') }`;
+                const err = new ElementDirectiveParserError(msg);
+                errors.push(err);
+            }
+        }
+    }
+    if (errors.length > 0) {
+        return Either.Left(errors);
+    } else {
+        return Either.Right({ nodes: [] });
+    }
 }

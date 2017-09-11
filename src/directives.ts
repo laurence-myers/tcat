@@ -162,6 +162,24 @@ builtinDirectiveMap.elements.set('input', {
         {
             name: 'ngTrim',
             optional: true
+        },
+        // input is a bit funny. We mark all possible attributes as optional, and the element parser will determine if
+        // the attribute is valid for the type of input.
+        {
+            name: 'ngTrueValue',
+            optional: true
+        },
+        {
+            name: 'ngFalseValue',
+            optional: true
+        },
+        {
+            name: 'ngMin',
+            optional: true
+        },
+        {
+            name: 'ngMax',
+            optional: true
         }
     ]
 });
