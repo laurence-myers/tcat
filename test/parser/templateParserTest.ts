@@ -768,6 +768,235 @@ describe(`Template parsers`, function () {
                     verifyHtml(html, [], expected);
                 });
             });
+
+            describe(`number`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="number"
+    min="{{ interpMin }}"
+    ng-min="exprMin"
+    max="{{ interpMax }}"
+    ng-max="exprMax"
+    step="{{ interpStep }}"
+    ng-step="exprStep"
+    required="{{ interpRequired }}"
+    ng-required="exprRequired"
+    pattern="{{ interpPattern }}"
+    ng-pattern="exprPattern"
+    ng-minlength="exprMinlength"
+    ng-maxlength="exprMaxlength"
+    ng-change="doSomething()"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprMin`),
+                            assign(`exprMax`),
+                            assign(`exprStep`),
+                            assign(`exprRequired`),
+                            assign(`exprPattern`),
+                            assign(`exprMinlength`),
+                            assign(`exprMaxlength`),
+                            scopedBlock([
+                                parameter(`$event`, `IAngularEvent`)
+                            ], [
+                                assign(`doSomething()`)
+                            ]),
+                            assign(`interpMin`),
+                            assign(`interpMax`),
+                            assign(`interpStep`),
+                            assign(`interpRequired`),
+                            assign(`interpPattern`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`radio`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="checkbox"
+    ng-value="someValue"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someValue`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`range`, function () {
+                it(`parses range attributes`, function () {
+                    const html = `
+<input 
+    type="range"
+    min="{{ interpMin }}"
+    max="{{ interpMax }}"
+    step="{{ interpStep }}"
+    ng-checked="exprChecked"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprChecked`),
+                            assign(`interpMin`),
+                            assign(`interpMax`),
+                            assign(`interpStep`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`select`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `<select 
+    ng-model="someProperty" 
+    name="myInput" 
+    multiple="{{ interpMultiple }}"
+    required="{{ interpRequired }}" 
+    ng-required="exprRequired"
+    ng-options="opt.label for opt in options"
+    ng-attr-size="{{ interpSize }}"></select>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someProperty`),
+                            assign(`exprRequired`),
+                            arrayIteration(`opt`, `options`, [
+                                assign(`opt.label`)
+                            ]),
+                            // Interpolated expressions are parsed after AngularJS expressions
+                            assign(`interpMultiple`),
+                            assign(`interpRequired`),
+                            assign(`interpSize`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`text`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `<input 
+    type="text"
+    ng-model="someProperty" 
+    name="myInput" 
+    required="badRequired" 
+    ng-required="goodRequired" 
+    minlength="{{ interpMinLength }}"
+    ng-minlength="exprMinLength"
+    maxlength="{{ interpMaxLength }}"
+    ng-maxlength="exprMaxLength"
+    pattern="{{ interpPattern }}"
+    ng-pattern="exprPattern"
+    ng-change="doSomething()"
+    ng-trim="shouldTrim">`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someProperty`),
+                            assign(`shouldTrim`), // happens to be first, due to use of an element parser
+                            assign(`goodRequired`),
+                            assign(`exprMinLength`),
+                            assign(`exprMaxLength`),
+                            assign(`exprPattern`),
+                            scopedBlock([parameter(`$event`, `IAngularEvent`)], [
+                                assign(`doSomething()`)
+                            ]),
+                            // Interpolated expressions are parsed after AngularJS expressions
+                            assign(`interpMinLength`),
+                            assign(`interpMaxLength`),
+                            assign(`interpPattern`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`textarea`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `<textarea 
+    ng-model="someProperty" 
+    name="myInput" 
+    required="badRequired" 
+    ng-required="goodRequired" 
+    ng-minlength="exprMinLength"
+    ng-maxlength="exprMaxLength"
+    ng-pattern="exprPattern"
+    ng-change="doSomething()"
+    ng-trim="shouldTrim"></textarea>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someProperty`),
+                            assign(`shouldTrim`), // happens to be first, due to use of an element parser
+                            assign(`goodRequired`),
+                            assign(`exprMinLength`),
+                            assign(`exprMaxLength`),
+                            assign(`exprPattern`),
+                            scopedBlock([parameter(`$event`, `IAngularEvent`)], [
+                                assign(`doSomething()`)
+                            ]),
+                            // Interpolated expressions are parsed after AngularJS expressions
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`url`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `<input 
+    type="text"
+    ng-model="someUrl"
+    name="myInput" 
+    required="badRequired" 
+    ng-required="goodRequired" 
+    ng-minlength="exprMinLength"
+    ng-maxlength="exprMaxLength"
+    pattern="{{ interpPattern }}"
+    ng-pattern="exprPattern"
+    ng-change="doSomething()">`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someUrl`),
+                            assign(`goodRequired`),
+                            assign(`exprMinLength`),
+                            assign(`exprMaxLength`),
+                            assign(`exprPattern`),
+                            scopedBlock([parameter(`$event`, `IAngularEvent`)], [
+                                assign(`doSomething()`)
+                            ]),
+                            // Interpolated expressions are parsed after AngularJS expressions
+                            assign(`interpPattern`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+            describe(`week`, function () {
+                it(`parses optional attributes`, function () {
+                    const html = `
+<input 
+    type="week"
+    min="{{ interpMin }}"
+    max="{{ interpMax }}"
+    ng-min="exprMin"
+    ng-max="exprMax"
+>`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`exprMin`),
+                            assign(`exprMax`),
+                            assign(`interpMin`),
+                            assign(`interpMax`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
         });
     });
 });

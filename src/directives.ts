@@ -4,7 +4,7 @@ import {
     parseEventDirective,
     parseInterpolatedText,
     parseNgController,
-    parseNgIf,
+    parseNgIf, parseNgOptions,
     parseNgRepeat,
     parseScopeEnd,
     SuccessfulParserResult,
@@ -66,26 +66,6 @@ export interface DirectiveMap {
     attributes : Map<string, DirectiveData>;
 }
 
-/*
-TODO:
- input - name (property of the form)
- input[checkbox] - ng-model, ng-true-value, ng-false-value
- input[date] - min (interp), max (interp), ng-min, ng-max, ng-required
- input[datetime-local]
- input[email]
- input[month]
- input[number]
- input[radio]
- input[range]
- input[text]
- input[time]
- input[url]
- input[week]
- textarea
-
- Expose $event on all event directives
- */
-
 const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ngBind',
     'ngBindHtml',
@@ -94,7 +74,7 @@ const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ngClassEven',
     'ngClassOdd',
     'ngCloak',
-    'ngMaxlength', // do ngMaxlength and ngMinlength allow expressions? hmm.
+    'ngMaxlength',
     'ngMinlength',
     'ngModelOptions',
     'ngPattern',
@@ -180,6 +160,10 @@ builtinDirectiveMap.elements.set('input', {
         {
             name: 'ngMax',
             optional: true
+        },
+        {
+            name: 'ngStep',
+            optional: true
         }
     ]
 });
@@ -230,6 +214,7 @@ singleAttribute(builtinDirectiveMap, 'ngInit', defaultParser, 450);
 singleAttribute(builtinDirectiveMap, 'ngModel', defaultParser, 1);
 singleAttribute(builtinDirectiveMap, 'ngNonBindable', () => Either.Right(<SuccessfulParserResult> { nodes: [], terminate: true }), 1000);
 singleAttribute(builtinDirectiveMap, 'ngOpen', defaultParser, 100);
+singleAttribute(builtinDirectiveMap, `ngOptions`, parseNgOptions);
 const ngPluralizeConfig : DirectiveData = {
     name: 'ngPluralize',
     canBeElement: true,
@@ -257,13 +242,31 @@ multiElementAttributeWithScope(builtinDirectiveMap, 'ngRepeat', parseNgRepeat, 1
 singleAttribute(builtinDirectiveMap, 'ngSelected', defaultParser, 100);
 multiElementAttributeWithoutScope(builtinDirectiveMap, 'ngShow', defaultParser);
 singleAttribute(builtinDirectiveMap, 'ngSwitch', defaultParser, 1200);
-
 builtinDirectiveMap.elements.set('script', {
     name: 'ngTemplate',
     canBeElement: true,
     canBeAttribute: false,
     parser: (el, directives) => parseNgTemplateElement(el, directives), // not sure why this wrapping function is required...
     attributes: []
+});
+builtinDirectiveMap.elements.set('textarea', {
+    name: 'textarea',
+    canBeElement: true,
+    canBeAttribute: false,
+    attributes: [
+        {
+            name: 'ngMin',
+            optional: true
+        },
+        {
+            name: 'ngMax',
+            optional: true
+        },
+        {
+            name: 'ngTrim',
+            optional: true
+        }
+    ]
 });
 
 // TODO: support multiple directives per tag/element name. (1:M)

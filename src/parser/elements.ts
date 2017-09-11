@@ -448,8 +448,9 @@ export function parseFormElement(element : CheerioElement, _directives : Directi
 const inputAttributesMap = new Map<string, string[]>([
     ['ng-true-value', ['checkbox']],
     ['ng-false-value', ['checkbox']],
-    ['ng-min', ['date', 'datetime-local', 'month']],
-    ['ng-max', ['date', 'datetime-local', 'month']],
+    ['ng-min', ['date', 'datetime-local', 'month', 'number', 'week']],
+    ['ng-max', ['date', 'datetime-local', 'month', 'number', 'week']],
+    ['ng-step', ['number']],
 ]);
 
 export function parseInputElement(element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
