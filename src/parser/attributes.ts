@@ -138,11 +138,7 @@ export function parseEventDirective(expression : string) : ParserResult {
         assign(expression)
     ]);
     return Either.Right({
-        nodes: [node],
-        scopeData: {
-            root: node,
-            childParent: node
-        }
+        nodes: [node]
     });
 }
 

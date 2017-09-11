@@ -330,16 +330,17 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
-        it(`parses ng-click and provides an $event local`, function () {
+        it(`parses ng-click and provides an $event local, closing scope correctly`, function () {
             const html =
-                `<div ng-click="doSomething($event)"></div>`;
+                `<div ng-click="doSomething($event)" ng-class="someProperty"></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock([
                         parameter(`$event`, `IAngularEvent`)
                     ], [
                         assign(`doSomething($event)`)
-                    ])
+                    ]),
+                    assign(`someProperty`)
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -587,6 +588,56 @@ describe(`Template parsers`, function () {
                     `"myCustomDirective" is missing the required attribute "first-arg".`
                 ]);
             });
+        });
+
+        describe(`input directives`, function () {
+            describe(`common attributes`, function () {
+                it(`parses required attributes`, function () {
+                    const html = `<input ng-model="someProperty">`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someProperty`)
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+
+                it(`parses optional attributes`, function () {
+                    const html = `<input 
+    ng-model="someProperty" 
+    name="myInput" 
+    required="badRequired" 
+    ng-required="goodRequired" 
+    minlength="{{ interpMinLength }}"
+    ng-minlength="exprMinLength"
+    maxlength="{{ interpMaxLength }}"
+    ng-maxlength="exprMaxLength"
+    pattern="{{ interpPattern }}"
+    ng-pattern="exprPattern"
+    ng-change="doSomething()"
+    ng-trim="shouldTrim">`;
+                    const expected = templateRoot([
+                        scopedBlock([], [
+                            assign(`someProperty`),
+                            assign(`shouldTrim`), // happens to be first, due to use of an element parser
+                            assign(`goodRequired`),
+                            assign(`exprMinLength`),
+                            assign(`exprMaxLength`),
+                            assign(`exprPattern`),
+                            scopedBlock([parameter(`$event`, `IAngularEvent`)], [
+                                assign(`doSomething()`)
+                            ]),
+                            // Interpolated expressions are parsed after AngularJS expressions
+                            assign(`interpMinLength`),
+                            assign(`interpMaxLength`),
+                            assign(`interpPattern`),
+                        ], `TemplateScope`)
+                    ]);
+                    verifyHtml(html, [], expected);
+                });
+            });
+
+
         });
     });
 });

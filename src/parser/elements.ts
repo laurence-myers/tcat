@@ -444,3 +444,7 @@ export function parseFormElement(element : CheerioElement, _directives : Directi
         });
     }
 }
+
+export function parseInputElement(_element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
+    return Either.Right({ nodes: [] });
+}

@@ -10,7 +10,7 @@ import {
     SuccessfulParserResult,
     wrapParseScopeStart
 } from "./parser/attributes";
-import {ElementDirectiveParser, parseFormElement, parseNgTemplateElement} from "./parser/elements";
+import {ElementDirectiveParser, parseFormElement, parseInputElement, parseNgTemplateElement} from "./parser/elements";
 import {Either} from "monet";
 import camelCase = require('lodash.camelcase');
 
@@ -153,7 +153,18 @@ builtinDirectiveMap.elements.set('form', {
     parser: (el, directives) => parseFormElement(el, directives),
     attributes: []
 });
-
+builtinDirectiveMap.elements.set('input', {
+    name: 'input',
+    canBeElement: true,
+    canBeAttribute: false,
+    parser: (el, directives) => parseInputElement(el, directives),
+    attributes: [
+        {
+            name: 'ngTrim',
+            optional: true
+        }
+    ]
+});
 singleAttribute(builtinDirectiveMap, 'ngController', parseNgController, 500);
 singleAttribute(builtinDirectiveMap, 'ngChecked', defaultParser, 100);
 singleAttribute(builtinDirectiveMap, 'ngDisabled', defaultParser, 100);
