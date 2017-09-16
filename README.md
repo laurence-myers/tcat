@@ -206,3 +206,4 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
 - It would be nice to somehow detect issues caused by prototype inheritence. e.g. Scope A has property "myText", the
   the template has an "ng-if" which creates Scope B, and there's a form input with "ng-model" bound to "myText". In
   this scenario, the input would read the value of "myText" from Scope A, but would write the value back to Scope B.
+- Unit or integration tests for the CLI command.

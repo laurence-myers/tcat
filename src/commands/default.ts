@@ -124,6 +124,15 @@ export default class extends Command {
         );
         const commonPath = findLongestCommonPath(fileNames) + path.sep;
         const result = readDirectiveDataFile(asFileName(directivesFileName.fullName))
+            .leftMap((errors : TcatError[]) => {
+                errors.forEach((err) => {
+                    console.error(
+                        directivesFileName.fullName + ':',
+                        this.verbose ? err : err.message
+                    );
+                });
+                return errors;
+            })
             .flatMap((directives) =>
                 fileNames.map((fileName : FileName) =>
                     this.processFile(fileName, directives)
@@ -150,8 +159,8 @@ export default class extends Command {
                     }
                 }, Either.Right(undefined))
             );
-        return result.cata(() => {
-                console.log("Done, with errors.");
+        return result.cata((errors) => {
+                console.log(`Done, with ${ errors.length } error${ errors.length > 1 ? 's' : '' }.`);
                 process.exitCode = 1;
             }, () => {
                 console.log("Done!");
