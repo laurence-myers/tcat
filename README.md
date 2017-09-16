@@ -12,6 +12,8 @@ the template.
 You can compile the generated files, using your own tsconfig, to detect type errors such as references to properties
 that are missing from your page controllers.
 
+It's intended for integrating into existing projects that are using AngularJS (1.x) and TypeScript.
+
 ## Usage
 
 ### Preparation
