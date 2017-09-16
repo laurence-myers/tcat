@@ -5,6 +5,7 @@ import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
 import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
+import {outdent} from "outdent";
 
 describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
@@ -29,9 +30,10 @@ describe(`Template parsers`, function () {
         }
 
         it(`parses ng-template with nested elements`, function () {
-            const html = `<script type="text/ng-template" id="some/nested/template.html">
-    <div ng-click="someFunc()"></div>
-</script>`;
+            const html = outdent`
+                <script type="text/ng-template" id="some/nested/template.html">
+                    <div ng-click="someFunc()"></div>
+                </script>`;
             const expected = templateRoot([
                 scopedBlock([], [
                 ], `TemplateScope`),
@@ -47,10 +49,11 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses ng-template with proceeding sibling elements`, function () {
-            const html = `<script type="text/ng-template" id="some/nested/template.html">
-    <div ng-click="someFunc()"></div>
-</script>
-<div>{{ someValue }}</div>`;
+            const html = outdent`
+                <script type="text/ng-template" id="some/nested/template.html">
+                    <div ng-click="someFunc()"></div>
+                </script>
+                <div>{{ someValue }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`someValue`)
@@ -67,11 +70,12 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses ng-template with nested ng-template`, function () {
-            const html = `<script type="text/ng-template" id="some/nested/template.html">
-    <script type="text/ng-template" id="another/nested/template.html">
-        <div ng-click="someFunc()"></div>
-    </script>
-</script>`;
+            const html = outdent`
+                <script type="text/ng-template" id="some/nested/template.html">
+                    <script type="text/ng-template" id="another/nested/template.html">
+                        <div ng-click="someFunc()"></div>
+                    </script>
+                </script>`;
             const expected = templateRoot([
                 scopedBlock([], [
                 ], `TemplateScope`),
@@ -89,9 +93,10 @@ describe(`Template parsers`, function () {
         });
 
         it(`does not error when encountering a script tag that isn't an ng-template directive`, function () {
-            const html = `<script type="application/javascript">
-    console.log('meeeeoooww');
-</script>`;
+            const html = `
+                <script type="application/javascript">
+                    console.log('meeeeoooww');
+                </script>`;
             const expected = templateRoot([
                 scopedBlock([], [
                 ], `TemplateScope`),
@@ -273,12 +278,12 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses nested multi-element ng-repeat directives`, function () {
-            const html =
-`<div ng-repeat-start="item in items">
-    <div ng-repeat-start="value in item.values"></div>
-    <div ng-repeat-end>{{ value }}</div>
-</div>
-<div ng-repeat-end>{{ item.name }}</div>`;
+            const html = outdent`
+                <div ng-repeat-start="item in items">
+                    <div ng-repeat-start="value in item.values"></div>
+                    <div ng-repeat-end>{{ value }}</div>
+                </div>
+                <div ng-repeat-end>{{ item.name }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
@@ -297,11 +302,11 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses multi-element ng-show and ng-hide`, function () {
-            const html =
-`<div ng-show-start="items.length > 0"></div>
-<div ng-show-end>{{ items[0] }}</div>
-<div ng-hide-start="items.length == 0"></div>
-<p ng-hide-end>{{ items.length }} items found</p>`;
+            const html = outdent`
+                <div ng-show-start="items.length > 0"></div>
+                <div ng-show-end>{{ items[0] }}</div>
+                <div ng-hide-start="items.length == 0"></div>
+                <p ng-hide-end>{{ items.length }} items found</p>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`items.length > 0`),
@@ -314,9 +319,9 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses multi-element ng-if`, function () {
-            const html =
-`<div ng-if-start="someProperty"></div>
-<div ng-if-end>{{ someProperty.name }}</div>`;
+            const html = outdent`
+                <div ng-if-start="someProperty"></div>
+                <div ng-if-end>{{ someProperty.name }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     ifStatement(`someProperty`, [
@@ -328,9 +333,9 @@ describe(`Template parsers`, function () {
         });
 
         it(`ng-if does not encapsulate following sibling expressions`, function () {
-            const html =
-                `<div ng-if="someProperty"></div>
-<div>{{ someProperty.name }}`;
+            const html = outdent`
+                <div ng-if="someProperty"></div>
+                <div>{{ someProperty.name }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     ifStatement(`someProperty`, [
@@ -358,9 +363,9 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses ng-controller directives`, function () {
-            const html = `
-<div ng-controller="FooController">{{ fooValue }}</div>
-<div ng-controller="BarController as ctrl">{{ ctrl.barValue }}</div>`;
+            const html = outdent`
+                <div ng-controller="FooController">{{ fooValue }}</div>
+                <div ng-controller="BarController as ctrl">{{ ctrl.barValue }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock([
@@ -391,13 +396,13 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses ngPluralize directives`, function () {
-            const html = `
-<ng-pluralize count="personCount" when="{'0': 'Nobody is viewing.',
-   '1': '{{person1}} is viewing.',
-   '2': '{{person1}} and {{person2}} are viewing.',
-   'one': '{{person1}}, {{person2}} and one other person are viewing.',
-   'other': '{{person1}}, {{person2}} and {} other people are viewing.'}"></ng-pluralize>
-<div ng-pluralize count="anotherCount" when="{}" offset="2"></div>`;
+            const html = outdent`
+                <ng-pluralize count="personCount" when="{'0': 'Nobody is viewing.',
+                   '1': '{{person1}} is viewing.',
+                   '2': '{{person1}} and {{person2}} are viewing.',
+                   'one': '{{person1}}, {{person2}} and one other person are viewing.',
+                   'other': '{{person1}}, {{person2}} and {} other people are viewing.'}"></ng-pluralize>
+                <div ng-pluralize count="anotherCount" when="{}" offset="2"></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`personCount`),
@@ -415,8 +420,9 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses ngInclude directives`, function () {
-            const html = `<ng-include src="template.url"></ng-include>
-<div ng-include="anotherTemplate.url" onload="doSomething()" autoscroll="shouldAutoscroll"></div>`;
+            const html = outdent`
+                <ng-include src="template.url"></ng-include>
+                <div ng-include="anotherTemplate.url" onload="doSomething()" autoscroll="shouldAutoscroll"></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                     assign(`template.url`),
@@ -429,9 +435,10 @@ describe(`Template parsers`, function () {
         });
 
         it(`parses ngNonBindable directives`, function () {
-            const html = `<div ng-non-bindable>{{ someValue + anotherValue }}</div>
-<div ng-non-bindable><div ng-include="someTemplate.url"></div></div>
-<div ng-class="{ 'someClass': showClass }" ng-non-bindable></div>`;
+            const html = outdent`
+                <div ng-non-bindable>{{ someValue + anotherValue }}</div>
+                <div ng-non-bindable><div ng-include="someTemplate.url"></div></div>
+                <div ng-class="{ 'someClass': showClass }" ng-non-bindable></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
                 ], `TemplateScope`)
@@ -614,19 +621,20 @@ describe(`Template parsers`, function () {
                 });
 
                 it(`parses optional attributes`, function () {
-                    const html = `<input 
-    ng-model="someProperty" 
-    name="myInput" 
-    required="badRequired" 
-    ng-required="goodRequired" 
-    minlength="{{ interpMinLength }}"
-    ng-minlength="exprMinLength"
-    maxlength="{{ interpMaxLength }}"
-    ng-maxlength="exprMaxLength"
-    pattern="{{ interpPattern }}"
-    ng-pattern="exprPattern"
-    ng-change="doSomething()"
-    ng-trim="shouldTrim">`;
+                    const html = outdent`
+                        <input 
+                            ng-model="someProperty" 
+                            name="myInput" 
+                            required="badRequired" 
+                            ng-required="goodRequired" 
+                            minlength="{{ interpMinLength }}"
+                            ng-minlength="exprMinLength"
+                            maxlength="{{ interpMaxLength }}"
+                            ng-maxlength="exprMaxLength"
+                            pattern="{{ interpPattern }}"
+                            ng-pattern="exprPattern"
+                            ng-change="doSomething()"
+                            ng-trim="shouldTrim">`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someProperty`),
@@ -650,12 +658,12 @@ describe(`Template parsers`, function () {
 
             describe(`attribute exclusivity`, function () {
                 it(`does not allow ng-true-value or ng-false-value on text inputs`, function () {
-                    const html = `
-<input 
-    type="text"
-    ng-true-value="someTrueValue"
-    ng-false-value="someFalseValue"
->`;
+                    const html = outdent`
+                        <input 
+                            type="text"
+                            ng-true-value="someTrueValue"
+                            ng-false-value="someFalseValue"
+                        >`;
                     verifyParseFailure(html, [], [
                         `input with type "text" has attribute "ng-true-value", but this is only allowed on inputs with these types: "checkbox"`,
                         `input with type "text" has attribute "ng-false-value", but this is only allowed on inputs with these types: "checkbox"`
@@ -665,12 +673,12 @@ describe(`Template parsers`, function () {
 
             describe(`checkbox`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="checkbox"
-    ng-true-value="someTrueValue"
-    ng-false-value="someFalseValue"
->`;
+                    const html = outdent`
+                        <input 
+                            type="checkbox"
+                            ng-true-value="someTrueValue"
+                            ng-false-value="someFalseValue"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someTrueValue`),
@@ -683,14 +691,14 @@ describe(`Template parsers`, function () {
 
             describe(`date`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="date"
-    min="{{ interpMin }}"
-    max="{{ interpMax }}"
-    ng-min="exprMin"
-    ng-max="exprMax"
->`;
+                    const html = outdent`
+                        <input 
+                            type="date"
+                            min="{{ interpMin }}"
+                            max="{{ interpMax }}"
+                            ng-min="exprMin"
+                            ng-max="exprMax"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprMin`),
@@ -705,14 +713,14 @@ describe(`Template parsers`, function () {
 
             describe(`datetime-local`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="datetime-local"
-    min="{{ interpMin }}"
-    max="{{ interpMax }}"
-    ng-min="exprMin"
-    ng-max="exprMax"
->`;
+                    const html = outdent`
+                        <input 
+                            type="datetime-local"
+                            min="{{ interpMin }}"
+                            max="{{ interpMax }}"
+                            ng-min="exprMin"
+                            ng-max="exprMax"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprMin`),
@@ -727,18 +735,18 @@ describe(`Template parsers`, function () {
 
             describe(`email`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="email"
-    name="myEmail"
-    required="{{ interpRequired }}"
-    ng-required="exprRequired"
-    ng-minlength="exprMinLength"
-    ng-maxlength="exprMaxLength"
-    pattern="{{ interpPattern }}"
-    ng-pattern="exprPattern"
-    ng-change="doSomething()"
->`;
+                    const html = outdent`
+                        <input 
+                            type="email"
+                            name="myEmail"
+                            required="{{ interpRequired }}"
+                            ng-required="exprRequired"
+                            ng-minlength="exprMinLength"
+                            ng-maxlength="exprMaxLength"
+                            pattern="{{ interpPattern }}"
+                            ng-pattern="exprPattern"
+                            ng-change="doSomething()"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprRequired`),
@@ -760,14 +768,14 @@ describe(`Template parsers`, function () {
 
             describe(`month`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="month"
-    min="{{ interpMin }}"
-    max="{{ interpMax }}"
-    ng-min="exprMin"
-    ng-max="exprMax"
->`;
+                    const html = outdent`
+                        <input 
+                            type="month"
+                            min="{{ interpMin }}"
+                            max="{{ interpMax }}"
+                            ng-min="exprMin"
+                            ng-max="exprMax"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprMin`),
@@ -782,23 +790,23 @@ describe(`Template parsers`, function () {
 
             describe(`number`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="number"
-    min="{{ interpMin }}"
-    ng-min="exprMin"
-    max="{{ interpMax }}"
-    ng-max="exprMax"
-    step="{{ interpStep }}"
-    ng-step="exprStep"
-    required="{{ interpRequired }}"
-    ng-required="exprRequired"
-    pattern="{{ interpPattern }}"
-    ng-pattern="exprPattern"
-    ng-minlength="exprMinlength"
-    ng-maxlength="exprMaxlength"
-    ng-change="doSomething()"
->`;
+                    const html = outdent`
+                        <input 
+                            type="number"
+                            min="{{ interpMin }}"
+                            ng-min="exprMin"
+                            max="{{ interpMax }}"
+                            ng-max="exprMax"
+                            step="{{ interpStep }}"
+                            ng-step="exprStep"
+                            required="{{ interpRequired }}"
+                            ng-required="exprRequired"
+                            pattern="{{ interpPattern }}"
+                            ng-pattern="exprPattern"
+                            ng-minlength="exprMinlength"
+                            ng-maxlength="exprMaxlength"
+                            ng-change="doSomething()"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprMin`),
@@ -826,11 +834,11 @@ describe(`Template parsers`, function () {
 
             describe(`radio`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="checkbox"
-    ng-value="someValue"
->`;
+                    const html = outdent`
+                        <input 
+                            type="checkbox"
+                            ng-value="someValue"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someValue`),
@@ -842,14 +850,14 @@ describe(`Template parsers`, function () {
 
             describe(`range`, function () {
                 it(`parses range attributes`, function () {
-                    const html = `
-<input 
-    type="range"
-    min="{{ interpMin }}"
-    max="{{ interpMax }}"
-    step="{{ interpStep }}"
-    ng-checked="exprChecked"
->`;
+                    const html = outdent`
+                        <input 
+                            type="range"
+                            min="{{ interpMin }}"
+                            max="{{ interpMax }}"
+                            step="{{ interpStep }}"
+                            ng-checked="exprChecked"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprChecked`),
@@ -864,14 +872,15 @@ describe(`Template parsers`, function () {
 
             describe(`select`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `<select 
-    ng-model="someProperty" 
-    name="myInput" 
-    multiple="{{ interpMultiple }}"
-    required="{{ interpRequired }}" 
-    ng-required="exprRequired"
-    ng-options="opt.label for opt in options"
-    ng-attr-size="{{ interpSize }}"></select>`;
+                    const html = outdent`
+                        <select 
+                            ng-model="someProperty" 
+                            name="myInput" 
+                            multiple="{{ interpMultiple }}"
+                            required="{{ interpRequired }}" 
+                            ng-required="exprRequired"
+                            ng-options="opt.label for opt in options"
+                            ng-attr-size="{{ interpSize }}"></select>`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someProperty`),
@@ -891,20 +900,21 @@ describe(`Template parsers`, function () {
 
             describe(`text`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `<input 
-    type="text"
-    ng-model="someProperty" 
-    name="myInput" 
-    required="badRequired" 
-    ng-required="goodRequired" 
-    minlength="{{ interpMinLength }}"
-    ng-minlength="exprMinLength"
-    maxlength="{{ interpMaxLength }}"
-    ng-maxlength="exprMaxLength"
-    pattern="{{ interpPattern }}"
-    ng-pattern="exprPattern"
-    ng-change="doSomething()"
-    ng-trim="shouldTrim">`;
+                    const html = outdent`
+                        <input 
+                            type="text"
+                            ng-model="someProperty" 
+                            name="myInput" 
+                            required="badRequired" 
+                            ng-required="goodRequired" 
+                            minlength="{{ interpMinLength }}"
+                            ng-minlength="exprMinLength"
+                            maxlength="{{ interpMaxLength }}"
+                            ng-maxlength="exprMaxLength"
+                            pattern="{{ interpPattern }}"
+                            ng-pattern="exprPattern"
+                            ng-change="doSomething()"
+                            ng-trim="shouldTrim">`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someProperty`),
@@ -928,16 +938,17 @@ describe(`Template parsers`, function () {
 
             describe(`textarea`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `<textarea 
-    ng-model="someProperty" 
-    name="myInput" 
-    required="badRequired" 
-    ng-required="goodRequired" 
-    ng-minlength="exprMinLength"
-    ng-maxlength="exprMaxLength"
-    ng-pattern="exprPattern"
-    ng-change="doSomething()"
-    ng-trim="shouldTrim"></textarea>`;
+                    const html = outdent`
+                        <textarea 
+                            ng-model="someProperty" 
+                            name="myInput" 
+                            required="badRequired" 
+                            ng-required="goodRequired" 
+                            ng-minlength="exprMinLength"
+                            ng-maxlength="exprMaxLength"
+                            ng-pattern="exprPattern"
+                            ng-change="doSomething()"
+                            ng-trim="shouldTrim"></textarea>`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someProperty`),
@@ -958,17 +969,18 @@ describe(`Template parsers`, function () {
 
             describe(`url`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `<input 
-    type="text"
-    ng-model="someUrl"
-    name="myInput" 
-    required="badRequired" 
-    ng-required="goodRequired" 
-    ng-minlength="exprMinLength"
-    ng-maxlength="exprMaxLength"
-    pattern="{{ interpPattern }}"
-    ng-pattern="exprPattern"
-    ng-change="doSomething()">`;
+                    const html = outdent`
+                        <input 
+                            type="text"
+                            ng-model="someUrl"
+                            name="myInput" 
+                            required="badRequired" 
+                            ng-required="goodRequired" 
+                            ng-minlength="exprMinLength"
+                            ng-maxlength="exprMaxLength"
+                            pattern="{{ interpPattern }}"
+                            ng-pattern="exprPattern"
+                            ng-change="doSomething()">`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`someUrl`),
@@ -989,14 +1001,14 @@ describe(`Template parsers`, function () {
 
             describe(`week`, function () {
                 it(`parses optional attributes`, function () {
-                    const html = `
-<input 
-    type="week"
-    min="{{ interpMin }}"
-    max="{{ interpMax }}"
-    ng-min="exprMin"
-    ng-max="exprMax"
->`;
+                    const html = outdent`
+                        <input 
+                            type="week"
+                            min="{{ interpMin }}"
+                            max="{{ interpMax }}"
+                            ng-min="exprMin"
+                            ng-max="exprMax"
+                        >`;
                     const expected = templateRoot([
                         scopedBlock([], [
                             assign(`exprMin`),
