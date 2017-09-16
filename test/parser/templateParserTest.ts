@@ -88,6 +88,17 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`does not error when encountering a script tag that isn't an ng-template directive`, function () {
+            const html = `<script type="application/javascript">
+    console.log('meeeeoooww');
+</script>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                ], `TemplateScope`),
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         it(`parses custom element directives`, function () {
             const html = `<my-element-directive first-arg="scopeProperty1"></my-element-directive>`;
             const directives = [
