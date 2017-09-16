@@ -1,4 +1,4 @@
-import {convertDirectiveConfigToDirectiveData, IDirective, TcatDirectiveExtrasMap} from "../src/configConverter";
+import {convertDirectiveConfigToDirectiveData, IDirective, TcatDirectiveExtras} from "../src/configConverter";
 import {DirectiveData} from "../src/directives";
 import * as assert from "assert";
 import {ElementDirectiveParser} from "../src/parser/elements";
@@ -188,8 +188,8 @@ describe(`configConverter`, function () {
         });
 
         describe(`with tcat extras`, function () {
-            function verifySuccess(config : IDirective, extrasMap : TcatDirectiveExtrasMap, expected : DirectiveData) {
-                const result = convertDirectiveConfigToDirectiveData(DEFAULT_DIRECTIVE_NAME, config, extrasMap);
+            function verifySuccess(config : IDirective, extras : TcatDirectiveExtras, expected : DirectiveData) {
+                const result = convertDirectiveConfigToDirectiveData(DEFAULT_DIRECTIVE_NAME, config, extras);
                 if (result.isLeft()) {
                     console.log(result.left());
                 }
@@ -199,15 +199,14 @@ describe(`configConverter`, function () {
 
             it(`merges an element parser`, function () {
                 const elementParser : ElementDirectiveParser = () : any => { };
-                const extrasMap : TcatDirectiveExtrasMap = {};
-                extrasMap[DEFAULT_DIRECTIVE_NAME] = {
+                const extras : TcatDirectiveExtras = {
                     parser: elementParser
                 };
                 verifySuccess(
                     {
                         restrict : 'E',
                     },
-                    extrasMap,
+                    extras,
                     {
                         name: EXPECTED_DEFAULT_DIRECTIVE_NAME,
                         canBeElement: true,
@@ -221,8 +220,7 @@ describe(`configConverter`, function () {
 
             it(`merges an attribute parser`, function () {
                 const attributeParser : AttributeParser = () : any => { };
-                const extrasMap : TcatDirectiveExtrasMap = {};
-                extrasMap[DEFAULT_DIRECTIVE_NAME] = {
+                const extrasMap : TcatDirectiveExtras = {
                     attributes: {
                         'firstProperty': {
                             parser: attributeParser
@@ -255,14 +253,13 @@ describe(`configConverter`, function () {
             });
 
             it(`merges attribute locals`, function () {
-                const extrasMap : TcatDirectiveExtrasMap = {};
                 const attributeLocals = [
                     {
                         name: 'firstLocal',
                         type: 'string'
                     }
                 ];
-                extrasMap[DEFAULT_DIRECTIVE_NAME] = {
+                const extras : TcatDirectiveExtras = {
                     attributes: {
                         'firstProperty': {
                             locals: attributeLocals
@@ -276,7 +273,7 @@ describe(`configConverter`, function () {
                             firstProperty: '='
                         }
                     },
-                    extrasMap,
+                    extras,
                     {
                         name: EXPECTED_DEFAULT_DIRECTIVE_NAME,
                         canBeElement: true,

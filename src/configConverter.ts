@@ -117,12 +117,8 @@ export interface TcatDirectiveExtras {
     };
 }
 
-export type TcatDirectiveExtrasMap = { [key : string] : TcatDirectiveExtras };
-
-function combineWithExtras(directiveData : DirectiveData, extraDataMap? : TcatDirectiveExtrasMap) : Either<DirectiveDefinitionError, DirectiveData> {
-    const directiveName = directiveData.name;
-    if (extraDataMap !== undefined && extraDataMap[directiveName] !== undefined) {
-        const extras = extraDataMap[directiveName];
+function combineWithExtras(directiveData : DirectiveData, extras? : TcatDirectiveExtras) : Either<DirectiveDefinitionError, DirectiveData> {
+    if (extras !== undefined) {
         if (extras.parser) {
             directiveData.parser = extras.parser;
         }
@@ -130,7 +126,7 @@ function combineWithExtras(directiveData : DirectiveData, extraDataMap? : TcatDi
             for (const attributeName of Object.keys(extras.attributes)) {
                 const existingAttributes = directiveData.attributes.filter((attr) => attr.name === attributeName);
                 if (existingAttributes.length !== 1) {
-                    return Either.Left(new DirectiveDefinitionError(`Directive ${ directiveName } has extras for attribute ${ attributeName }, but found ${ existingAttributes.length } definitions. Is the directive config correct?`));
+                    return Either.Left(new DirectiveDefinitionError(`Directive ${ directiveData.name } has extras for attribute ${ attributeName }, but found ${ existingAttributes.length } definitions. Is the directive config correct?`));
                 }
                 const existingAttribute = existingAttributes[0];
                 const attributeExtras = extras.attributes[attributeName];
@@ -148,7 +144,7 @@ function combineWithExtras(directiveData : DirectiveData, extraDataMap? : TcatDi
     }
 }
 
-export function convertDirectiveConfigToDirectiveData(directiveName : string, directiveConfig : IDirective, extraDataMap? : TcatDirectiveExtrasMap) : Either<DirectiveDefinitionError, DirectiveData> {
+export function convertDirectiveConfigToDirectiveData(directiveName : string, directiveConfig : IDirective, extras? : TcatDirectiveExtras) : Either<DirectiveDefinitionError, DirectiveData> {
     const isController = !!directiveConfig.bindToController;
     const priority = directiveConfig.priority || 0;
     // const multiElement = !!directiveConfig.multiElement;
@@ -181,17 +177,13 @@ export function convertDirectiveConfigToDirectiveData(directiveName : string, di
                 } else {
                     return;
                 }
-            }).map(() => {
-                if (extraDataMap && extraDataMap[directiveName]) {
-
-                }
             }).flatMap(() => {
                 return combineWithExtras(<DirectiveData> {
                     name: directiveName,
                     ...restrictions,
                     priority,
                     attributes: convertBindingsToAttributes(combinedBindings)
-                }, extraDataMap);
+                }, extras);
             });
         });
 }
