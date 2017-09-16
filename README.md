@@ -1,5 +1,7 @@
 # tcat - Type Checker for AngularJS Templates
 
+[![CircleCI](https://circleci.com/gh/laurence-myers/tcat.svg?style=shield)](https://circleci.com/gh/laurence-myers/tcat)
+
 ### IN ALPHA!
 
 **Before version 1.0.0, the API could change dramatically and without warning.**
