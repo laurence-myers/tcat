@@ -5,11 +5,11 @@ import {ElementDirectiveParser} from "./parser/elements";
 import {AttributeParser} from "./parser/attributes";
 
 export interface IDirective {
-    bindToController? : boolean | { [ boundProperty : string ] : string };
+    bindToController? : boolean | { [ boundProperty : string ] : string } | any;
     multiElement? : boolean;
     priority? : number;
     restrict? : string;
-    scope? : boolean | { [ boundProperty : string ] : string };
+    scope? : boolean | { [ boundProperty : string ] : string } | any;
 }
 
 type BindingModeInterpolated = '@';
