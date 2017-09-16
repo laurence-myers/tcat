@@ -47,8 +47,8 @@ export function lowercase(str : string) : string {
     return printArgs(str);
 }
 
-export function number(number : number | string, fractionSize? : number | string) : string {
-    return printArgs(number, fractionSize);
+export function number(num : number | string, fractionSize? : number | string) : string {
+    return printArgs(num, fractionSize);
 }
 
 export function orderBy<T>(

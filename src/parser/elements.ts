@@ -241,7 +241,7 @@ export class ElementWalker {
 
     protected findAttributeValue(node : CheerioElement, directiveAttributeName : string) : string | undefined {
         for (const attribName in node.attribs) {
-            if (normalize(attribName) == directiveAttributeName) {
+            if (normalize(attribName) === directiveAttributeName) {
                 return node.attribs[attribName];
             }
         }

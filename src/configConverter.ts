@@ -5,11 +5,11 @@ import {ElementDirectiveParser} from "./parser/elements";
 import {AttributeParser} from "./parser/attributes";
 
 export interface IDirective {
-    bindToController?: boolean | { [ boundProperty : string ] : string };
-    multiElement?: boolean;
-    priority?: number;
-    restrict?: string;
-    scope?: boolean | { [ boundProperty : string ] : string };
+    bindToController? : boolean | { [ boundProperty : string ] : string };
+    multiElement? : boolean;
+    priority? : number;
+    restrict? : string;
+    scope? : boolean | { [ boundProperty : string ] : string };
 }
 
 type BindingModeInterpolated = '@';
@@ -23,16 +23,16 @@ type BindingMode =
     | BindingModeExpression;
 
 interface DirectiveBinding {
-    mode: BindingMode;
-    collection: boolean;
-    optional: boolean;
-    attrName: string;
+    mode : BindingMode;
+    collection : boolean;
+    optional : boolean;
+    attrName : string;
 }
 type BindingsMap = { [key : string] : DirectiveBinding };
 
 // Derived from AngularJS:
 // https://github.com/angular/angular.js/blob/233a93f6e01f7f06d17cdea8a7b2a7098803639d/src/ng/compile.js#L1013
-function parseIsolateBindings(bindingInput : { [ boundProperty: string ] : string }, directiveName : string, isController : boolean) : Either<DirectiveDefinitionError, BindingsMap> {
+function parseIsolateBindings(bindingInput : { [ boundProperty : string ] : string }, directiveName : string, isController : boolean) : Either<DirectiveDefinitionError, BindingsMap> {
     const BINDING_REGEXP = /^\s*([@&<]|=(\*?))(\??)\s*([\w$]*)\s*$/;
 
     const bindings : BindingsMap = {};
@@ -61,8 +61,8 @@ function parseIsolateBindings(bindingInput : { [ boundProperty: string ] : strin
 }
 
 interface DirectiveRestrict {
-    canBeElement: boolean;
-    canBeAttribute: boolean;
+    canBeElement : boolean;
+    canBeAttribute : boolean;
     // TODO: support others
 }
 
@@ -129,7 +129,7 @@ function combineWithExtras(directiveData : DirectiveData, extraDataMap? : TcatDi
         if (extras.attributes) {
             for (const attributeName of Object.keys(extras.attributes)) {
                 const existingAttributes = directiveData.attributes.filter((attr) => attr.name === attributeName);
-                if (existingAttributes.length != 1) {
+                if (existingAttributes.length !== 1) {
                     return Either.Left(new DirectiveDefinitionError(`Directive ${ directiveName } has extras for attribute ${ attributeName }, but found ${ existingAttributes.length } definitions. Is the directive config correct?`));
                 }
                 const existingAttribute = existingAttributes[0];

@@ -61,7 +61,7 @@ export function last<T>(arr : T[]) : T | undefined {
 
 export function unwrapEither<E extends Error, V>(either : Either<E, V>) : V | never {
     return either.cata(
-        (err) => { throw err },
+        (err) => { throw err; },
         (value) => value
     );
 }
