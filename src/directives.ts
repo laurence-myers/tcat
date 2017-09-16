@@ -13,6 +13,7 @@ import {
 import {ElementDirectiveParser, parseFormElement, parseInputElement, parseNgTemplateElement} from "./parser/elements";
 import {Either} from "monet";
 import camelCase = require('lodash.camelcase');
+import {assign} from "./generator/dsl";
 
 export function singleAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     map.attributes.set(name, {
@@ -241,7 +242,61 @@ singleAttribute(builtinDirectiveMap, 'ngReadonly', defaultParser, 100);
 multiElementAttributeWithScope(builtinDirectiveMap, 'ngRepeat', parseNgRepeat, 1000);
 singleAttribute(builtinDirectiveMap, 'ngSelected', defaultParser, 100);
 multiElementAttributeWithoutScope(builtinDirectiveMap, 'ngShow', defaultParser);
-singleAttribute(builtinDirectiveMap, 'ngSwitch', defaultParser, 1200);
+builtinDirectiveMap.attributes.set('ngSwitch', {
+    name: 'ngSwitch',
+    canBeElement: false,
+    canBeAttribute: true,
+    priority: 1200,
+    attributes: [
+        {
+            name: 'ngSwitch',
+            parser: (attr) => {
+                if (attr) {
+                    return Either.Right({
+                        nodes: [assign(attr)]
+                    });
+                } else {
+                    return Either.Right({
+                        nodes: []
+                    });
+                }
+            }
+        },
+        {
+            name: 'on',
+            optional: true
+        }
+    ]
+});
+builtinDirectiveMap.attributes.set('ngSwitchWhen', {
+    name: 'ngSwitchWhen',
+    canBeElement: false,
+    canBeAttribute: true,
+    priority: 1200,
+    attributes: [
+        {
+            name: 'ngSwitchWhen',
+            mode: 'interpolated'
+        },
+        {
+            name: 'ngSwitchWhenSeparator',
+            mode: 'interpolated',
+            optional: true
+        }
+    ]
+});
+builtinDirectiveMap.attributes.set('ngSwitchDefault', {
+    name: 'ngSwitchDefault',
+    canBeElement: false,
+    canBeAttribute: true,
+    priority: 1200,
+    attributes: [
+        {
+            name: 'ngSwitchDefault',
+            mode: 'interpolated'
+        }
+    ]
+});
 builtinDirectiveMap.elements.set('script', {
     name: 'ngTemplate',
     canBeElement: true,

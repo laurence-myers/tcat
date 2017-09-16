@@ -199,7 +199,6 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
 
 - Support for multiple directives per tag/attribute.
 - Support for CSS class and comment directives. 
-- Support for ng-switch (ng-switch-where, ng-switch-else)
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 
 - Automatically allow built-in AngularJS filters, like `date`.
 - It would be nice to somehow detect issues caused by prototype inheritence. e.g. Scope A has property "myText", the

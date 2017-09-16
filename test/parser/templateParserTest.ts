@@ -446,6 +446,28 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`parses ngSwitch directives`, function () {
+            const html = outdent`
+                <div ng-switch="selection">
+                    <div ng-switch-when="settings|options" ng-switch-when-separator="|"></div>
+                </div>
+                <div ng-switch on="selection">
+                    <div ng-switch-when="home"></div>
+                </div>
+                <div ng-switch on="selection">
+                    <div ng-switch-default></div>
+                </div>
+            `;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(`selection`),
+                    assign(`selection`),
+                    assign(`selection`),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         describe(`HTML validation`, function () {
             it(`Fails validation for an unrecognised HTML tag`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;
