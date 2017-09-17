@@ -203,9 +203,10 @@ Note that templates with locals are not supported! tcat expects AngularJS to han
   - ngAnimate (ngAnimateChildren, ngAnimateSwap)
   - ngComponentRouter (ngOutlet)
   - ngMessages (ngMessage, ngMessageExp, ngMessages, ngMessagesInclude)
+  - ngMessageFormat (extended syntax for interpolated text)
   - ngRoute (ngView)
-  - ngSanitize (linky)
   - ngTouch (ngSwipeLeft, ngSwipeRight)
+- Replace lodash functions, consolidate string transformation libs.
 - Support for multiple directives per tag/attribute.
 - Support for CSS class and comment directives. 
 - Generate interface for forms with named inputs, so the HTML matches any TS interface. 

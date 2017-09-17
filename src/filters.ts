@@ -43,6 +43,12 @@ export function limitTo<T>(
     return <any> input;
 }
 
+export function linky(text : string,
+                      target : '_blank' | '_self' | '_parent' | '_top' | string,
+                      attributes? : object | ((url : string) => object)) : string {
+    return printArgs(text, target, attributes);
+}
+
 export function lowercase(str : string) : string {
     return printArgs(str);
 }
