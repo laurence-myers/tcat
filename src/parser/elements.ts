@@ -16,47 +16,57 @@ import {DirectiveAttribute, DirectiveData, DirectiveMap, normalize} from "../dir
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
+import {AST} from "parse5";
+import Default = AST.Default;
+import Node = Default.Node;
+import TextNode = Default.TextNode;
+import Element = Default.Element;
+import ParentNode = Default.ParentNode;
 
 const htmlTagNames : string[] = require("html-tag-names");
 const htmlElementAttributes : { [key : string] : string[] } = require("html-element-attributes");
 const ariaAttributes : string[] = require("aria-attributes");
 
 export type ElementDirectiveParserResult = Either<TcatError[], SuccessfulParserResult>;
-export type ElementDirectiveParser = (element : CheerioElement, directives : DirectiveMap) => ElementDirectiveParserResult;
+export type ElementDirectiveParser = (element : Element, directives : DirectiveMap) => ElementDirectiveParserResult;
 
-interface TextHtmlNode extends CheerioElement {
-    type : 'text';
-    data : string;
+function isParentNode(node : Node | ParentNode) : node is Node & ParentNode {
+    return (node as ParentNode).childNodes !== undefined;
 }
 
-function isTextHtmlNode(node : CheerioElement) : node is TextHtmlNode {
-    return node.type === 'text';
+function isTagNode(node : Node | Element) : node is Element {
+    return (node as Element).tagName !== undefined;
 }
 
-interface ScriptNode extends CheerioElement {
-    type : 'script';
+function isTextHtmlNode(node : Node) : node is TextNode {
+    return node.nodeName === '#text';
 }
 
-function isScriptNode(node : CheerioElement) : node is ScriptNode {
-    return node.type === 'script';
+interface ScriptNode extends Element {
+    nodeName : 'script';
+    tagName : 'script';
 }
 
-interface FormNode extends CheerioElement {
-    type : 'tag';
+function isScriptNode(node : Node) : node is ScriptNode {
+    return node.nodeName === 'script';
+}
+
+interface FormNode extends Element {
+    nodeName : 'form';
     tagName : 'form';
 }
 
-function isFormNode(node : CheerioElement) : node is FormNode {
-    return node.type === 'tag' && node.tagName === 'form';
+function isFormNode(node : Node) : node is FormNode {
+    return node.nodeName === 'form';
 }
 
-interface SvgNode extends CheerioElement {
-    type : 'tag';
+interface SvgNode extends Element {
+    nodeName : 'svg';
     tagName : 'svg';
 }
 
-function isSvgNode(node : CheerioElement) : node is SvgNode {
-    return node.type === 'tag' && node.tagName === 'svg';
+function isSvgNode(node : Node) : node is SvgNode {
+    return node.nodeName === 'svg';
 }
 
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
@@ -77,7 +87,7 @@ function compareDirectivesByPriority(a : DirectiveData, b : DirectiveData) : num
     return (b.priority || 0) - (a.priority || 0);
 }
 
-export function parseElement(element : CheerioElement, directives : DirectiveMap, scopeInterfaceName : string) {
+export function parseElement(element : Node, directives : DirectiveMap, scopeInterfaceName : string) {
     const walker = new ElementWalker(directives);
     return walker.walkTemplate(element, scopeInterfaceName);
 }
@@ -138,10 +148,10 @@ export class ElementWalker {
         );
     }
 
-    protected parseChildren(node : CheerioElement, context : ElementParserContext) {
+    protected parseChildren(node : Node | ParentNode, context : ElementParserContext) {
         // Parse children
-        if (node.children) {
-            for (const child of node.children) {
+        if (isParentNode(node)) {
+            for (const child of node.childNodes) {
                 if (!isNgTemplate(node) || !isTextHtmlNode(child)) { // don't double-parse nested templates
                     this.parseElement(child)
                         .leftMap(
@@ -152,14 +162,14 @@ export class ElementWalker {
         }
     }
 
-    protected identifyDirectives(node : CheerioElement) : DirectiveData[] {
+    protected identifyDirectives(node : Element) : DirectiveData[] {
         const identifiedDirectives = [];
         const elementDirectiveData : DirectiveData | undefined = this.directives.elements.get(normalize(node.tagName));
         if (elementDirectiveData !== undefined) {
             identifiedDirectives.push(elementDirectiveData);
         }
-        for (const key in node.attribs) {
-            const attributeDirective : DirectiveData | undefined = this.directives.attributes.get(normalize(key));
+        for (const attr of node.attrs) {
+            const attributeDirective : DirectiveData | undefined = this.directives.attributes.get(normalize(attr.name));
             if (attributeDirective !== undefined) {
                 identifiedDirectives.push(attributeDirective);
             }
@@ -167,8 +177,8 @@ export class ElementWalker {
         return identifiedDirectives.sort(compareDirectivesByPriority);
     }
 
-    protected validateElement(node : CheerioElement, context : ElementParserContext, directives : DirectiveData[]) : void {
-        if (node.type === 'tag') {
+    protected validateElement(node : Node | Element, context : ElementParserContext, directives : DirectiveData[]) : void {
+        if (isTagNode(node)) {
             if (!this.shouldSkipHtmlValidation) {
                 const elementDirectiveNames = directives
                     .filter((directive) => directive.canBeElement)
@@ -194,7 +204,8 @@ export class ElementWalker {
                             .concat(ariaAttributes)
                             .concat(htmlElementAttributes[node.tagName] || []));
                     const directiveAttributesSet = new Set<string>(directiveAttributes);
-                    for (const attrib in node.attribs) {
+                    for (const attribData of node.attrs) {
+                        const attrib = attribData.name;
                         if (!standardHtmlElementAttributes.has(attrib)
                             && !directiveAttributesSet.has(normalize(attrib))
                             && !/^(data|ng-attr)-/.test(attrib)) {
@@ -226,7 +237,7 @@ export class ElementWalker {
         }
     }
 
-    protected parseElementDirective(node : CheerioElement, context : ElementParserContext, elementDirective : DirectiveData) {
+    protected parseElementDirective(node : Element, context : ElementParserContext, elementDirective : DirectiveData) {
         const elemParser = elementDirective.parser;
         if (elemParser) {
             this.handleElementDirectiveParseResult(
@@ -239,16 +250,16 @@ export class ElementWalker {
         }
     }
 
-    protected findAttributeValue(node : CheerioElement, directiveAttributeName : string) : string | undefined {
-        for (const attribName in node.attribs) {
-            if (normalize(attribName) === directiveAttributeName) {
-                return node.attribs[attribName];
+    protected findAttributeValue(node : Element, directiveAttributeName : string) : string | undefined {
+        for (const attrib of node.attrs) {
+            if (normalize(attrib.name) === directiveAttributeName) {
+                return attrib.value;
             }
         }
         return undefined;
     }
 
-    protected parseDirectiveSubAttribute(node : CheerioElement, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
+    protected parseDirectiveSubAttribute(node : Element, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
         const subAttribValue = this.findAttributeValue(node, subAttribEntry.name);
         if (subAttribValue === undefined) {
             return;
@@ -289,19 +300,20 @@ export class ElementWalker {
         }
     }
 
-    protected parseAttributeDirective(node : CheerioElement, context : ElementParserContext, attributeDirective : DirectiveData) {
+    protected parseAttributeDirective(node : Element, context : ElementParserContext, attributeDirective : DirectiveData) {
         // Parse attributes of a single directive
         for (const subAttribEntry of attributeDirective.attributes) {
             this.parseDirectiveSubAttribute(node, subAttribEntry, context);
         }
     }
 
-    protected parseNonDirectiveAttributes(node : CheerioElement, context : ElementParserContext) {
+    protected parseNonDirectiveAttributes(node : Element, context : ElementParserContext) {
         // Parse attributes: interpolated text
-        for (const key in node.attribs) {
+        for (const attrib of node.attrs) {
+            const key = attrib.name;
             if (context.parsedAttributes.indexOf(normalize(key)) === -1) {
                 const attribLookup = this.directives.attributes.get(normalize(key));
-                const value = node.attribs[key];
+                const value = attrib.value;
                 if (attribLookup && attribLookup.canBeAttribute) {
                     continue;
                 } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
@@ -314,17 +326,15 @@ export class ElementWalker {
         }
     }
 
-    protected parseInterpolatedText(node : CheerioElement, context : ElementParserContext) {
+    protected parseInterpolatedText(node : TextNode, context : ElementParserContext) {
         // Parse interpolated text
-        if (isTextHtmlNode(node)) {
-            this.handleAttributeDirectiveParseResult(
-                context,
-                parseInterpolatedText(node.data)
-            );
-        }
+        this.handleAttributeDirectiveParseResult(
+            context,
+            parseInterpolatedText(node.value)
+        );
     }
 
-    protected parseDirectives(node : CheerioElement, context : ElementParserContext, directiveData : DirectiveData[]) {
+    protected parseDirectives(node : Element, context : ElementParserContext, directiveData : DirectiveData[]) {
         for (const directive of directiveData) {
             if (directive.canBeElement) {
                 this.parseElementDirective(node, context, directive);
@@ -337,7 +347,7 @@ export class ElementWalker {
         }
     }
 
-    protected parseElement(node : CheerioElement) : Either<AttributeParserError[], void> {
+    protected parseElement(node : Node) : Either<AttributeParserError[], void> {
         const context : ElementParserContext = {
             errors: [],
             parsedAttributes: [],
@@ -346,26 +356,31 @@ export class ElementWalker {
             terminated: false
         };
 
-        const directives = this.identifyDirectives(node);
-        this.validateElement(node, context, directives);
-        this.parseDirectives(node, context, directives);
-        if (!context.terminated) {
-            this.parseNonDirectiveAttributes(node, context);
+        if (isTagNode(node)) {
+            const directives = this.identifyDirectives(node);
+            this.validateElement(node, context, directives);
+            this.parseDirectives(node, context, directives);
+            if (!context.terminated) {
+                this.parseNonDirectiveAttributes(node, context);
+
+                // If this is an SVG element, skip validation for child elements.
+                const shouldChildrenSkipHtmlValidation = isSvgNode(node);
+                if (shouldChildrenSkipHtmlValidation) {
+                    this.shouldSkipHtmlValidation = true;
+                }
+                this.parseChildren(node, context);
+                if (shouldChildrenSkipHtmlValidation) {
+                    this.shouldSkipHtmlValidation = false;
+                }
+            }
+
+            if (context.isScopeEnd) {
+                this.scopeStack.pop();
+            }
+        } else if (isTextHtmlNode(node)) {
             this.parseInterpolatedText(node, context);
-            // If this is an SVG element, skip validation for child elements.
-            const shouldChildrenSkipHtmlValidation = isSvgNode(node);
-            if (shouldChildrenSkipHtmlValidation) {
-                this.shouldSkipHtmlValidation = true;
-            }
-            this.parseChildren(node, context);
-            if (shouldChildrenSkipHtmlValidation) {
-                this.shouldSkipHtmlValidation = false;
-            }
         }
 
-        if (context.isScopeEnd) {
-            this.scopeStack.pop();
-        }
         if (context.errors.length > 0) {
             return Either.Left(context.errors);
         } else {
@@ -373,7 +388,7 @@ export class ElementWalker {
         }
     }
 
-    walkTemplate(element : CheerioElement, scopeInterfaceName : string) : Either<AttributeParserError[], TemplateRootNode> {
+    walkTemplate(element : Node, scopeInterfaceName : string) : Either<AttributeParserError[], TemplateRootNode> {
         const block = scopedBlock([], [], scopeInterfaceName);
         this.scopeStack.push(block);
         this.root.children.push(block);
@@ -387,29 +402,38 @@ export function templateIdToInterfaceName(templateId : string) : string {
     return uppercamelcase(templateId.replace(SANITISING_PATTERN, '_')) + 'Scope';
 }
 
-function isNgTemplate(element : CheerioElement) : boolean {
-    return element.attribs.type === 'text/ng-template';
+function findUnnormalizedAttributeValue(element : Element, attributeName : string) : string | undefined {
+    for (const attrib of element.attrs) {
+        if (attrib.name === attributeName) {
+            return attrib.value;
+        }
+    }
+    return undefined;
 }
 
-export function parseNgTemplateElement(element : CheerioElement, directives : DirectiveMap) : ElementDirectiveParserResult {
+function isNgTemplate(element : Node | Element) : boolean {
+    return isTagNode(element) && findUnnormalizedAttributeValue(element, 'type') === 'text/ng-template';
+}
+
+export function parseNgTemplateElement(element : Element, directives : DirectiveMap) : ElementDirectiveParserResult {
     if (!isScriptNode(element)) {
-        return Either.Left([new ElementDirectiveParserError(`ng-template parser expected a "script" element, but got "${ element.type }" instead.`)]);
-    } else if (element.attribs.type !== 'text/ng-template') {
+        return Either.Left([new ElementDirectiveParserError(`ng-template parser expected a "script" element, but got "${ element.nodeName }" instead.`)]);
+    } else if (findUnnormalizedAttributeValue(element, 'type') !== 'text/ng-template') {
         return Either.Right({
             nodes: []
         });
-    } else if (!element.attribs.id) {
+    } else if (!findUnnormalizedAttributeValue(element, 'id')) {
         return Either.Left([new ElementDirectiveParserError(`ng-template element is missing an "id" attribute.`)]);
     } else {
-        if (element.children.length !== 1) {
-            return Either.Left([new ElementDirectiveParserError(`ng-template script must have exactly one child node. Found: ${ element.children.length }`)]);
+        if (element.childNodes.length !== 1) {
+            return Either.Left([new ElementDirectiveParserError(`ng-template script must have exactly one child node. Found: ${ element.childNodes.length }`)]);
         }
-        const childNode = element.children[0];
+        const childNode = element.childNodes[0];
         if (!isTextHtmlNode(childNode)) {
             return Either.Left([new ElementDirectiveParserError(`ng-template script child node must be a text node.`)]);
         }
-        const interfaceName = templateIdToInterfaceName(element.attribs.id);
-        const parseResult = parseHtml(asHtmlContents(childNode.data), interfaceName, directives);
+        const interfaceName = templateIdToInterfaceName(findUnnormalizedAttributeValue(element, 'id')!);
+        const parseResult = parseHtml(asHtmlContents(childNode.value), interfaceName, directives);
         return parseResult.map((rootNode) => {
             return {
                 nodes: [rootNode],
@@ -423,16 +447,17 @@ export function parseNgTemplateElement(element : CheerioElement, directives : Di
     }
 }
 
-export function parseFormElement(element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
+export function parseFormElement(element : Element, _directives : DirectiveMap) : ElementDirectiveParserResult {
     if (!isFormNode(element)) {
-        return Either.Left([new ElementDirectiveParserError(`form parser expected a "form" element, but got "${ element.type }" instead.`)]);
-    } else if (!element.attribs.name) {
+        return Either.Left([new ElementDirectiveParserError(`form parser expected a "form" element, but got "${ element.nodeName }" instead.`)]);
+    } else if (!findUnnormalizedAttributeValue(element, 'name')) {
         return Either.Right({
             nodes: []
         });
     } else {
+        const formName = findUnnormalizedAttributeValue(element, 'name')!;
         const node = scopedBlock([
-            parameter(element.attribs.name, 'I' + uppercamelcase(element.attribs.name))
+            parameter(formName, 'I' + uppercamelcase(formName))
         ]);
         return Either.Right({
             nodes: [node],
@@ -453,10 +478,11 @@ const inputAttributesMap = new Map<string, string[]>([
     ['ng-step', ['number']],
 ]);
 
-export function parseInputElement(element : CheerioElement, _directives : DirectiveMap) : ElementDirectiveParserResult {
+export function parseInputElement(element : Element, _directives : DirectiveMap) : ElementDirectiveParserResult {
     const errors : ElementDirectiveParserError[] = [];
-    const inputType = element.attribs['type'] || 'text';
-    for (const attrib in element.attribs) {
+    const inputType = findUnnormalizedAttributeValue(element, 'type') || 'text';
+    for (const attribData of element.attrs) {
+        const attrib = attribData.name;
         const allowedElements = inputAttributesMap.get(attrib);
         if (allowedElements !== undefined) {
             if (allowedElements.indexOf(inputType) === -1) {

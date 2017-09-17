@@ -1,4 +1,3 @@
-import * as cheerio from "cheerio";
 import * as jade from "jade";
 import * as pug from "pug";
 import {TemplateRootNode} from "../generator/ast";
@@ -6,6 +5,7 @@ import {Either} from "monet";
 import {asHtmlContents, FileName, HtmlContents, PugContents, TcatError, TemplateParserError} from "../core";
 import {parseElement} from "./elements";
 import {DirectiveMap} from "../directives";
+import {AST, parse as parseHtmlDocument} from "parse5";
 
 export function parsePugToHtml(contents : PugContents, templateFileName? : FileName) : Either<TcatError[], HtmlContents> {
     let html;
@@ -29,11 +29,11 @@ export function parsePugToHtml(contents : PugContents, templateFileName? : FileN
 }
 
 export function parseHtml(html : HtmlContents, scopeInterfaceName : string, directives : DirectiveMap) : Either<TcatError[], TemplateRootNode> {
-    let $;
+    let document : AST.Default.Document;
     try {
-        $ = cheerio.load(html);
+        document = <AST.Default.Document> parseHtmlDocument(html);
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }
-    return parseElement($.root().get(0), directives, scopeInterfaceName);
+    return parseElement(document.childNodes[0], directives, scopeInterfaceName);
 }
