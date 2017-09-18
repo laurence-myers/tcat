@@ -1,4 +1,5 @@
 export * from "./filters";
+export {AttributeParserError, ElementDirectiveParserError, TcatError} from "./core";
 import {
     convertDirectiveConfigToDirectiveData as _convertDirectiveConfigToDirectiveData,
     IDirective, TcatDirectiveExtras
