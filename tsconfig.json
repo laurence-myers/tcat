@@ -8,6 +8,7 @@
     "sourceMap": true,
     "outDir": "dist",
     "noEmitOnError": true,
+    "newLine": "lf",
 
     "strict": true,
 

@@ -1,6 +1,6 @@
 {
   "name": "tcat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Type Checker for AngularJS Templates",
   "author": "Laurence Dougal Myers",
   "license": "MIT",
