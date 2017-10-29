@@ -140,10 +140,12 @@ export default class extends Command {
             )
         );
         const extensionToStrip = `.ts`;
-        const fileWatcher = chokidar.watch(allFilesToWatch);
+        const fileWatcher = chokidar.watch(allFilesToWatch, {
+            usePolling: true
+        });
         fileWatcher
             .on('change', (path : string) => {
-                console.log(`Running tcat on changed file: ${ path }`);
+                console.log(`Running tcat on changed file: ${ path.replace(commonPath, '') }`);
                 if (path.endsWith(extensionToStrip)) {
                     path = path.substr(0, path.length - extensionToStrip.length);
                 }
