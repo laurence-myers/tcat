@@ -92,6 +92,33 @@ export default class extends Command {
         };
     }
 
+    protected processFiles(directives : DirectiveData[], commonPath : string, fileNames : FileName[]) : Either<TcatError[], void> {
+        return fileNames.map((fileName : FileName) =>
+            this.processFile(fileName, directives)
+                .leftMap(
+                    (errors) => {
+                        errors.forEach((err) => {
+                            console.error(
+                                fileName.replace(commonPath, '') + ':',
+                                this.verbose ? err : err.message
+                            );
+                        });
+                        return errors;
+                    }
+                )
+        ).reduce((current : Either<TcatError[], void>, previous : Either<TcatError[], void>) : Either<TcatError[], void> => {
+            if (current.isLeft()) {
+                if (previous.isLeft()) {
+                    return Either.Left(previous.left().concat(current.left()));
+                } else {
+                    return current;
+                }
+            } else {
+                return previous;
+            }
+        }, Either.Right(undefined));
+    }
+
     async execute(
         @param({
             description: 'A JSON file containing directive config data. Refer to the documentation.',
@@ -133,32 +160,7 @@ export default class extends Command {
                 });
                 return errors;
             })
-            .flatMap((directives) =>
-                fileNames.map((fileName : FileName) =>
-                    this.processFile(fileName, directives)
-                        .leftMap(
-                            (errors) => {
-                                errors.forEach((err) => {
-                                    console.error(
-                                        fileName.replace(commonPath, '') + ':',
-                                        this.verbose ? err : err.message
-                                    );
-                                });
-                                return errors;
-                            }
-                        )
-                ).reduce((current : Either<TcatError[], void>, previous : Either<TcatError[], void>) : Either<TcatError[], void> => {
-                    if (current.isLeft()) {
-                        if (previous.isLeft()) {
-                            return Either.Left(previous.left().concat(current.left()));
-                        } else {
-                            return current;
-                        }
-                    } else {
-                        return previous;
-                    }
-                }, Either.Right(undefined))
-            );
+            .flatMap((directives) => this.processFiles(directives, commonPath, fileNames));
         return result.cata((errors) => {
                 console.log(`Done, with ${ errors.length } error${ errors.length > 1 ? 's' : '' }.`);
                 process.exitCode = 1;
