@@ -17,6 +17,7 @@ import * as path from "path";
 import {Either} from "monet";
 import {FileFilter, findLongestCommonPath, readDirectiveDataFile, walk} from "../files";
 import {DirectiveData} from "../directives";
+import * as chokidar from "chokidar";
 
 class FileOrDirectory {
     static cast(name : string, context : CastingContext<File | Directory>) : File | Directory {
@@ -44,6 +45,14 @@ export class CliOptions extends Options {
         toggle: true
     })
     verbose : boolean;
+
+    @option({
+        flag: 'w',
+        description: 'Watch for changes',
+        default: false,
+        toggle: true
+    })
+    watch : boolean;
 }
 
 @command({
@@ -51,6 +60,7 @@ export class CliOptions extends Options {
 })
 export default class extends Command {
     protected verbose : boolean = false;
+    protected watch : boolean = false;
 
     protected debug(...args : any[]) : void {
         if (this.verbose) {
@@ -74,10 +84,14 @@ export default class extends Command {
         return walk(directory, filter);
     }
 
-    protected createFileFilter(options : CliOptions) : FileFilter {
-        const extensions = options.filter
+    protected parseExtensions(filterString : string) : string[] {
+        return filterString
             .split(',')
             .map((extension) => extension.toLowerCase());
+    }
+
+    protected createFileFilter(options : CliOptions) : FileFilter {
+        const extensions = this.parseExtensions(options.filter);
         return (fileName) => {
             const isValidFileName = extensions.indexOf(path.extname(fileName.toLowerCase())) > -1;
             if (isValidFileName) {
@@ -119,6 +133,40 @@ export default class extends Command {
         }, Either.Right(undefined));
     }
 
+    protected startWatching(fileNames : FileName[], _directories : DirectoryName[], directives : DirectiveData[], commonPath : string) {
+        const allFilesToWatch = fileNames.concat(
+            fileNames.map(
+                (fileName) => asFileName(fileName + '.ts')
+            )
+        );
+        const extensionToStrip = `.ts`;
+        const fileWatcher = chokidar.watch(allFilesToWatch);
+        fileWatcher
+            .on('change', (path : string) => {
+                console.log(`Running tcat on changed file: ${ path }`);
+                if (path.endsWith(extensionToStrip)) {
+                    path = path.substr(0, path.length - extensionToStrip.length);
+                }
+                this.runAnExecution(directives, commonPath, [asFileName(path)]);
+            })
+            .on('error', (err : any) => {
+                console.error(`Error encountered while watching for changes: ${ err }`);
+            });
+    }
+
+    protected runAnExecution(directives : DirectiveData[], commonPath : string, fileNames : FileName[]) : void {
+        return this.processFiles(directives, commonPath, fileNames)
+            .cata((errors) => {
+                const message = `tcat finished, with ${ errors.length } error${ errors.length > 1 ? 's' : '' }.${ this.watch ? ' Watching for changes.' : '' }`;
+                console.log(message);
+                process.exitCode = 1;
+            }, () => {
+                const message = `tcat finished${ this.watch ? ', watching for changes' : '' }.`;
+                console.log(message);
+                process.exitCode = 0;
+            });
+    }
+
     async execute(
         @param({
             description: 'A JSON file containing directive config data. Refer to the documentation.',
@@ -136,6 +184,7 @@ export default class extends Command {
         options : CliOptions
     ) {
         this.verbose = options.verbose;
+        this.watch = options.watch;
         await directivesFileName.assert();
         await Promise.all(filesOrDirectories.map(async (templateName) => templateName.assert()));
         console.log("Starting tcat...");
@@ -150,7 +199,7 @@ export default class extends Command {
             })
         );
         const commonPath = findLongestCommonPath(fileNames) + path.sep;
-        const result = readDirectiveDataFile(asFileName(directivesFileName.fullName))
+        return readDirectiveDataFile(asFileName(directivesFileName.fullName))
             .leftMap((errors : TcatError[]) => {
                 errors.forEach((err) => {
                     console.error(
@@ -159,13 +208,14 @@ export default class extends Command {
                     );
                 });
                 return errors;
-            })
-            .flatMap((directives) => this.processFiles(directives, commonPath, fileNames));
-        return result.cata((errors) => {
-                console.log(`Done, with ${ errors.length } error${ errors.length > 1 ? 's' : '' }.`);
-                process.exitCode = 1;
-            }, () => {
-                console.log("Done!");
-            });
+            }).map((directives) => {
+                this.runAnExecution(directives, commonPath, fileNames);
+                if (this.watch) {
+                    const directories = filesOrDirectories
+                        .filter((fileOrDirectory) => fileOrDirectory instanceof Directory)
+                        .map((directory) => asDirectoryName(directory.fullName));
+                    this.startWatching(fileNames, directories, directives, commonPath);
+                }
+            }).cata(() => {}, () => {});
     }
 }
