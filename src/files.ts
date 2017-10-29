@@ -118,6 +118,9 @@ export function findLongestCommonPath(fileNames : FileName[]) : string {
             }
         }
         return commonComponents.join(path.sep);
+    } else if (fileNames.length === 1) {
+        const split = fileNames[0].split(path.sep);
+        return split.slice(0, split.length - 1).join(path.sep);
     } else {
         return '';
     }
