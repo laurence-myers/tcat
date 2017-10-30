@@ -356,12 +356,15 @@ describe(`Files`, function () {
             assert.strictEqual(result, path.join('d:', 'code', 'myProject'));
         });
 
-        it(`returns an empty string if passed less than two FileNames`, function () {
-            let result = findLongestCommonPath([]);
-            assert.strictEqual(result, "");
-            result = findLongestCommonPath([
-                asFileName('D:\\Code\\someFile.ts')
+        it(`returns the whole directory if passed one FileNames`, function () {
+            let result = findLongestCommonPath([
+                asFileName(path.join('d:', 'code', 'myProject', 'subDir1', 'someFile.ts'))
             ]);
+            assert.strictEqual(result, result, path.join('d:', 'code', 'myProject', 'subDir1'));
+        });
+
+        it(`returns an empty string if passed zero FileNames`, function () {
+            let result = findLongestCommonPath([]);
             assert.strictEqual(result, "");
         });
     });
