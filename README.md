@@ -185,6 +185,15 @@ tcat files.
 Or, you could compile all files in one go, by running tcat across your entire directory, then compiling the generated
 tcat files. This could happen as a "postinstall" npm script.
 
+tcat has some options to watch for changes, and/or to invoke the TypeScript Compiler to compile the generated files.
+
+## Command line options
+
+- -c / --compile ./path/to/tsconfig.json: spawn tsc in a sub-process, with the given tsconfig.json file.
+- -f / --filter: filter for the given file extensions. Specify multiple extensions using commas, e.g. .jade,.html. Defaults to ".html,.pug,.jade"
+- --verbose: turns on verbose logging.
+- -w / --watch: watch for changes to .html.ts/.pug.ts/jade.ts, or .html/.pug/.jade files with an equivalent .ts file.  
+
 ## Supported templates
 
 tcat can read templates in the following formats:
@@ -196,6 +205,90 @@ tcat can read templates in the following formats:
 Jade templates are parsed using the legacy "jade" module, to support older projects still using "jade" files.
 
 Note that templates with locals are not supported! tcat expects AngularJS to handle templating.  
+
+## Directive data
+
+The main interfaces for directive data are as follows.
+
+```typescript
+interface DirectiveData {
+    name : string; // e.g. "ngRepeat"
+    
+    canBeElement : boolean; // Equivalent to "restrict: 'E'"
+    
+    canBeAttribute : boolean;  // Equivalent to "restrict: 'A'"
+     
+    attributes : DirectiveAttribute[]; // All of the HTML attributes used by this directive
+     
+    parser? : ElementDirectiveParser; // For advanced usage
+    
+    priority? : number; // The directive configuration 
+}
+
+interface DirectiveAttribute {
+    name : string; // e.g. "ngRepeat"
+    
+    optional? : boolean; // Is this attribute optional? Defaults to false
+    
+    // "expression" will be treated as an AngularJS expression.
+    // "interpolated" will extract one or more AngularJS expressions from the value.
+    mode? : 'expression' | 'interpolated';
+    
+    // When using "@" bindings, you can pass locals to the expression. This information is not normally available via
+    // the standard AngularJS directive configuration, so you must manually specify each available local here.
+    locals? : AttributeLocal[];
+    
+    
+    // For advanced usage
+    parser? : AttributeParser;
+}
+
+interface AttributeLocal {
+    name : string;
+    type : string; // This is a raw string that will be used when generating TypeScript type annotations. 
+}
+```
+
+For advanced usage, e.g. any directives containing a micro-syntax like "ngRepeat", you may need to implement an element
+parser or attribute parser. Please look at the code for `tcat` to see how parsers can be implemented.
+
+### JSON file
+
+Write a .json file, containing an array of objects conforming to the DirectiveData interface.
+
+When using a .json file, you will be unable to specify any parsers. If you require this, you must us a JS file.
+
+### JS file
+
+Write a .js file - or, recommended, a TypeScript file that gets compiled to JS as part of your build process - which 
+exports an array of objects conforming to the DirectiveData interface.
+
+tcat exposes a function 
+`convertDirectiveConfigToDirectiveData(directiveName : string, directiveConfig : IDirective, extras? : TcatDirectiveExtras)`. 
+It can be used to read in an existing AngularJS directive configuration object, and convert it to conform to the 
+DirectiveData interface. You can make use of this to generate your directives JS file.
+
+The `extras` parameter lets you provide extra information unavailable in the standard AngularJS directive configuration,
+such as defining the local variables available within expressions bound using `@`, or custom parsers. The interface is 
+as follows.
+
+```typescript
+export interface TcatDirectiveExtras {
+    parser? : ElementDirectiveParser;
+    attributes? : {
+        [attributeName : string] : {
+            parser? : AttributeParser;
+            locals? : AttributeLocal[];
+        };
+    };
+}
+``` 
+
+This approach has many benefits:
+
+- Reduced boilerplate, since you can re-use your existing directive config code.
+- Your directive data stays in sync with your codebase.
+- You can specify element parsers or attribute parsers for advanced requirements.
 
 ## TODO
 
