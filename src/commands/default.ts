@@ -14,6 +14,7 @@ import {convertHtmlFileToTypeScriptFile, convertPugFileToTypeScriptFile} from ".
 import {Directory, File} from "clime/bld/castable";
 import * as fs from "fs";
 import * as path from "path";
+import * as childProcess from "child_process";
 import {Either} from "monet";
 import {FileFilter, findLongestCommonPath, readDirectiveDataFile, walk} from "../files";
 import {DirectiveData} from "../directives";
@@ -53,6 +54,12 @@ export class CliOptions extends Options {
         toggle: true
     })
     watch : boolean;
+
+    @option({
+        flag: 'c',
+        description: `Compile using tsc with the given tsconfig.json file. If --watch is also specified, tsc will spawn as a background process in watch mode.`
+    })
+    compile : string;
 }
 
 @command({
@@ -61,6 +68,7 @@ export class CliOptions extends Options {
 export default class extends Command {
     protected verbose : boolean = false;
     protected watch : boolean = false;
+    protected tscConfig : string | undefined = undefined;
 
     protected debug(...args : any[]) : void {
         if (this.verbose) {
@@ -144,12 +152,12 @@ export default class extends Command {
             usePolling: true
         });
         fileWatcher
-            .on('change', (path : string) => {
-                console.log(`Running tcat on changed file: ${ path.replace(commonPath, '') }`);
-                if (path.endsWith(extensionToStrip)) {
-                    path = path.substr(0, path.length - extensionToStrip.length);
+            .on('change', (fileName : string) => {
+                console.log(`Running tcat on changed file: ${ fileName.replace(commonPath, '') }`);
+                if (fileName.endsWith(extensionToStrip)) {
+                    fileName = fileName.substr(0, fileName.length - extensionToStrip.length);
                 }
-                this.runAnExecution(directives, commonPath, [asFileName(path)]);
+                this.runAnExecution(directives, commonPath, [asFileName(fileName)]);
             })
             .on('error', (err : any) => {
                 console.error(`Error encountered while watching for changes: ${ err }`);
@@ -167,6 +175,35 @@ export default class extends Command {
                 console.log(message);
                 process.exitCode = 0;
             });
+    }
+
+    protected async spawnTypeScriptCompiler() {
+        return new Promise<string>((resolve, reject) => {
+            // Work out the path to TSC.
+            const sprog = childProcess.exec(`npm bin`);
+            sprog.stdout.on('data', (data : string) => resolve(data.replace('\n', '')));
+            sprog.on('error', (err) => {
+                console.error(err);
+                return reject(err);
+            });
+        }).then((binDir) => {
+            return new Promise((resolve, reject) => {
+                // Spawn TSC in a separate child process. This makes "watch" much faster.
+                const args = ['-p', this.tscConfig!];
+                if (this.watch) {
+                    args.push('-w');
+                }
+                const command = 'tsc' + (process.platform === 'win32' ? '.cmd' : '' );
+                const sprog = childProcess.spawn(path.join(binDir, command), args, {
+                    stdio: 'inherit'
+                });
+                sprog.on('close', resolve);
+                sprog.on('error', (err) => {
+                    console.error(err);
+                    return reject(err);
+                });
+            });
+        });
     }
 
     async execute(
@@ -187,6 +224,7 @@ export default class extends Command {
     ) {
         this.verbose = options.verbose;
         this.watch = options.watch;
+        this.tscConfig = options.compile || undefined;
         await directivesFileName.assert();
         await Promise.all(filesOrDirectories.map(async (templateName) => templateName.assert()));
         console.log("Starting tcat...");
@@ -210,13 +248,17 @@ export default class extends Command {
                     );
                 });
                 return errors;
-            }).map((directives) => {
+            }).map(async (directives) => {
                 this.runAnExecution(directives, commonPath, fileNames);
                 if (this.watch) {
                     const directories = filesOrDirectories
                         .filter((fileOrDirectory) => fileOrDirectory instanceof Directory)
                         .map((directory) => asDirectoryName(directory.fullName));
                     this.startWatching(fileNames, directories, directives, commonPath);
+                }
+                if (this.tscConfig) {
+                    console.log(`Spawning tsc...`);
+                    await this.spawnTypeScriptCompiler();
                 }
             }).cata(() => {}, () => {});
     }
