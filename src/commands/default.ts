@@ -197,7 +197,13 @@ export default class extends Command {
                 const sprog = childProcess.spawn(path.join(binDir, command), args, {
                     stdio: 'inherit'
                 });
-                sprog.on('close', resolve);
+                sprog.on('exit', (code : number, _signal : string) => {
+                    if (code === 0) {
+                        return resolve();
+                    } else {
+                        return reject();
+                    }
+                });
                 sprog.on('error', (err) => {
                     console.error(err);
                     return reject(err);
@@ -239,27 +245,34 @@ export default class extends Command {
             })
         );
         const commonPath = findLongestCommonPath(fileNames) + path.sep;
-        return readDirectiveDataFile(asFileName(directivesFileName.fullName))
-            .leftMap((errors : TcatError[]) => {
-                errors.forEach((err) => {
-                    console.error(
-                        directivesFileName.fullName + ':',
-                        this.verbose ? err : err.message
-                    );
-                });
-                return errors;
-            }).map(async (directives) => {
-                this.runAnExecution(directives, commonPath, fileNames);
-                if (this.watch) {
-                    const directories = filesOrDirectories
-                        .filter((fileOrDirectory) => fileOrDirectory instanceof Directory)
-                        .map((directory) => asDirectoryName(directory.fullName));
-                    this.startWatching(fileNames, directories, directives, commonPath);
-                }
-                if (this.tscConfig) {
-                    console.log(`Spawning tsc...`);
-                    await this.spawnTypeScriptCompiler();
-                }
-            }).cata(() => {}, () => {});
+        try {
+            await readDirectiveDataFile(asFileName(directivesFileName.fullName))
+                .leftMap((errors : TcatError[]) => {
+                    errors.forEach((err) => {
+                        console.error(
+                            directivesFileName.fullName + ':',
+                            this.verbose ? err : err.message
+                        );
+                    });
+                    return errors;
+                }).map(async (directives) => {
+                    this.runAnExecution(directives, commonPath, fileNames);
+                    if (this.watch) {
+                        const directories = filesOrDirectories
+                            .filter((fileOrDirectory) => fileOrDirectory instanceof Directory)
+                            .map((directory) => asDirectoryName(directory.fullName));
+                        this.startWatching(fileNames, directories, directives, commonPath);
+                    }
+                    if (this.tscConfig) {
+                        console.log(`Spawning tsc...`);
+                        await this.spawnTypeScriptCompiler();
+                    }
+                }).cata(
+                    async (err) => Promise.reject(err),
+                    async (promise) => promise
+                );
+        } catch (err) {
+            process.exitCode = 1;
+        }
     }
 }
