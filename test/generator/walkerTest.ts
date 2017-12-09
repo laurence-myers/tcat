@@ -4,6 +4,7 @@ import {TypeScriptGenerator} from "../../src/generator/walker";
 import {arrayIteration, assign, objectIteration, scopedBlock, templateRoot} from "../../src/generator/dsl";
 import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
 import {outdent as outdentOrig} from "outdent";
+import {ngExpr} from "../testUtils";
 
 const outdent = outdentOrig({ trimTrailingNewline: false });
 
@@ -16,7 +17,7 @@ describe(`Generator walker`, function () {
 
         it(`assigns an expression to a const`, function () {
             const expression = `!ctrl.tagClick`;
-            const actual = walk(assign(expression));
+            const actual = walk(assign(ngExpr(expression)));
             const expected = `const _expr_1 = (!_scope_0.ctrl.tagClick);\n`;
             assert.equal(actual, expected);
         });
@@ -24,8 +25,8 @@ describe(`Generator walker`, function () {
         it(`assigns multiple identical expressions to separate variables`, function () {
             const expression = `!ctrl.tagClick`;
             const actual = walk(scopedBlock([], [
-                assign(expression),
-                assign(expression)
+                assign(ngExpr(expression)),
+                assign(ngExpr(expression))
             ]));
             const expected = outdent`
                 const _block_1 = function () {
@@ -38,7 +39,7 @@ describe(`Generator walker`, function () {
         describe(`ngRepeat`, function () {
             it(`should iterate over an array of objects`, function () {
                 const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items')
+                    arrayIteration('item', ngExpr('items'))
                 ]));
                 const expected = outdent`
                     const _block_1 = function (
@@ -59,7 +60,7 @@ describe(`Generator walker`, function () {
 
             it(`should iterate over on object/map`, function () {
                 const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    objectIteration('key', 'value', 'items')
+                    objectIteration('key', 'value', ngExpr('items'))
                 ]));
                 const expected = outdent`
                     const _block_1 = function (
@@ -81,9 +82,9 @@ describe(`Generator walker`, function () {
 
             it(`should not look for locals in the scope object`, function () {
                 const actual = walk(scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items', [
-                        assign(`item.name`),
-                        assign(`someScopedValue`)
+                    arrayIteration('item', ngExpr('items'), [
+                        assign(ngExpr(`item.name`)),
+                        assign(ngExpr(`someScopedValue`))
                     ])
                 ]));
                 const expected = outdent`
@@ -111,22 +112,22 @@ describe(`Generator walker`, function () {
                 templateRoot([
                     scopedBlock([], [
                         scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                            arrayIteration('item', 'items', [
-                                assign(`item.name`),
-                                assign(`someScopedValue`)
+                            arrayIteration('item', ngExpr('items'), [
+                                assign(ngExpr(`item.name`)),
+                                assign(ngExpr(`someScopedValue`))
                             ]),
-                            assign(`item.name`)
+                            assign(ngExpr(`item.name`))
                         ]),
                         scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                            objectIteration('someKey', 'someValue', 'someObject', [
-                                assign(`someKey + '1'`),
-                                assign(`someValue`)
+                            objectIteration('someKey', 'someValue', ngExpr('someObject'), [
+                                assign(ngExpr(`someKey + '1'`)),
+                                assign(ngExpr(`someValue`))
                             ]),
-                            assign(`someKey`),
-                            assign(`someValue`)
+                            assign(ngExpr(`someKey`)),
+                            assign(ngExpr(`someValue`))
                         ]),
-                        assign(`_expr_7`),
-                        assign(`$index`)
+                        assign(ngExpr(`_expr_7`)),
+                        assign(ngExpr(`$index`))
                     ], 'TemplateScope')
                 ])
             );
@@ -180,7 +181,7 @@ describe(`Generator walker`, function () {
                         scopedBlock([], [
 
                         ], `NestedScope`),
-                        assign(`someValue`)
+                        assign(ngExpr(`someValue`))
                     ], 'TemplateScope')
                 ])
             );
@@ -202,7 +203,7 @@ describe(`Generator walker`, function () {
             const actual = walk(
                 templateRoot([
                     scopedBlock([], [
-                        assign(`{ active: isActive }`)
+                        assign(ngExpr(`{ active: isActive }`))
                     ], 'TemplateScope')
                 ])
             );

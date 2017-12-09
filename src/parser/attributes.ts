@@ -1,5 +1,5 @@
 import {Either} from 'monet';
-import {AttributeParserError} from "../core";
+import {AttributeParserError, NgExpressionParserError} from "../core";
 import {arrayIteration, assign, ifStatement, objectIteration, parameter, scopedBlock} from "../generator/dsl";
 import {
     ArrayIterationNode,
@@ -8,6 +8,8 @@ import {
     ObjectIterationNode,
     ParameterNode
 } from "../generator/ast";
+import {parseExpression} from "../ngExpression/ngAstBuilder";
+import {ProgramNode} from "../ngExpression/ast";
 
 export interface ScopeData {
     root : HasChildrenAstNode;
@@ -27,9 +29,10 @@ export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 export type AttributeParser = (attrib : string) => ParserResult;
 
 export function defaultParser(attrib : string) : ParserResult {
-    return Either.Right({
-        nodes: [assign(attrib)]
-    });
+    return parseExpression(attrib)
+        .map((ast) => ({
+            nodes: [assign(ast)]
+        }));
 }
 
 export const NG_REPEAT_SPECIAL_PROPERTIES : ParameterNode[] = [
@@ -52,7 +55,7 @@ export function parseNgRepeat(expression : string) : ParserResult {
     }
 
     const lhs = match[1];
-    const rhs = match[2];
+    const rhsString = match[2];
     const aliasAs = match[3];
     const trackByExp = match[4];
 
@@ -71,33 +74,43 @@ export function parseNgRepeat(expression : string) : ParserResult {
 
     const containingNode = scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES);
 
-    let iteratorNode;
-    let iterableName;
-    if (aliasAs) { // "as" syntax aliases the filtered iterable
-        iterableName = aliasAs;
-        containingNode.children.push(assign(rhs, { name: aliasAs }));
-    } else {
-        iterableName = rhs;
-    }
-    if (keyIdentifier) {
-        iteratorNode = objectIteration(keyIdentifier, valueIdentifier, iterableName);
-    } else {
-        iteratorNode = arrayIteration(valueIdentifier, iterableName);
-    }
+    return parseExpression(rhsString)
+        .flatMap((rhs) => {
+            if (aliasAs) { // "as" syntax aliases the filtered iterable
+                containingNode.children.push(assign(rhs, { name: aliasAs }));
+                return parseExpression(aliasAs);
+            } else {
+                return Either.Right(rhs);
+            }
+        }).flatMap((iterable) => {
+            let iteratorNode : ObjectIterationNode | ArrayIterationNode;
+            if (keyIdentifier) {
+                iteratorNode = objectIteration(keyIdentifier, valueIdentifier, iterable);
+            } else {
+                iteratorNode = arrayIteration(valueIdentifier, iterable);
+            }
 
-    if (trackByExp && trackByExp !== '$index') {
-        iteratorNode.children.push(assign(trackByExp));
-    }
-    containingNode.children.push(iteratorNode);
+            if (trackByExp && trackByExp !== '$index') {
+                return parseExpression(trackByExp)
+                    .map((trackByExpAst) => {
+                        iteratorNode.children.push(assign(trackByExpAst));
+                        return iteratorNode;
+                    });
+            } else {
+                return Either.Right(iteratorNode);
+            }
+        }).map((iteratorNode) => {
+            containingNode.children.push(iteratorNode);
 
-    return Either.Right({
-        nodes: [containingNode],
-        isScopeEnd: true,
-        scopeData: {
-            root: containingNode,
-            childParent: iteratorNode
-        }
-    });
+            return {
+                nodes: [containingNode],
+                isScopeEnd: true,
+                scopeData: {
+                    root: containingNode,
+                    childParent: iteratorNode
+                }
+            };
+        });
 }
 
 export function wrapParseScopeStart(parser : AttributeParser) : AttributeParser {
@@ -120,26 +133,48 @@ export function parseScopeEnd(_expression? : string) : ParserResult {
 }
 
 export function parseNgIf(expression : string) : ParserResult {
-    const node = ifStatement(expression);
-    return Either.Right({
-        nodes: [node],
-        scopeData: {
-            root: node,
-            childParent: node
-        }
-    });
+    return parseExpression(expression)
+        .map((ast) => {
+            const node = ifStatement(ast);
+            return {
+                nodes: [node],
+                scopeData: {
+                    root: node,
+                    childParent: node
+                }
+            };
+        });
 }
 
 export function parseEventDirective(expression : string) : ParserResult {
-    const node = scopedBlock([
-        // not ideal, consumers need to manually import IAngularEvent
-        parameter(`$event`, `IAngularEvent`)
-    ], [
-        assign(expression)
-    ]);
-    return Either.Right({
-        nodes: [node]
-    });
+    return parseExpression(expression)
+        .map((ast) => {
+            const node = scopedBlock([
+                // not ideal, consumers need to manually import IAngularEvent
+                parameter(`$event`, `IAngularEvent`)
+            ], [
+                assign(ast)
+            ]);
+            return {
+                nodes: [node]
+            };
+        });
+}
+
+function parseExpressions(expressions : string[]) : Either<AttributeParserError, ProgramNode[]> {
+    return Either.Right<AttributeParserError, string[]>(expressions)
+        .flatMap((expressions) => {
+            return expressions.map(parseExpression)
+                .reduce((accumulator : Either<NgExpressionParserError, ProgramNode[]>, currentValue : Either<NgExpressionParserError, ProgramNode>) : Either<NgExpressionParserError, ProgramNode[]> => {
+                    if (accumulator.isLeft()) {
+                        return accumulator;
+                    } else if (currentValue.isLeft()) {
+                        return Either.Left(currentValue.left());
+                    } else {
+                        return Either.Right(accumulator.right().concat(currentValue.right()));
+                    }
+                }, Either.Right([]));
+        });
 }
 
 // Derived from: https://github.com/angular/angular.js/blob/aee5d02cb789e178f3f80f95cdabea38e0090501/src/ng/interpolate.js#L240
@@ -167,9 +202,10 @@ export function parseInterpolatedText(text : string, symbols = {
         }
     }
 
-    return Either.Right({
-        nodes: expressions.map((value) => assign(value))
-    });
+    return parseExpressions(expressions)
+        .map((asts) => ({
+            nodes: asts.map((ast) => assign(ast))
+        }));
 }
 
 /* tslint-disable max-len */
@@ -207,34 +243,42 @@ export function parseNgOptions(optionsExp : string) : ParserResult {
 
     // Convert to generator AST
     const nodes : GeneratorAstNode[] = [];
-
     let iteratorNode : ArrayIterationNode | ObjectIterationNode;
-    if (keyName) {
-        iteratorNode = objectIteration(keyName, valueName, valuesExpr);
-    } else {
-        iteratorNode = arrayIteration(valueName, valuesExpr);
-    }
-    nodes.push(iteratorNode);
 
-    if (viewValueExpr !== valueName) {
-        iteratorNode.children.push(assign(viewValueExpr));
-    }
-    if (displayExpr !== valueName) {
-        iteratorNode.children.push(assign(displayExpr));
-    }
-    if (groupByExpr) {
-        iteratorNode.children.push(assign(groupByExpr));
-    }
-    if (disableWhenExpr) {
-        iteratorNode.children.push(assign(disableWhenExpr));
-    }
-    if (trackBy) {
-        iteratorNode.children.push(assign(trackBy));
-    }
+    return parseExpression(valuesExpr)
+        .flatMap((valuesAst) => {
+            if (keyName) {
+                iteratorNode = objectIteration(keyName, valueName, valuesAst);
+            } else {
+                iteratorNode = arrayIteration(valueName, valuesAst);
+            }
+            nodes.push(iteratorNode);
 
-    return Either.Right({
-        nodes
-    });
+            const expressionsToParse = [];
+            if (viewValueExpr !== valueName) {
+                expressionsToParse.push(viewValueExpr);
+            }
+            if (displayExpr !== valueName) {
+                expressionsToParse.push(displayExpr);
+            }
+            if (groupByExpr) {
+                expressionsToParse.push(groupByExpr);
+            }
+            if (disableWhenExpr) {
+                expressionsToParse.push(disableWhenExpr);
+            }
+            if (trackBy) {
+                expressionsToParse.push(trackBy);
+            }
+            return parseExpressions(expressionsToParse);
+        }).map((asts) => {
+            asts.forEach((ast) => {
+                iteratorNode.children.push(assign(ast));
+            });
+            return {
+                nodes
+            };
+        });
 }
 
 const CNTRL_REG = /^(\S+)(\s+as\s+([\w$]+))?$/;

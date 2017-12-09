@@ -1,26 +1,26 @@
-import {parseExpression} from "../../src/ngExpression/ngAstBuilder";
 import {
     ExpressionFilterRectifier,
     ExpressionScopeRectifier,
     ExpressionToStringWalker
 } from "../../src/ngExpression/expressionWalker";
 import * as assert from "assert";
+import {ngExpr} from "../testUtils";
 
 describe(`Expression walkers`, function () {
     function toAstToString(expression : string) {
-        const ast = parseExpression(expression);
+        const ast = ngExpr(expression);
         const walker = new ExpressionToStringWalker();
         return walker.walk(ast);
     }
 
     function rectified(expression : string) {
-        const ast = parseExpression(expression);
+        const ast = ngExpr(expression);
         const walker = new ExpressionFilterRectifier();
         return walker.walk(ast);
     }
 
     function scopeRectified(expression : string, localsStack? : Set<string>[]) {
-        const ast = parseExpression(expression);
+        const ast = ngExpr(expression);
         const walker = new ExpressionScopeRectifier(1, localsStack);
         return walker.walk(ast);
     }

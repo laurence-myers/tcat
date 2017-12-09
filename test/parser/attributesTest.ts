@@ -9,6 +9,7 @@ import * as assert from "assert";
 import {AttributeParserError} from "../../src/core";
 import {GeneratorAstNode} from "../../src/generator/ast";
 import {arrayIteration, assign, objectIteration, scopedBlock} from "../../src/generator/dsl";
+import {ngExpr} from "../testUtils";
 
 describe(`Parsers`, function() {
     describe(`expressions with filters`, function () {
@@ -63,7 +64,7 @@ describe(`Parsers`, function() {
         }
 
         it(`should iterate over an array of objects`, function () {
-            const iterationNode = arrayIteration('item', 'items');
+            const iterationNode = arrayIteration('item', ngExpr('items'));
             const rootNode = scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
                 iterationNode
             ]);
@@ -82,7 +83,7 @@ describe(`Parsers`, function() {
             const actual = testExpression('item in ::items');
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items')
+                    arrayIteration('item', ngExpr('items'))
                 ])
             ];
             assert.deepEqual(actual.nodes, expected);
@@ -92,7 +93,7 @@ describe(`Parsers`, function() {
             const actual = testExpression('(key, value) in items');
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    objectIteration('key', 'value', 'items')
+                    objectIteration('key', 'value', ngExpr('items'))
                 ])
             ];
             assert.deepEqual(actual.nodes, expected);
@@ -102,7 +103,7 @@ describe(`Parsers`, function() {
             const actual = testExpression(`(  key ,  value  ) in items`);
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    objectIteration('key', 'value', 'items')
+                    objectIteration('key', 'value', ngExpr('items'))
                 ])
             ];
             assert.deepEqual(actual.nodes, expected);
@@ -112,8 +113,8 @@ describe(`Parsers`, function() {
             const actual = testExpression(`item in items track by item.id`);
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items', [
-                        assign('item.id')
+                    arrayIteration('item', ngExpr('items'), [
+                        assign(ngExpr('item.id'))
                     ]),
                 ])
             ];
@@ -124,8 +125,8 @@ describe(`Parsers`, function() {
             const actual = testExpression(`item in items track by $id(item)`);
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items', [
-                        assign('$id(item)')
+                    arrayIteration('item', ngExpr('items'), [
+                        assign(ngExpr('$id(item)'))
                     ]),
                 ])
             ];
@@ -136,8 +137,8 @@ describe(`Parsers`, function() {
             const actual = testExpression(`item in items | filter:isIgor track by $id(item)`);
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items | filter : isIgor', [
-                        assign('$id(item)')
+                    arrayIteration('item', ngExpr('items | filter : isIgor'), [
+                        assign(ngExpr('$id(item)'))
                     ]),
                 ])
             ];
@@ -148,8 +149,8 @@ describe(`Parsers`, function() {
             const actual = testExpression(`item in items | filter:newArray track by item.id`);
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items | filter : newArray', [
-                        assign('item.id')
+                    arrayIteration('item', ngExpr('items | filter : newArray'), [
+                        assign(ngExpr('item.id'))
                     ]),
                 ])
             ];
@@ -160,7 +161,7 @@ describe(`Parsers`, function() {
             const actual = testExpression(`item in items track by $index`);
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    arrayIteration('item', 'items', [
+                    arrayIteration('item', ngExpr('items'), [
                     ]),
                 ])
             ];
@@ -171,7 +172,7 @@ describe(`Parsers`, function() {
             const actual = testExpression('(key, value) in items track by $index');
             const expected = [
                 scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                    objectIteration('key', 'value', 'items', [
+                    objectIteration('key', 'value', ngExpr('items'), [
                     ]),
                 ])
             ];
@@ -183,10 +184,10 @@ describe(`Parsers`, function() {
                 const actual = testExpression('item in items | filter:x as results track by $index');
                 const expected = [
                     scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                        assign('items | filter : x', {
+                        assign(ngExpr('items | filter : x'), {
                             name: 'results'
                         }),
-                        arrayIteration('item', 'results', [
+                        arrayIteration('item', ngExpr('results'), [
                         ]),
                     ])
                 ];
@@ -236,108 +237,108 @@ describe(`Parsers`, function() {
 
         it(`should parse a list`, function () {
             verifyExpression(`value.name for value in values`, [
-                arrayIteration(`value`, `values`, [
-                    assign(`value.name`)
+                arrayIteration(`value`, ngExpr(`values`), [
+                    assign(ngExpr(`value.name`))
                 ])
             ]);
         });
 
         it(`should parse an object`, function () {
             verifyExpression(`value for (key, value) in values`, [
-                objectIteration(`key`, `value`, `values`, [
+                objectIteration(`key`, `value`, ngExpr(`values`), [
                 ])
             ]);
         });
 
         it(`should parse an object with label`, function () {
             verifyExpression(`value as key for (key, value) in values`, [
-                objectIteration(`key`, `value`, `values`, [
-                    assign(`key`)
+                objectIteration(`key`, `value`, ngExpr(`values`), [
+                    assign(ngExpr(`key`))
                 ])
             ]);
         });
 
         it(`should parse the label expression`, function () {
             verifyExpression(`option.id as option.display for option in values`, [
-                arrayIteration(`option`, `values`, [
-                    assign(`option.id`),
-                    assign(`option.display`)
+                arrayIteration(`option`, ngExpr(`values`), [
+                    assign(ngExpr(`option.id`)),
+                    assign(ngExpr(`option.display`))
                 ])
             ]);
         });
 
         it(`should parse a function call in the label expression`, function () {
             verifyExpression(`value as createLabel(value) for value in array`, [
-                arrayIteration(`value`, `array`, [
-                    assign(`createLabel(value)`)
+                arrayIteration(`value`, ngExpr(`array`), [
+                    assign(ngExpr(`createLabel(value)`))
                 ])
             ]);
         });
 
         it(`should parse a filtered iterable`, function () {
             verifyExpression(`value for value in array | filter : isNotFoo`, [
-                arrayIteration(`value`, `array | filter : isNotFoo`, [
+                arrayIteration(`value`, ngExpr(`array | filter : isNotFoo`), [
                 ])
             ]);
         });
 
         it(`should parse one-time binding`, function () {
             verifyExpression(`value for value in ::array`, [
-                arrayIteration(`value`, `array`, [
+                arrayIteration(`value`, ngExpr(`array`), [
                 ])
             ]);
         });
 
         it(`should parse disableWhen expression`, function () {
             verifyExpression(`o.value as o.name disable when o.unavailable for o in options`, [
-                arrayIteration(`o`, `options`, [
-                    assign(`o.value`),
-                    assign(`o.name`),
-                    assign(`o.unavailable`)
+                arrayIteration(`o`, ngExpr(`options`), [
+                    assign(ngExpr(`o.value`)),
+                    assign(ngExpr(`o.name`)),
+                    assign(ngExpr(`o.unavailable`))
                 ])
             ]);
         });
 
         it(`should parse single select with object source`, function () {
             verifyExpression(`val.score as val.label for (key, val) in obj`, [
-                objectIteration(`key`, `val`, `obj`, [
-                    assign(`val.score`),
-                    assign(`val.label`)
+                objectIteration(`key`, `val`, ngExpr(`obj`), [
+                    assign(ngExpr(`val.score`)),
+                    assign(ngExpr(`val.label`))
                 ])
             ]);
         });
 
         it(`should parse track by`, function () {
             verifyExpression(`item.label for item in arr track by item.id`, [
-                arrayIteration(`item`, `arr`, [
-                    assign(`item.label`),
-                    assign(`item.id`)
+                arrayIteration(`item`, ngExpr(`arr`), [
+                    assign(ngExpr(`item.label`)),
+                    assign(ngExpr(`item.id`))
                 ])
             ]);
         });
 
         it(`should parse nested track by`, function () {
             verifyExpression(`item.subItem as item.subItem.label for item in arr track by (item.id || item.subItem.id)`, [
-                arrayIteration(`item`, `arr`, [
-                    assign(`item.subItem`),
-                    assign(`item.subItem.label`),
-                    assign(`item.id || item.subItem.id`)
+                arrayIteration(`item`, ngExpr(`arr`), [
+                    assign(ngExpr(`item.subItem`)),
+                    assign(ngExpr(`item.subItem.label`)),
+                    assign(ngExpr(`item.id || item.subItem.id`))
                 ])
             ]);
         });
 
         it(`should parse group by`, function () {
             verifyExpression(`item.name group by item.group for item in values`, [
-                arrayIteration(`item`, `values`, [
-                    assign(`item.name`),
-                    assign(`item.group`)
+                arrayIteration(`item`, ngExpr(`values`), [
+                    assign(ngExpr(`item.name`)),
+                    assign(ngExpr(`item.group`))
                 ])
             ]);
         });
 
         it(`should parse array literal`, function () {
             verifyExpression(`item for item in ['first', 'second', 'third']`, [
-                arrayIteration(`item`, `["first", "second", "third"]`, [
+                arrayIteration(`item`, ngExpr(`["first", "second", "third"]`), [
                 ])
             ]);
         });

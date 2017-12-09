@@ -14,6 +14,7 @@ import {ElementDirectiveParser, parseFormElement, parseInputElement, parseNgTemp
 import {Either} from "monet";
 import camelCase = require('lodash.camelcase');
 import {assign} from "./generator/dsl";
+import {parseExpression} from "./ngExpression/ngAstBuilder";
 
 export function singleAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     map.attributes.set(name, {
@@ -252,9 +253,10 @@ builtinDirectiveMap.attributes.set('ngSwitch', {
             name: 'ngSwitch',
             parser: (attr) => {
                 if (attr) {
-                    return Either.Right({
-                        nodes: [assign(attr)]
-                    });
+                    return parseExpression(attr)
+                        .map((ast) => ({
+                            nodes: [assign(ast)]
+                        }));
                 } else {
                     return Either.Right({
                         nodes: []

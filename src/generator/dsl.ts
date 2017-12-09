@@ -8,17 +8,17 @@ import {
     ScopedBlockNode,
     TemplateRootNode
 } from "./ast";
-import {parseExpression} from "../ngExpression/ngAstBuilder";
+import {ProgramNode} from "../ngExpression/ast";
 
 export interface AssignOptions {
     name? : string;
     variableType? : 'let' | 'const';
     typeAnnotation? : string;
 }
-export function assign(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
+export function assign(expression : ProgramNode, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
     return {
         type: "AssignmentNode",
-        expression: parseExpression(expression),
+        expression,
         variableType: options.variableType || 'const',
         typeAnnotation: options.typeAnnotation,
         name: options.name,
@@ -26,40 +26,29 @@ export function assign(expression : string, options : AssignOptions = { variable
     };
 }
 
-export function assignTypeScript(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
-    return {
-        type: "AssignmentNode",
-        expression: expression,
-        variableType: options.variableType || 'const',
-        typeAnnotation: options.typeAnnotation,
-        name: options.name,
-        expressionType: 'TypeScript'
-    };
-}
-
-export function arrayIteration(valueName : string, iterable : string, children : GeneratorAstNode[] = []) : ArrayIterationNode {
+export function arrayIteration(valueName : string, iterable : ProgramNode, children : GeneratorAstNode[] = []) : ArrayIterationNode {
     return {
         type: "ArrayIterationNode",
         valueName,
-        iterable: parseExpression(iterable),
+        iterable,
         children
     };
 }
 
-export function ifStatement(expression : string, children : GeneratorAstNode[] = []) : IfStatementNode {
+export function ifStatement(expression : ProgramNode, children : GeneratorAstNode[] = []) : IfStatementNode {
     return {
         type: "IfStatementNode",
-        expression: parseExpression(expression),
+        expression,
         children
     };
 }
 
-export function objectIteration(keyName : string, valueName : string, iterable : string, children : GeneratorAstNode[] = []) : ObjectIterationNode {
+export function objectIteration(keyName : string, valueName : string, iterable : ProgramNode, children : GeneratorAstNode[] = []) : ObjectIterationNode {
     return {
         type: "ObjectIterationNode",
         keyName,
         valueName,
-        iterable: parseExpression(iterable),
+        iterable,
         children
     };
 }

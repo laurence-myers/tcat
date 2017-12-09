@@ -6,6 +6,7 @@ import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
 import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
 import {outdent} from "outdent";
+import {ngExpr} from "../testUtils";
 
 describe(`Template parsers`, function () {
     describe(`parseHtml`, function () {
@@ -29,6 +30,14 @@ describe(`Template parsers`, function () {
             });
         }
 
+        it(`gracefully errors on invalid expression syntax`, function () {
+            const html = outdent`
+            <div ng-options="item as item.'name' for item in items"></div>`;
+            verifyParseFailure(html, [], [
+                'Syntax Error: Token \'\'name\'\' is not a valid identifier at column 6 of the expression [item.\'name\'] starting at [\'name\'].'
+            ]);
+        });
+
         it(`parses ng-template with nested elements`, function () {
             const html = outdent`
                 <script type="text/ng-template" id="some/nested/template.html">
@@ -41,7 +50,7 @@ describe(`Template parsers`, function () {
                     scopedBlock([
                         parameter(`$event`, `IAngularEvent`)
                     ], [
-                        assign(`someFunc()`)
+                        assign(ngExpr(`someFunc()`))
                     ])
                 ], `SomeNestedTemplateHtmlScope`)
             ]);
@@ -56,13 +65,13 @@ describe(`Template parsers`, function () {
                 <div>{{ someValue }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`someValue`)
+                    assign(ngExpr(`someValue`))
                 ], `TemplateScope`),
                 scopedBlock([], [
                     scopedBlock([
                         parameter(`$event`, `IAngularEvent`)
                     ], [
-                        assign(`someFunc()`)
+                        assign(ngExpr(`someFunc()`))
                     ])
                 ], `SomeNestedTemplateHtmlScope`)
             ]);
@@ -85,7 +94,7 @@ describe(`Template parsers`, function () {
                     scopedBlock([
                         parameter(`$event`, `IAngularEvent`)
                     ], [
-                        assign(`someFunc()`)
+                        assign(ngExpr(`someFunc()`))
                     ])
                 ], `AnotherNestedTemplateHtmlScope`)
             ]);
@@ -120,7 +129,7 @@ describe(`Template parsers`, function () {
             ];
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`scopeProperty1`)
+                    assign(ngExpr(`scopeProperty1`))
                 ], `TemplateScope`),
             ]);
             verifyHtml(html, directives, expected);
@@ -149,8 +158,8 @@ describe(`Template parsers`, function () {
             ];
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`scopeProperty1`),
-                    assign(`someValue`)
+                    assign(ngExpr(`scopeProperty1`)),
+                    assign(ngExpr(`someValue`))
                 ], `TemplateScope`),
             ]);
             verifyHtml(html, directives, expected);
@@ -172,7 +181,7 @@ describe(`Template parsers`, function () {
             ];
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`scopeProperty1`)
+                    assign(ngExpr(`scopeProperty1`))
                 ], `TemplateScope`),
             ]);
             verifyHtml(html, directives, expected);
@@ -201,7 +210,7 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock([parameter(`localValue`, `string`)], [
-                        assign(`updateSomeValue(localValue)`)
+                        assign(ngExpr(`updateSomeValue(localValue)`))
                     ])
                 ], `TemplateScope`),
             ]);
@@ -225,7 +234,7 @@ describe(`Template parsers`, function () {
             ];
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`name`)
+                    assign(ngExpr(`name`))
                 ], `TemplateScope`),
             ]);
             verifyHtml(html, directives, expected);
@@ -260,7 +269,7 @@ describe(`Template parsers`, function () {
                     scopedBlock([
                         parameter(`myForm`, `IMyForm`)
                     ], [
-                        assign(`myForm.$error.required`)
+                        assign(ngExpr(`myForm.$error.required`))
                     ])
                 ], `TemplateScope`)
             ]);
@@ -271,7 +280,7 @@ describe(`Template parsers`, function () {
             const html = `<form><p>{{ myForm.$error.required }}</p></form>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`myForm.$error.required`)
+                    assign(ngExpr(`myForm.$error.required`))
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -287,13 +296,13 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                        arrayIteration(`item`, `items`, [
+                        arrayIteration(`item`, ngExpr(`items`), [
                             scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                                arrayIteration(`value`, `item.values`, [
-                                    assign(`value`)
+                                arrayIteration(`value`, ngExpr(`item.values`), [
+                                    assign(ngExpr(`value`))
                                 ])
                             ]),
-                            assign(`item.name`)
+                            assign(ngExpr(`item.name`))
                         ])
                     ])
                 ], `TemplateScope`)
@@ -309,10 +318,10 @@ describe(`Template parsers`, function () {
                 <p ng-hide-end>{{ items.length }} items found</p>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`items.length > 0`),
-                    assign(`items[0]`),
-                    assign(`items.length == 0`),
-                    assign(`items.length`)
+                    assign(ngExpr(`items.length > 0`)),
+                    assign(ngExpr(`items[0]`)),
+                    assign(ngExpr(`items.length == 0`)),
+                    assign(ngExpr(`items.length`))
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -324,8 +333,8 @@ describe(`Template parsers`, function () {
                 <div ng-if-end>{{ someProperty.name }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    ifStatement(`someProperty`, [
-                        assign(`someProperty.name`)
+                    ifStatement(ngExpr(`someProperty`), [
+                        assign(ngExpr(`someProperty.name`))
                     ]),
                 ], `TemplateScope`)
             ]);
@@ -338,9 +347,9 @@ describe(`Template parsers`, function () {
                 <div>{{ someProperty.name }}</div>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    ifStatement(`someProperty`, [
+                    ifStatement(ngExpr(`someProperty`), [
                     ]),
-                    assign(`someProperty.name`)
+                    assign(ngExpr(`someProperty.name`))
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -354,9 +363,9 @@ describe(`Template parsers`, function () {
                     scopedBlock([
                         parameter(`$event`, `IAngularEvent`)
                     ], [
-                        assign(`doSomething($event)`)
+                        assign(ngExpr(`doSomething($event)`))
                     ]),
-                    assign(`someProperty`)
+                    assign(ngExpr(`someProperty`))
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -370,11 +379,11 @@ describe(`Template parsers`, function () {
                 scopedBlock([], [
                     scopedBlock([
                     ], [
-                        assign(`fooValue`)
+                        assign(ngExpr(`fooValue`))
                     ], `FooControllerScope`),
                     scopedBlock([
                     ], [
-                        assign(`ctrl.barValue`)
+                        assign(ngExpr(`ctrl.barValue`))
                     ], `{ ctrl : BarControllerScope }`)
                 ], `TemplateScope`)
             ]);
@@ -386,8 +395,8 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     scopedBlock(NG_REPEAT_SPECIAL_PROPERTIES, [
-                        arrayIteration(`item`, `items`, [
-                            assign(`item.class`)
+                        arrayIteration(`item`, ngExpr(`items`), [
+                            assign(ngExpr(`item.class`))
                         ])
                     ])
                 ], `TemplateScope`)
@@ -405,15 +414,15 @@ describe(`Template parsers`, function () {
                 <div ng-pluralize count="anotherCount" when="{}" offset="2"></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`personCount`),
-                    assign(`person1`),
-                    assign(`person1`),
-                    assign(`person2`),
-                    assign(`person1`),
-                    assign(`person2`),
-                    assign(`person1`),
-                    assign(`person2`),
-                    assign(`anotherCount`),
+                    assign(ngExpr(`personCount`)),
+                    assign(ngExpr(`person1`)),
+                    assign(ngExpr(`person1`)),
+                    assign(ngExpr(`person2`)),
+                    assign(ngExpr(`person1`)),
+                    assign(ngExpr(`person2`)),
+                    assign(ngExpr(`person1`)),
+                    assign(ngExpr(`person2`)),
+                    assign(ngExpr(`anotherCount`)),
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -425,10 +434,10 @@ describe(`Template parsers`, function () {
                 <div ng-include="anotherTemplate.url" onload="doSomething()" autoscroll="shouldAutoscroll"></div>`;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`template.url`),
-                    assign(`anotherTemplate.url`),
-                    assign(`doSomething()`),
-                    assign(`shouldAutoscroll`),
+                    assign(ngExpr(`template.url`)),
+                    assign(ngExpr(`anotherTemplate.url`)),
+                    assign(ngExpr(`doSomething()`)),
+                    assign(ngExpr(`shouldAutoscroll`)),
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -460,9 +469,9 @@ describe(`Template parsers`, function () {
             `;
             const expected = templateRoot([
                 scopedBlock([], [
-                    assign(`selection`),
-                    assign(`selection`),
-                    assign(`selection`),
+                    assign(ngExpr(`selection`)),
+                    assign(ngExpr(`selection`)),
+                    assign(ngExpr(`selection`)),
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);
@@ -552,7 +561,7 @@ describe(`Template parsers`, function () {
                 const directives : DirectiveData[] = [];
                 verifyHtml(html, directives, templateRoot([
                     scopedBlock([], [
-                        assign(`viewBox`)
+                        assign(ngExpr(`viewBox`))
                     ], `TemplateScope`)
                 ]));
             });
@@ -636,7 +645,7 @@ describe(`Template parsers`, function () {
                     const html = `<input ng-model="someProperty">`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someProperty`)
+                            assign(ngExpr(`someProperty`))
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -659,19 +668,19 @@ describe(`Template parsers`, function () {
                             ng-trim="shouldTrim">`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someProperty`),
-                            assign(`shouldTrim`), // happens to be first, due to use of an element parser
-                            assign(`goodRequired`),
-                            assign(`exprMinLength`),
-                            assign(`exprMaxLength`),
-                            assign(`exprPattern`),
+                            assign(ngExpr(`someProperty`)),
+                            assign(ngExpr(`shouldTrim`)), // happens to be first, due to use of an element parser
+                            assign(ngExpr(`goodRequired`)),
+                            assign(ngExpr(`exprMinLength`)),
+                            assign(ngExpr(`exprMaxLength`)),
+                            assign(ngExpr(`exprPattern`)),
                             scopedBlock([parameter(`$event`, `IAngularEvent`)], [
-                                assign(`doSomething()`)
+                                assign(ngExpr(`doSomething()`))
                             ]),
                             // Interpolated expressions are parsed after AngularJS expressions
-                            assign(`interpMinLength`),
-                            assign(`interpMaxLength`),
-                            assign(`interpPattern`),
+                            assign(ngExpr(`interpMinLength`)),
+                            assign(ngExpr(`interpMaxLength`)),
+                            assign(ngExpr(`interpPattern`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -703,8 +712,8 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someTrueValue`),
-                            assign(`someFalseValue`),
+                            assign(ngExpr(`someTrueValue`)),
+                            assign(ngExpr(`someFalseValue`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -723,10 +732,10 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprMin`),
-                            assign(`exprMax`),
-                            assign(`interpMin`),
-                            assign(`interpMax`),
+                            assign(ngExpr(`exprMin`)),
+                            assign(ngExpr(`exprMax`)),
+                            assign(ngExpr(`interpMin`)),
+                            assign(ngExpr(`interpMax`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -745,10 +754,10 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprMin`),
-                            assign(`exprMax`),
-                            assign(`interpMin`),
-                            assign(`interpMax`),
+                            assign(ngExpr(`exprMin`)),
+                            assign(ngExpr(`exprMax`)),
+                            assign(ngExpr(`interpMin`)),
+                            assign(ngExpr(`interpMax`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -771,17 +780,17 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprRequired`),
-                            assign(`exprMinLength`),
-                            assign(`exprMaxLength`),
-                            assign(`exprPattern`),
+                            assign(ngExpr(`exprRequired`)),
+                            assign(ngExpr(`exprMinLength`)),
+                            assign(ngExpr(`exprMaxLength`)),
+                            assign(ngExpr(`exprPattern`)),
                             scopedBlock([
                                 parameter(`$event`, `IAngularEvent`)
                             ], [
-                                assign(`doSomething()`)
+                                assign(ngExpr(`doSomething()`))
                             ]),
-                            assign(`interpRequired`),
-                            assign(`interpPattern`),
+                            assign(ngExpr(`interpRequired`)),
+                            assign(ngExpr(`interpPattern`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -800,10 +809,10 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprMin`),
-                            assign(`exprMax`),
-                            assign(`interpMin`),
-                            assign(`interpMax`),
+                            assign(ngExpr(`exprMin`)),
+                            assign(ngExpr(`exprMax`)),
+                            assign(ngExpr(`interpMin`)),
+                            assign(ngExpr(`interpMax`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -831,23 +840,23 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprMin`),
-                            assign(`exprMax`),
-                            assign(`exprStep`),
-                            assign(`exprRequired`),
-                            assign(`exprPattern`),
-                            assign(`exprMinlength`),
-                            assign(`exprMaxlength`),
+                            assign(ngExpr(`exprMin`)),
+                            assign(ngExpr(`exprMax`)),
+                            assign(ngExpr(`exprStep`)),
+                            assign(ngExpr(`exprRequired`)),
+                            assign(ngExpr(`exprPattern`)),
+                            assign(ngExpr(`exprMinlength`)),
+                            assign(ngExpr(`exprMaxlength`)),
                             scopedBlock([
                                 parameter(`$event`, `IAngularEvent`)
                             ], [
-                                assign(`doSomething()`)
+                                assign(ngExpr(`doSomething()`))
                             ]),
-                            assign(`interpMin`),
-                            assign(`interpMax`),
-                            assign(`interpStep`),
-                            assign(`interpRequired`),
-                            assign(`interpPattern`),
+                            assign(ngExpr(`interpMin`)),
+                            assign(ngExpr(`interpMax`)),
+                            assign(ngExpr(`interpStep`)),
+                            assign(ngExpr(`interpRequired`)),
+                            assign(ngExpr(`interpPattern`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -863,7 +872,7 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someValue`),
+                            assign(ngExpr(`someValue`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -882,10 +891,10 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprChecked`),
-                            assign(`interpMin`),
-                            assign(`interpMax`),
-                            assign(`interpStep`),
+                            assign(ngExpr(`exprChecked`)),
+                            assign(ngExpr(`interpMin`)),
+                            assign(ngExpr(`interpMax`)),
+                            assign(ngExpr(`interpStep`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -905,15 +914,15 @@ describe(`Template parsers`, function () {
                             ng-attr-size="{{ interpSize }}"></select>`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someProperty`),
-                            assign(`exprRequired`),
-                            arrayIteration(`opt`, `options`, [
-                                assign(`opt.label`)
+                            assign(ngExpr(`someProperty`)),
+                            assign(ngExpr(`exprRequired`)),
+                            arrayIteration(`opt`, ngExpr(`options`), [
+                                assign(ngExpr(`opt.label`))
                             ]),
                             // Interpolated expressions are parsed after AngularJS expressions
-                            assign(`interpMultiple`),
-                            assign(`interpRequired`),
-                            assign(`interpSize`),
+                            assign(ngExpr(`interpMultiple`)),
+                            assign(ngExpr(`interpRequired`)),
+                            assign(ngExpr(`interpSize`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -939,19 +948,19 @@ describe(`Template parsers`, function () {
                             ng-trim="shouldTrim">`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someProperty`),
-                            assign(`shouldTrim`), // happens to be first, due to use of an element parser
-                            assign(`goodRequired`),
-                            assign(`exprMinLength`),
-                            assign(`exprMaxLength`),
-                            assign(`exprPattern`),
+                            assign(ngExpr(`someProperty`)),
+                            assign(ngExpr(`shouldTrim`)), // happens to be first, due to use of an element parser
+                            assign(ngExpr(`goodRequired`)),
+                            assign(ngExpr(`exprMinLength`)),
+                            assign(ngExpr(`exprMaxLength`)),
+                            assign(ngExpr(`exprPattern`)),
                             scopedBlock([parameter(`$event`, `IAngularEvent`)], [
-                                assign(`doSomething()`)
+                                assign(ngExpr(`doSomething()`))
                             ]),
                             // Interpolated expressions are parsed after AngularJS expressions
-                            assign(`interpMinLength`),
-                            assign(`interpMaxLength`),
-                            assign(`interpPattern`),
+                            assign(ngExpr(`interpMinLength`)),
+                            assign(ngExpr(`interpMaxLength`)),
+                            assign(ngExpr(`interpPattern`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -973,14 +982,14 @@ describe(`Template parsers`, function () {
                             ng-trim="shouldTrim"></textarea>`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someProperty`),
-                            assign(`shouldTrim`), // happens to be first, due to use of an element parser
-                            assign(`goodRequired`),
-                            assign(`exprMinLength`),
-                            assign(`exprMaxLength`),
-                            assign(`exprPattern`),
+                            assign(ngExpr(`someProperty`)),
+                            assign(ngExpr(`shouldTrim`)), // happens to be first, due to use of an element parser
+                            assign(ngExpr(`goodRequired`)),
+                            assign(ngExpr(`exprMinLength`)),
+                            assign(ngExpr(`exprMaxLength`)),
+                            assign(ngExpr(`exprPattern`)),
                             scopedBlock([parameter(`$event`, `IAngularEvent`)], [
-                                assign(`doSomething()`)
+                                assign(ngExpr(`doSomething()`))
                             ]),
                             // Interpolated expressions are parsed after AngularJS expressions
                         ], `TemplateScope`)
@@ -1005,16 +1014,16 @@ describe(`Template parsers`, function () {
                             ng-change="doSomething()">`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`someUrl`),
-                            assign(`goodRequired`),
-                            assign(`exprMinLength`),
-                            assign(`exprMaxLength`),
-                            assign(`exprPattern`),
+                            assign(ngExpr(`someUrl`)),
+                            assign(ngExpr(`goodRequired`)),
+                            assign(ngExpr(`exprMinLength`)),
+                            assign(ngExpr(`exprMaxLength`)),
+                            assign(ngExpr(`exprPattern`)),
                             scopedBlock([parameter(`$event`, `IAngularEvent`)], [
-                                assign(`doSomething()`)
+                                assign(ngExpr(`doSomething()`))
                             ]),
                             // Interpolated expressions are parsed after AngularJS expressions
-                            assign(`interpPattern`),
+                            assign(ngExpr(`interpPattern`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);
@@ -1033,10 +1042,10 @@ describe(`Template parsers`, function () {
                         >`;
                     const expected = templateRoot([
                         scopedBlock([], [
-                            assign(`exprMin`),
-                            assign(`exprMax`),
-                            assign(`interpMin`),
-                            assign(`interpMax`),
+                            assign(ngExpr(`exprMin`)),
+                            assign(ngExpr(`exprMax`)),
+                            assign(ngExpr(`interpMin`)),
+                            assign(ngExpr(`interpMax`)),
                         ], `TemplateScope`)
                     ]);
                     verifyHtml(html, [], expected);

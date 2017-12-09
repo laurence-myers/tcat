@@ -26,6 +26,8 @@
 // It's been modified to record the string positions of expressions, filters, and filter args.
 
 import {ProgramNode} from "./ast";
+import {Either} from "monet";
+import {NgExpressionParserError} from "../core";
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 function isDefined(value : any) { return typeof value !== 'undefined'; }
@@ -293,7 +295,7 @@ class Lexer {
         let colStr = (isDefined(start)
             ? 's ' + start +  '-' + this.index + ' [' + this.text.substring(<number> start, end) + ']'
             : ' ' + end);
-        throw Error(`Lexer Error: {${ error }} at column${ colStr } in expression [${ this.text }].`);
+        throw new NgExpressionParserError(`Lexer Error: {${ error }} at column${ colStr } in expression [${ this.text }].`);
     }
 
     readNumber() {
@@ -464,7 +466,7 @@ class AstBuilder {
         let result : any = this.ternary();
         if (this.expect('=')) {
             if (!isAssignable(result)) {
-                throw new Error('Trying to assign a value to a non l-value');
+                throw new NgExpressionParserError('Trying to assign a value to a non l-value');
             }
 
             result = { type: AstBuilder.AssignmentExpression, left: result, right: this.assignment(), operator: '='};
@@ -685,12 +687,12 @@ class AstBuilder {
     }
 
     throwError(msg : string, token? : Token | false) {
-        throw new Error(`Syntax Error: Token \'${ (<Token> token).text }\' ${ msg } at column ${ (<Token> token).index + 1 } of the expression [${ this.text }] starting at [${ this.text.substring((<Token> token).index) }].`);
+        throw new NgExpressionParserError(`Syntax Error: Token \'${ (<Token> token).text }\' ${ msg } at column ${ (<Token> token).index + 1 } of the expression [${ this.text }] starting at [${ this.text.substring((<Token> token).index) }].`);
     }
 
     consume(e1? : string) {
         if (this.tokens.length === 0) {
-            throw new Error(`Unexpected end of expression: {${ this.text }}`);
+            throw new NgExpressionParserError(`Unexpected end of expression: {${ this.text }}`);
         }
 
         let token = this.expect(e1);
@@ -702,7 +704,7 @@ class AstBuilder {
 
     peekToken() {
         if (this.tokens.length === 0) {
-            throw new Error(`Unexpected end of expression: {${ this.text }}`);
+            throw new NgExpressionParserError(`Unexpected end of expression: {${ this.text }}`);
         }
         return this.tokens[0];
     }
@@ -751,17 +753,25 @@ export const $parseOptions = {
     isIdentifierContinue: isFunction(identContinue) && identContinue
 };
 
-export function parseExpression(expression : string) : ProgramNode {
+export function parseExpression(expression : string) : Either<NgExpressionParserError, ProgramNode> {
     if (!expression) {
-        return {
-            type: 'Program',
+        return Either.Right({
+            type: 'Program' as 'Program',
             body: []
-        };
+        });
     }
     if (expression.startsWith('::')) { // strip one-time binding syntax
         expression = expression.substring(2);
     }
     const options = $parseOptions;
     const astBuilder = new AstBuilder(new Lexer(options), options);
-    return astBuilder.ast(expression);
+    try {
+        const root = astBuilder.ast(expression);
+        return Either.Right(root);
+    } catch (err) {
+        if (!(err instanceof NgExpressionParserError)) {
+            err = new NgExpressionParserError(err);
+        }
+        return Either.Left(err);
+    }
 }
