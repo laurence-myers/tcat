@@ -85,3 +85,5 @@ const _block_7 = function (
 ) {
     const _expr_9 = (_scope_4.someValue);
 };
+
+export = {};

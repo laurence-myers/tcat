@@ -26,7 +26,7 @@ export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, bas
     return parseHtml(htmlContents, 'TemplateScope', createDirectiveMap(directives))
         .map((ast) => {
             const tsCode = generateTypeScript(ast);
-            const final = '/* tslint:disable */\n' + baseTypeScript + '\n' + tsCode;
+            const final = '/* tslint:disable */\n' + baseTypeScript + '\n' + tsCode + '\nexport = {};\n' ;
             return asTypeScriptContents(final);
         });
 }
