@@ -35,5 +35,10 @@ export function parseHtml(html : HtmlContents, scopeInterfaceName : string, dire
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }
-    return parseElement(document.childNodes[0], directives, scopeInterfaceName);
+    const htmlNode = document.childNodes.find((node) => node.nodeName === 'html');
+    if (!htmlNode) {
+        return Either.Left([new TemplateParserError(`No HTML node found in parsed document.`)]);
+    } else {
+        return parseElement(htmlNode, directives, scopeInterfaceName);
+    }
 }

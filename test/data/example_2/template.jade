@@ -1,4 +1,9 @@
+include ./included
+
 my-element-directive(some-arg="prop1" another-arg="prop2")
     div Transcluded content: {{ directiveFunction() }}
 
 div(my-attribute-directive some-attrib-string="asdf" some-attrib-expression="prop1 + prop2 + someLocal.funkyName")
+
+p {{ 'hello' + 'world' }}
++someMixin

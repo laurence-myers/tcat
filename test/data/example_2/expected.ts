@@ -21,6 +21,8 @@ const _block_1 = function (
     ) {
         const _expr_4 = (_scope_1.prop1 + _scope_1.prop2 + someLocal.funkyName);
     };
+    const _expr_5 = ("hello" + "world");
+    const _expr_6 = ("extra text");
 };
 
 export = {};
