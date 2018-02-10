@@ -477,6 +477,30 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`parses ngTransclude directives`, function () {
+            const html = outdent`
+                <div ng-transclude>
+                    <p>Attribute, no slot</p>
+                </div>
+                <div ng-transclude="slotFoo">
+                    <p>Attribute, slot</p>
+                </div>
+                <ng-transclude>
+                    <p>Element, no slot</p>
+                </div>
+                <ng-transclude ng-transclude-slot="slotBar">
+                    <p>Element, slot</p>
+                </div>
+            `;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(ngExpr(`slotFoo`)),
+                    assign(ngExpr(`slotBar`)),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         describe(`HTML validation`, function () {
             it(`Fails validation for an unrecognised HTML tag`, function () {
                 const html = `<my-custom-directive></my-custom-directive>>`;

@@ -35,6 +35,16 @@ export function defaultParser(attrib : string) : ParserResult {
         }));
 }
 
+export function optionalAttributeParser(attrib : string) : ParserResult {
+    if (attrib) {
+        return defaultParser(attrib);
+    } else {
+        return Either.Right({
+            nodes: []
+        });
+    }
+}
+
 export const NG_REPEAT_SPECIAL_PROPERTIES : ParameterNode[] = [
     parameter(`$index`, `number`),
     parameter(`$first`, `boolean`),

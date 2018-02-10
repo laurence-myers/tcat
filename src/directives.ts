@@ -1,6 +1,6 @@
 import {
     AttributeParser,
-    defaultParser,
+    defaultParser, optionalAttributeParser,
     parseEventDirective,
     parseInterpolatedText,
     parseNgController,
@@ -13,8 +13,6 @@ import {
 import {ElementDirectiveParser, parseFormElement, parseInputElement, parseNgTemplateElement} from "./parser/elements";
 import {Either} from "monet";
 import camelCase = require('lodash.camelcase');
-import {assign} from "./generator/dsl";
-import {parseExpression} from "./ngExpression/ngAstBuilder";
 
 export function singleAttribute(map : DirectiveMap, name : string, parser : AttributeParser = defaultParser, priority : number = 0) : void {
     map.attributes.set(name, {
@@ -251,18 +249,7 @@ builtinDirectiveMap.attributes.set('ngSwitch', {
     attributes: [
         {
             name: 'ngSwitch',
-            parser: (attr) => {
-                if (attr) {
-                    return parseExpression(attr)
-                        .map((ast) => ({
-                            nodes: [assign(ast)]
-                        }));
-                } else {
-                    return Either.Right({
-                        nodes: []
-                    });
-                }
-            }
+            parser: optionalAttributeParser
         },
         {
             name: 'on',
@@ -296,6 +283,29 @@ builtinDirectiveMap.attributes.set('ngSwitchDefault', {
         {
             name: 'ngSwitchDefault',
             mode: 'interpolated'
+        }
+    ]
+});
+builtinDirectiveMap.elements.set('ngTransclude', {
+    name: 'ngTransclude',
+    canBeElement: true,
+    canBeAttribute: false,
+    attributes: [
+        {
+            name: 'ngTranscludeSlot',
+            optional: true
+        }
+    ]
+});
+builtinDirectiveMap.attributes.set('ngTransclude', {
+    name: 'ngTransclude',
+    canBeElement: false,
+    canBeAttribute: true,
+    attributes: [
+        {
+            name: 'ngTransclude',
+            optional: true,
+            parser: optionalAttributeParser
         }
     ]
 });
