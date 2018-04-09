@@ -16,8 +16,12 @@ interface FooControllerScope {
     fooValue : string;
 }
 
-interface BarControllerScope {
+interface BarController {
     barValue : string;
+}
+
+interface BarControllerScope extends TemplateScope {
+
 }
 
 type FirstSecondThirdPartHtmlScope = any;
@@ -74,7 +78,7 @@ const _block_1 = function (
         const _expr_6 = (_scope_2.fooValue);
     };
     const _block_6 = function (
-        _scope_3 : { ctrl : BarControllerScope },
+        _scope_3 : { ctrl : BarController } & BarControllerScope,
     ) {
         const _expr_7 = (_scope_3.ctrl.barValue);
     };

@@ -362,7 +362,7 @@ describe(`Template parsers`, function () {
             const expected = templateRoot([
                 scopedBlock([], [
                     ifStatement(ngExpr(`someProperty`), [
-                        scopedBlock([], [], `{ ctrl : FooControllerScope }`)
+                        scopedBlock([], [], `{ ctrl : FooController } & FooControllerScope`)
                     ]),
                     assign(ngExpr(`'bar'`))
                 ], `TemplateScope`)
@@ -399,7 +399,7 @@ describe(`Template parsers`, function () {
                     scopedBlock([
                     ], [
                         assign(ngExpr(`ctrl.barValue`))
-                    ], `{ ctrl : BarControllerScope }`)
+                    ], `{ ctrl : BarController } & BarControllerScope`)
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);

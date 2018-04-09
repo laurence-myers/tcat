@@ -9,3 +9,7 @@ p {{ 'hello' + 'world' }}
 +someMixin
 
 p {{ true ? 'foo' : 'bar' }}
+
+div(ng-controller="fooController as ctrl")
+    form(name="fooForm")
+        p {{ bar }}

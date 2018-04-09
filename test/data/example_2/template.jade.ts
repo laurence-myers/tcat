@@ -8,3 +8,15 @@ interface TemplateScope {
     prop3 : number;
     directiveFunction : () => any;
 }
+
+interface fooController {
+
+}
+
+interface fooControllerScope {
+    bar : string;
+}
+
+interface IFooForm {
+
+}

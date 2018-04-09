@@ -15,8 +15,12 @@ interface FooControllerScope {
     fooValue : string;
 }
 
-interface BarControllerScope {
+interface BarController {
     barValue : string;
+}
+
+interface BarControllerScope extends TemplateScope {
+
 }
 
 type FirstSecondThirdPartHtmlScope = any;

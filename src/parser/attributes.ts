@@ -299,13 +299,13 @@ export function parseNgController(expression : string) : ParserResult {
             `Badly formed controller string '${ expression }'. ` +
             'Must match `__name__ as __id__` or `__name__`.'));
     }
-    const constructorInterface = match[1] + 'Scope';
+    const controllerName = match[1];
+    const scopeName = controllerName + 'Scope';
     const identifier = match[3];
 
     const scopeInterface = identifier
-        ? `{ ${ identifier } : ${ constructorInterface } }`
-        : constructorInterface;
-
+        ? `{ ${ identifier } : ${ controllerName } } & ${ scopeName }`
+        : scopeName;
 
     const scope = scopedBlock([], [], scopeInterface);
 
