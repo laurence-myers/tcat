@@ -9,11 +9,11 @@ interface TemplateScope {
     directiveFunction : () => any;
 }
 
-interface fooController {
+interface fooController { //tslint:disable-line
 
 }
 
-interface fooControllerScope {
+interface fooControllerScope { //tslint:disable-line
     bar : string;
 }
 
