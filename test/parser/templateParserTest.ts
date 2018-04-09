@@ -355,6 +355,21 @@ describe(`Template parsers`, function () {
             verifyHtml(html, [], expected);
         });
 
+        it(`ng-if combined with ng-controller does not encapsulate following sibling expressions`, function () {
+            const html = outdent`
+                <div ng-if="someProperty" ng-controller="FooController as ctrl"></div>
+                <div>{{ 'bar' }}</div>`;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    ifStatement(ngExpr(`someProperty`), [
+                        scopedBlock([], [], `{ ctrl : FooControllerScope }`)
+                    ]),
+                    assign(ngExpr(`'bar'`))
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
         it(`parses ng-click and provides an $event local, closing scope correctly`, function () {
             const html =
                 `<div ng-click="doSomething($event)" ng-class="someProperty"></div>`;

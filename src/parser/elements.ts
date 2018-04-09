@@ -72,11 +72,17 @@ function isSvgNode(node : Node) : node is SvgNode {
 const interpolationStartSymbol = '{{'; // TODO: make this configurable
 
 export interface ElementParserContext {
+    readonly node : Node;
     readonly errors : AttributeParserError[];
     readonly parsedAttributes : string[];
     scopeData : ScopeData | undefined;
     isScopeEnd : boolean;
     terminated : boolean;
+}
+
+export interface ScopeStackEntry {
+    element : Node;
+    astNode : HasChildrenAstNode;
 }
 
 function convertToParameter(entry : { name : string; type : string }) : ParameterNode {
@@ -94,7 +100,7 @@ export function parseElement(element : Node, directives : DirectiveMap, scopeInt
 
 export class ElementWalker {
     protected root : TemplateRootNode = templateRoot();
-    protected readonly scopeStack : HasChildrenAstNode[] = [];
+    protected readonly scopeStack : ScopeStackEntry[] = [];
     protected readonly htmlElementNames : Set<string> = new Set<string>(htmlTagNames);
     protected shouldSkipHtmlValidation = false;
 
@@ -103,7 +109,7 @@ export class ElementWalker {
 
     }
 
-    protected getCurrentScope() : HasChildrenAstNode {
+    protected getCurrentScope() : ScopeStackEntry {
         const node = last(this.scopeStack);
         if (node === undefined) {
             throw new UnexpectedStateError(`ElementWalker should always have at least one scope on the stack.`);
@@ -126,11 +132,18 @@ export class ElementWalker {
                     this.root.children.push(scopeData.root); // this should probably never happen...
                 }
             } else {
-                this.getCurrentScope().children.push(...result.nodes);
+                this.getCurrentScope().astNode.children.push(...result.nodes);
             }
-            this.scopeStack.push(scopeData.childParent);
+            // To support multiple scopes being opened on the one element, we'll only keep track of the latest scope
+            if (context.node === this.getCurrentScope().element) {
+                this.scopeStack.pop();
+            }
+            this.scopeStack.push({
+                element: context.node,
+                astNode: scopeData.childParent
+            });
         } else {
-            this.getCurrentScope().children.push(...result.nodes);
+            this.getCurrentScope().astNode.children.push(...result.nodes);
         }
     }
 
@@ -349,6 +362,7 @@ export class ElementWalker {
 
     protected parseElement(node : Node) : Either<AttributeParserError[], void> {
         const context : ElementParserContext = {
+            node,
             errors: [],
             parsedAttributes: [],
             scopeData: undefined,
@@ -390,7 +404,10 @@ export class ElementWalker {
 
     walkTemplate(element : Node, scopeInterfaceName : string) : Either<AttributeParserError[], TemplateRootNode> {
         const block = scopedBlock([], [], scopeInterfaceName);
-        this.scopeStack.push(block);
+        this.scopeStack.push({
+            element,
+            astNode: block
+        });
         this.root.children.push(block);
         return this.parseElement(element)
             .map(() => this.root);
