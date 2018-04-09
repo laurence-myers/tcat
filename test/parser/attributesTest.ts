@@ -343,4 +343,43 @@ describe(`Parsers`, function() {
             ]);
         });
     });
+
+    it(`should parse conditional ternary expressions in the correct order`, function () {
+        function testExpression(expression : string) : SuccessfulParserResult {
+            const result = defaultParser(expression);
+            assert.ok(result.isRight(), `Failed to parse expression: ${ expression }`);
+            return result.right();
+        }
+
+        function verifyExpression(expression : string, expected : GeneratorAstNode[]) : void {
+            const actual = testExpression(expression);
+            assert.deepEqual(actual.nodes, expected);
+        }
+
+        verifyExpression(`foo ? bar : baz`, [
+            assign({
+                "body": [
+                    {
+                        "expression": {
+                            "alternate": {
+                                "name": "baz",
+                                "type": "Identifier"
+                            },
+                            "consequent": {
+                                "name": "bar",
+                                "type": "Identifier"
+                            },
+                            "test": {
+                                "name": "foo",
+                                "type": "Identifier"
+                            },
+                            "type": "ConditionalExpression"
+                        },
+                        "type": "ExpressionStatement"
+                    }
+                ],
+                "type": "Program"
+            })
+        ]);
+    });
 });

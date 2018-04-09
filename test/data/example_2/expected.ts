@@ -23,6 +23,7 @@ const _block_1 = function (
     };
     const _expr_5 = ("hello" + "world");
     const _expr_6 = ("extra text");
+    const _expr_7 = (true ? "foo" : "bar");
 };
 
 export = {};

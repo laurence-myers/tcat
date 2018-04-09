@@ -479,9 +479,9 @@ class AstBuilder {
         let alternate;
         let consequent;
         if (this.expect('?')) {
-            alternate = this.expression();
+            consequent = this.expression();
             if (this.consume(':')) {
-                consequent = this.expression();
+                alternate = this.expression();
                 return { type: AstBuilder.ConditionalExpression, test: test, alternate: alternate, consequent: consequent};
             }
         }
