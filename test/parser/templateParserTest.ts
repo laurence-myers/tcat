@@ -1,6 +1,14 @@
 import {parseHtml} from "../../src/parser/templateParser";
 import * as assert from "assert";
-import {arrayIteration, assign, ifStatement, parameter, scopedBlock, templateRoot} from "../../src/generator/dsl";
+import {
+    arrayIteration,
+    assign,
+    assignTs,
+    ifStatement,
+    parameter,
+    scopedBlock,
+    templateRoot
+} from "../../src/generator/dsl";
 import {TemplateRootNode} from "../../src/generator/ast";
 import {createDirectiveMap, DirectiveData} from "../../src/directives";
 import {asHtmlContents} from "../../src/core";
@@ -511,6 +519,22 @@ describe(`Template parsers`, function () {
                 scopedBlock([], [
                     assign(ngExpr(`slotFoo`)),
                     assign(ngExpr(`slotBar`)),
+                ], `TemplateScope`)
+            ]);
+            verifyHtml(html, [], expected);
+        });
+
+        it(`parses ngPattern directives`, function () {
+            const html = outdent`
+                <input ng-pattern="'[a-z][a-zA-Z]'" />
+                <input ng-pattern="/^[0-9]+(\\.[0-9]{1,2})?$/" />
+            `;
+            const expected = templateRoot([
+                scopedBlock([], [
+                    assign(ngExpr(`'[a-z][a-zA-Z]'`)),
+                    assignTs(`/^[0-9]+(\\.[0-9]{1,2})?$/`, {
+                        typeAnnotation: 'RegExp'
+                    }),
                 ], `TemplateScope`)
             ]);
             verifyHtml(html, [], expected);

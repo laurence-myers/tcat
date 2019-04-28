@@ -1,6 +1,6 @@
 import {Either} from 'monet';
 import {AttributeParserError, NgExpressionParserError} from "../core";
-import {arrayIteration, assign, ifStatement, objectIteration, parameter, scopedBlock} from "../generator/dsl";
+import {arrayIteration, assign, assignTs, ifStatement, objectIteration, parameter, scopedBlock} from "../generator/dsl";
 import {
     ArrayIterationNode,
     GeneratorAstNode,
@@ -316,4 +316,20 @@ export function parseNgController(expression : string) : ParserResult {
             childParent: scope
         }
     });
+}
+
+const REGEX_STRING_REGEXP = /^\/(.+)\/([a-z]*)$/;
+/**
+ * ngPattern supports RegExp literals.
+ */
+export function parseNgPattern(expression : string) : ParserResult {
+    if (expression.charAt(0) === '/' && REGEX_STRING_REGEXP.test(expression)) {
+        return Either.Right({
+            nodes: [assignTs(expression, {
+                typeAnnotation: 'RegExp'
+            })]
+        });
+    } else {
+        return defaultParser(expression);
+    }
 }

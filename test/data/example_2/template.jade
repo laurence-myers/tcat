@@ -13,3 +13,4 @@ p {{ true ? 'foo' : 'bar' }}
 div(ng-controller="fooController as ctrl")
     form(name="fooForm")
         p {{ bar }}
+        input(ng-pattern="/^[0-9]+(\\.[0-9]{1,2})?$/")

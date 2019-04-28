@@ -26,6 +26,17 @@ export function assign(expression : ProgramNode, options : AssignOptions = { var
     };
 }
 
+export function assignTs(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
+    return {
+        type: "AssignmentNode",
+        expression: expression,
+        variableType: options.variableType || 'const',
+        typeAnnotation: options.typeAnnotation,
+        name: options.name,
+        expressionType: 'TypeScript'
+    };
+}
+
 export function arrayIteration(valueName : string, iterable : ProgramNode, children : GeneratorAstNode[] = []) : ArrayIterationNode {
     return {
         type: "ArrayIterationNode",

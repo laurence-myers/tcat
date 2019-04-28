@@ -43,6 +43,7 @@ const _block_1 = function (
             fooForm : IFooForm,
         ) {
             const _expr_8 = (_scope_2.bar);
+            const _expr_9 : RegExp = /^[0-9]+(\.[0-9]{1,2})?$/;
         };
     };
 };

@@ -1,10 +1,13 @@
 import {
     AttributeParser,
-    defaultParser, optionalAttributeParser,
+    defaultParser,
+    optionalAttributeParser,
     parseEventDirective,
     parseInterpolatedText,
     parseNgController,
-    parseNgIf, parseNgOptions,
+    parseNgIf,
+    parseNgOptions,
+    parseNgPattern,
     parseNgRepeat,
     parseScopeEnd,
     SuccessfulParserResult,
@@ -77,7 +80,6 @@ const BUILTIN_SINGLE_ATTRIBUTE_DIRECTIVE_NAMES = [
     'ngMaxlength',
     'ngMinlength',
     'ngModelOptions',
-    'ngPattern',
     'ngRequired',
     'ngStyle',
     'ngSubmit',
@@ -235,6 +237,7 @@ const ngPluralizeConfig : DirectiveData = {
         }
     ]
 };
+singleAttribute(builtinDirectiveMap, 'ngPattern', parseNgPattern);
 builtinDirectiveMap.elements.set('ngPluralize', ngPluralizeConfig);
 builtinDirectiveMap.attributes.set('ngPluralize', ngPluralizeConfig);
 singleAttribute(builtinDirectiveMap, 'ngReadonly', defaultParser, 100);
