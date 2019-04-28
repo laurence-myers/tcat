@@ -23,7 +23,7 @@ import Pattern = StringConstraints.Pattern;
 const { Default, Required, Only, Optional } = AnyConstraints;
 const { Arity } = FunctionConstraints;
 const { StringSchema } = StringConstraints;
-const DIRECTIVE_NAME_PATTERN = /^[a-z][a-zA-Z]*$/;
+const DIRECTIVE_NAME_PATTERN = /^[a-z][a-zA-Z0-9]*$/;
 
 class DirectiveAttributeLocalSchema implements AttributeLocal {
     @Required()

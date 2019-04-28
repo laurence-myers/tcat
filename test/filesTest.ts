@@ -336,6 +336,17 @@ describe(`Files`, function () {
                 },
             ]);
         });
+
+        it(`Passes when directive name contains numbers`, function () {
+            verifySuccess([
+                {
+                    "name": "abc123",
+                    "canBeElement": true,
+                    "canBeAttribute": true,
+                    "attributes": []
+                },
+            ]);
+        });
     });
 
     describe(`findLongestCommonPath`, function () {
