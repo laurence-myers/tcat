@@ -2,12 +2,19 @@ import * as jade from "jade";
 import * as pug from "pug";
 import {TemplateRootNode} from "../generator/ast";
 import {Either} from "monet";
-import {asHtmlContents, FileName, HtmlContents, PugContents, TcatError, TemplateParserError} from "../core";
+import {
+    asHtmlContents,
+    HtmlContents,
+    PugContents,
+    PugFileName,
+    TcatError,
+    TemplateParserError
+} from "../core";
 import {parseElement} from "./elements";
 import {DirectiveMap} from "../directives";
 import {AST, parse as parseHtmlDocument} from "parse5";
 
-export function parsePugToHtml(contents : PugContents, templateFileName? : FileName) : Either<TcatError[], HtmlContents> {
+export function parsePugToHtml(contents : PugContents, templateFileName? : PugFileName) : Either<TcatError[], HtmlContents> {
     let html;
     try {
         // In pug files, "include" statements expect a file extension of .pug. You can work around this by explicitly

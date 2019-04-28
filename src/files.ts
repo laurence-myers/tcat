@@ -20,7 +20,7 @@ import {ElementDirectiveParser} from "./parser/elements";
 import {AttributeParser} from "./parser/attributes";
 import Pattern = StringConstraints.Pattern;
 
-const { Required, Only, Optional } = AnyConstraints;
+const { Default, Required, Only, Optional } = AnyConstraints;
 const { Arity } = FunctionConstraints;
 const { StringSchema } = StringConstraints;
 const DIRECTIVE_NAME_PATTERN = /^[a-z][a-zA-Z]*$/;
@@ -28,17 +28,17 @@ const DIRECTIVE_NAME_PATTERN = /^[a-z][a-zA-Z]*$/;
 class DirectiveAttributeLocalSchema implements AttributeLocal {
     @Required()
     @StringSchema()
-    name : string;
+    name! : string;
 
     @Required()
     @StringSchema()
-    type : string;
+    type! : string;
 }
 
 class DirectiveAttributeSchema implements DirectiveAttribute {
     @Pattern(DIRECTIVE_NAME_PATTERN)
     @Required()
-    name : string;
+    name! : string;
 
     @Optional()
     optional? : boolean;
@@ -59,17 +59,18 @@ class DirectiveAttributeSchema implements DirectiveAttribute {
 class DirectiveDataSchema implements DirectiveData {
     @Pattern(DIRECTIVE_NAME_PATTERN)
     @Required()
-    name : string;
+    name! : string;
 
     @Required()
-    canBeElement : boolean;
+    canBeElement! : boolean;
 
     @Required()
-    canBeAttribute : boolean;
+    canBeAttribute! : boolean;
 
+    @Default(() => [], `empty array`)
     @Optional()
     @NestedArray(DirectiveAttributeSchema)
-    attributes : DirectiveAttributeSchema[];
+    attributes! : DirectiveAttributeSchema[];
 
     @Arity(2)
     @Optional()

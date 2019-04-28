@@ -67,30 +67,44 @@ export function unwrapEither<E extends Error, V>(either : Either<E, V>) : V | ne
     );
 }
 
-export const enum AsFileName {}
+export interface AsFileName {
+    __brandFileName : never;
+}
 export type FileName = string & AsFileName;
 export function asFileName(value : string) { return value as FileName; }
 
-export const enum AsDirectoryName {}
+export interface AsDirectoryName {
+    __brandDirectoryName : never;
+}
 export type DirectoryName = string & AsDirectoryName;
 export function asDirectoryName(value : string) { return value as DirectoryName; }
 
-export const enum AsHtmlFileName {}
+export interface AsHtmlFileName {
+    __brandHtmlFileName : AsHtmlFileName;
+}
 export type HtmlFileName = FileName & AsHtmlFileName;
 export function asHtmlFileName(value : string) { return value as HtmlFileName; }
 
-export const enum AsPugFileName {}
+export interface AsPugFileName {
+    __brandPugFileName : never;
+}
 export type PugFileName = FileName & AsPugFileName;
 export function asPugFileName(value : string) { return value as PugFileName; }
 
-export const enum AsPugContents {}
+export interface AsPugContents {
+    __brandPugContents : never;
+}
 export type PugContents = string & AsPugContents;
 export function asPugContents(value : string) { return value as PugContents; }
 
-export const enum AsHtmlContents {}
+export interface AsHtmlContents {
+    __brandHtmlContents : never;
+}
 export type HtmlContents = string & AsHtmlContents;
 export function asHtmlContents(value : string) { return value as HtmlContents; }
 
-export const enum AsTypeScriptContents {}
+export interface AsTypeScriptContents {
+    __brandTypeScriptContents : never;
+}
 export type TypeScriptContents = string & AsTypeScriptContents;
 export function asTypeScriptContents(value : string) { return value as TypeScriptContents; }

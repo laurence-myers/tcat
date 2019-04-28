@@ -38,14 +38,14 @@ export class CliOptions extends Options {
         description: `Filter for file extensions. Specify multiple extensions using commas, e.g. .jade,.html. Defaults to ${ DEFAULT_FILTER_VALUE }`,
         default: DEFAULT_FILTER_VALUE
     })
-    filter : string;
+    filter! : string;
 
     @option({
         description: 'Verbose logging',
         default: false,
         toggle: true
     })
-    verbose : boolean;
+    verbose! : boolean;
 
     @option({
         flag: 'w',
@@ -53,13 +53,13 @@ export class CliOptions extends Options {
         default: false,
         toggle: true
     })
-    watch : boolean;
+    watch! : boolean;
 
     @option({
         flag: 'c',
         description: `Compile using tsc with the given tsconfig.json file. If --watch is also specified, tsc will spawn as a background process in watch mode.`
     })
-    compile : string;
+    compile! : string;
 }
 
 @command({

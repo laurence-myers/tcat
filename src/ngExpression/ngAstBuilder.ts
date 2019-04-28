@@ -183,9 +183,9 @@ interface Token {
 }
 
 class Lexer {
-    text : string;
-    index : number;
-    tokens : Token[];
+    text : string = '';
+    index : number = 0;
+    tokens : Token[] = [];
 
     constructor(public options : any) {}
 
@@ -415,8 +415,8 @@ class AstBuilder {
     // Internal use only
     static NGValueParameter : 'NGValueParameter' = 'NGValueParameter';
 
-    text : string;
-    tokens : Token[];
+    text : string = '';
+    tokens : Token[] = [];
 
     constructor(public lexer : Lexer, public options : any) {
 
