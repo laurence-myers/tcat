@@ -533,6 +533,11 @@ describe(`Template parsers`, function () {
                 scopedBlock([], [
                     assign(ngExpr(`'[a-z][a-zA-Z]'`)),
                     assignTs(`/^[0-9]+(\\.[0-9]{1,2})?$/`, {
+                        startCol: 8,
+                        startLine: 2,
+                        endCol: 46,
+                        endLine: 2,
+                    }, {
                         typeAnnotation: 'RegExp'
                     }),
                 ], `TemplateScope`)

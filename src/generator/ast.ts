@@ -1,5 +1,24 @@
 import {ProgramNode} from "../ngExpression/ast";
 
+export interface HtmlSourceLocation {
+    /**
+     * One-based line index of the first character
+     */
+    startLine : number;
+    /**
+     * One-based column index of the first character
+     */
+    startCol : number;
+    /**
+     * One-based line index of the last character
+     */
+    endLine : number;
+    /**
+     * One-based column index of the last character
+     */
+    endCol : number;
+}
+
 export interface BaseAssignmentNode {
     type : 'AssignmentNode';
     name? : string;
@@ -15,6 +34,7 @@ export interface AngularJsAssignmentNode extends BaseAssignmentNode {
 export interface TypeScriptAssignmentNode extends BaseAssignmentNode {
     expression : string;
     expressionType : 'TypeScript';
+    htmlSourceLocation : HtmlSourceLocation;
 }
 
 export type AssignmentNode = AngularJsAssignmentNode | TypeScriptAssignmentNode;

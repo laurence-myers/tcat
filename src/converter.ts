@@ -25,8 +25,8 @@ function readExistingTypeScriptFile(templateFileName : FileName) : Either<TcatEr
 export function convertHtmlContentsToTypeScript(htmlContents : HtmlContents, baseTypeScript : TypeScriptContents, directives : DirectiveData[]) : Either<TcatError[], TypeScriptContents> {
     return parseHtml(htmlContents, 'TemplateScope', createDirectiveMap(directives))
         .map((ast) => {
-            const tsCode = generateTypeScript(ast);
-            const final = '/* tslint:disable */\n' + baseTypeScript + '\n' + tsCode + '\nexport = {};\n' ;
+            const generatorOutput = generateTypeScript(ast);
+            const final = '/* tslint:disable */\n' + baseTypeScript + '\n' + generatorOutput.generatedCode + '\nexport = {};\n' ;
             return asTypeScriptContents(final);
         });
 }

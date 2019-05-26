@@ -6,7 +6,8 @@ import {
     GeneratorAstNode,
     HasChildrenAstNode,
     ObjectIterationNode,
-    ParameterNode
+    ParameterNode,
+    HtmlSourceLocation
 } from "../generator/ast";
 import {parseExpression} from "../ngExpression/ngAstBuilder";
 import {ProgramNode} from "../ngExpression/ast";
@@ -25,8 +26,12 @@ export interface SuccessfulParserResult {
 }
 export type ParserResult = Either<AttributeParserError, SuccessfulParserResult>;
 
+export interface HasHtmlSourceLocation {
+    htmlSourceLocation : HtmlSourceLocation;
+}
+
 // Splits a string into one or more expression strings
-export type AttributeParser = (attrib : string) => ParserResult;
+export type AttributeParser = (attrib : string, context : HasHtmlSourceLocation) => ParserResult;
 
 export function defaultParser(attrib : string) : ParserResult {
     return parseExpression(attrib)
@@ -124,8 +129,8 @@ export function parseNgRepeat(expression : string) : ParserResult {
 }
 
 export function wrapParseScopeStart(parser : AttributeParser) : AttributeParser {
-    return (expression : string) => {
-        return parser(expression)
+    return (expression : string, context : HasHtmlSourceLocation) => {
+        return parser(expression, context)
             .map((result : SuccessfulParserResult) => {
                 return {
                     ...result,
@@ -188,7 +193,7 @@ function parseExpressions(expressions : string[]) : Either<AttributeParserError,
 }
 
 // Derived from: https://github.com/angular/angular.js/blob/aee5d02cb789e178f3f80f95cdabea38e0090501/src/ng/interpolate.js#L240
-export function parseInterpolatedText(text : string, symbols = {
+export function parseInterpolatedText(text : string, _context : HasHtmlSourceLocation, symbols = {
     startSymbol: '{{',
     endSymbol: '}}'
 }) : ParserResult {
@@ -322,10 +327,10 @@ const REGEX_STRING_REGEXP = /^\/(.+)\/([a-z]*)$/;
 /**
  * ngPattern supports RegExp literals.
  */
-export function parseNgPattern(expression : string) : ParserResult {
+export function parseNgPattern(expression : string, context : HasHtmlSourceLocation) : ParserResult {
     if (expression.charAt(0) === '/' && REGEX_STRING_REGEXP.test(expression)) {
         return Either.Right({
-            nodes: [assignTs(expression, {
+            nodes: [assignTs(expression, context.htmlSourceLocation, {
                 typeAnnotation: 'RegExp'
             })]
         });

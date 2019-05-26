@@ -12,7 +12,7 @@ import {
 } from "../core";
 import {parseElement} from "./elements";
 import {DirectiveMap} from "../directives";
-import {AST, parse as parseHtmlDocument} from "parse5";
+import {DefaultTreeDocument, parse as parseHtmlDocument} from "parse5";
 
 export function parsePugToHtml(contents : PugContents, templateFileName? : PugFileName) : Either<TcatError[], HtmlContents> {
     let html;
@@ -36,9 +36,11 @@ export function parsePugToHtml(contents : PugContents, templateFileName? : PugFi
 }
 
 export function parseHtml(html : HtmlContents, scopeInterfaceName : string, directives : DirectiveMap) : Either<TcatError[], TemplateRootNode> {
-    let document : AST.Default.Document;
+    let document : DefaultTreeDocument;
     try {
-        document = <AST.Default.Document> parseHtmlDocument(html);
+        document = <DefaultTreeDocument> parseHtmlDocument(html, {
+            sourceCodeLocationInfo: true
+        });
     } catch (err) {
         return Either.Left([new TemplateParserError(err)]);
     }

@@ -32,6 +32,7 @@ describe("Converter", function () {
 
         const examplesContainingDirectory = path.join(root, `test`, `data`);
         const exampleDirectories = readdirSync(examplesContainingDirectory)
+            .filter((name) => name.startsWith('example_'))
             .map((name) => path.join(examplesContainingDirectory, name))
             .filter((entry : string) => statSync(entry).isDirectory());
         for (const exampleDir of exampleDirectories) {

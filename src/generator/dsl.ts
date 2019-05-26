@@ -2,6 +2,7 @@ import {
     ArrayIterationNode,
     AssignmentNode,
     GeneratorAstNode,
+    HtmlSourceLocation,
     IfStatementNode,
     ObjectIterationNode,
     ParameterNode,
@@ -15,6 +16,7 @@ export interface AssignOptions {
     variableType? : 'let' | 'const';
     typeAnnotation? : string;
 }
+
 export function assign(expression : ProgramNode, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
     return {
         type: "AssignmentNode",
@@ -26,14 +28,15 @@ export function assign(expression : ProgramNode, options : AssignOptions = { var
     };
 }
 
-export function assignTs(expression : string, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
+export function assignTs(expression : string, htmlSourceLocation : HtmlSourceLocation, options : AssignOptions = { variableType: 'const' }) : AssignmentNode {
     return {
         type: "AssignmentNode",
         expression: expression,
         variableType: options.variableType || 'const',
         typeAnnotation: options.typeAnnotation,
         name: options.name,
-        expressionType: 'TypeScript'
+        expressionType: 'TypeScript',
+        htmlSourceLocation
     };
 }
 

@@ -1,4 +1,11 @@
-import {defaultParser, parseInterpolatedText, ParserResult, ScopeData, SuccessfulParserResult} from "./attributes";
+import {
+    defaultParser,
+    HasHtmlSourceLocation,
+    parseInterpolatedText,
+    ParserResult,
+    ScopeData,
+    SuccessfulParserResult
+} from "./attributes";
 import {Either} from "monet";
 import {
     asHtmlContents,
@@ -11,17 +18,24 @@ import {
     TcatError,
     UnexpectedStateError
 } from "../core";
-import {HasChildrenAstNode, ParameterNode, ScopedBlockNode, TemplateRootNode} from "../generator/ast";
+import {
+    HasChildrenAstNode,
+    HtmlSourceLocation,
+    ParameterNode,
+    ScopedBlockNode,
+    TemplateRootNode
+} from "../generator/ast";
 import {DirectiveAttribute, DirectiveData, DirectiveMap, normalize} from "../directives";
 import * as uppercamelcase from "uppercamelcase";
 import {parseHtml} from "./templateParser";
 import {parameter, scopedBlock, templateRoot} from "../generator/dsl";
-import {AST} from "parse5";
-import Default = AST.Default;
-import Node = Default.Node;
-import TextNode = Default.TextNode;
-import Element = Default.Element;
-import ParentNode = Default.ParentNode;
+import {
+    DefaultTreeNode as Node,
+    DefaultTreeTextNode as TextNode,
+    DefaultTreeElement as Element,
+    DefaultTreeParentNode as ParentNode,
+    Location
+} from "parse5";
 
 const htmlTagNames : string[] = require("html-tag-names");
 const htmlElementAttributes : { [key : string] : string[] } = require("html-element-attributes");
@@ -263,6 +277,19 @@ export class ElementWalker {
         }
     }
 
+    /**
+     * This "denormalizes" a directive attribute. Because attributes could be prefixed with `data-` or `x-`, it's safer
+     * to loop through the attributes and find one that matches the normalized value.
+     */
+    protected findAttributeKey(node : Element, directiveAttributeName : string) : string | undefined {
+        for (const attrib of node.attrs) {
+            if (normalize(attrib.name) === directiveAttributeName) {
+                return attrib.name;
+            }
+        }
+        return undefined;
+    }
+
     protected findAttributeValue(node : Element, directiveAttributeName : string) : string | undefined {
         for (const attrib of node.attrs) {
             if (normalize(attrib.name) === directiveAttributeName) {
@@ -272,11 +299,40 @@ export class ElementWalker {
         return undefined;
     }
 
+    protected findAttributeLocationInfo(node : Element, directiveAttributeName : string) : HasHtmlSourceLocation | never {
+        const attrKey = this.findAttributeKey(node, directiveAttributeName);
+        if (!attrKey || !node.sourceCodeLocation) {
+            throw new UnexpectedStateError(); // TODO: return Either instead of throwing here.
+        }
+        const attrLocationInfo = node.sourceCodeLocation.attrs[attrKey];
+        if (!attrLocationInfo) {
+            throw new UnexpectedStateError();
+        }
+        return {
+            htmlSourceLocation: this.mapHtmlSourceLocation(attrLocationInfo)
+        };
+    }
+
+    protected mapHtmlSourceLocation({
+        startLine,
+        startCol,
+        endLine,
+        endCol
+    } : Location) : HtmlSourceLocation {
+        return {
+            startLine,
+            startCol,
+            endLine,
+            endCol
+        };
+    }
+
     protected parseDirectiveSubAttribute(node : Element, subAttribEntry : DirectiveAttribute, context : ElementParserContext) {
         const subAttribValue = this.findAttributeValue(node, subAttribEntry.name);
         if (subAttribValue === undefined) {
             return;
         }
+        const attributeParserContext = this.findAttributeLocationInfo(node, subAttribEntry.name);
         switch (subAttribEntry.mode) {
             case undefined:
             case "expression":
@@ -285,7 +341,7 @@ export class ElementWalker {
                     containingBlock = scopedBlock(subAttribEntry.locals.map(convertToParameter));
                 }
                 const parser = subAttribEntry.parser || defaultParser;
-                parser(subAttribValue).bimap(
+                parser(subAttribValue, attributeParserContext).bimap(
                     (errs) => context.errors.push(errs),
                     (result : SuccessfulParserResult) => {
                         // TODO: make this better
@@ -304,7 +360,7 @@ export class ElementWalker {
             case "interpolated":
                 this.handleAttributeDirectiveParseResult(
                     context,
-                    parseInterpolatedText(subAttribValue)
+                    parseInterpolatedText(subAttribValue, attributeParserContext)
                 );
                 context.parsedAttributes.push(subAttribEntry.name);
                 break;
@@ -324,15 +380,17 @@ export class ElementWalker {
         // Parse attributes: interpolated text
         for (const attrib of node.attrs) {
             const key = attrib.name;
-            if (context.parsedAttributes.indexOf(normalize(key)) === -1) {
-                const attribLookup = this.directives.attributes.get(normalize(key));
+            const normalizedKey = normalize(key);
+            if (context.parsedAttributes.indexOf(normalizedKey) === -1) {
+                const attribLookup = this.directives.attributes.get(normalizedKey);
                 const value = attrib.value;
                 if (attribLookup && attribLookup.canBeAttribute) {
                     continue;
                 } else if (value && value.length > 0 && value.indexOf(interpolationStartSymbol) > -1) {
+                    const attributeParserContext = this.findAttributeLocationInfo(node, normalizedKey);
                     this.handleAttributeDirectiveParseResult(
                         context,
-                        parseInterpolatedText(value)
+                        parseInterpolatedText(value, attributeParserContext)
                     );
                 }
             }
@@ -343,7 +401,9 @@ export class ElementWalker {
         // Parse interpolated text
         this.handleAttributeDirectiveParseResult(
             context,
-            parseInterpolatedText(node.value)
+            parseInterpolatedText(node.value, {
+                htmlSourceLocation: this.mapHtmlSourceLocation(node.sourceCodeLocation!)
+            })
         );
     }
 

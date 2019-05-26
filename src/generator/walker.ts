@@ -75,6 +75,23 @@ export class SkippingWalker extends BaseWalker {
     }
 }
 
+export interface SourceLocation {
+    startLine : number;
+    startCol : number;
+    endLine : number;
+    endCol : number;
+}
+
+export interface SourceMapEntry {
+    generated : SourceLocation;
+    original : SourceLocation;
+}
+
+export interface TypeScriptGeneratorResult {
+    generatedCode : string;
+    sourceMap : SourceMapEntry[]; // TODO: use a better data structure, like a tree
+}
+
 export class TypeScriptGenerator extends SkippingWalker {
     protected counters = {
         scopes: 0,
@@ -84,15 +101,38 @@ export class TypeScriptGenerator extends SkippingWalker {
     protected output = '';
     protected indentLevel = 0;
     protected indentString = '    ';
+    protected lineCount = 0;
     protected localsStack : Set<string>[] = [];
     protected scopeNumberStack : number[] = [];
+    protected sourceMap : SourceMapEntry[] = [];
 
-    protected writeLine(value : string) : void {
+    protected writeLine(value : string) : SourceLocation {
+        const startLine = this.lineCount;
+        const lineStart = this.output.length;
         for (let i = 0; i < this.indentLevel; i++) {
             this.output += this.indentString;
         }
+        const startCol = this.output.length - lineStart;
         this.output += value;
+        const endCol = this.output.length - lineStart;
         this.output += '\n';
+        this.lineCount++;
+        return {
+            startLine,
+            startCol,
+            endLine: startLine, // should be the same line
+            endCol
+        };
+    }
+
+    protected addSourceMapping(
+        original : SourceLocation,
+        generated : SourceLocation
+    ) : void {
+        this.sourceMap.push({
+            original,
+            generated
+        });
     }
 
     protected pushLocalsScope() : void {
@@ -138,7 +178,15 @@ export class TypeScriptGenerator extends SkippingWalker {
             node.expressionType === 'AngularJS'
                 ? this.formatExpression(node.expression)
                 : node.expression;
-        this.writeLine(`${ node.variableType } ${ name }${ typeAnnotation } = ${ expression };`);
+        const generatedLocation = this.writeLine(
+            `${ node.variableType } ${ name }${ typeAnnotation } = ${ expression };`
+        );
+        if (node.expressionType === 'TypeScript') { // TODO: remove this check once I've added locations everywhere
+            this.addSourceMapping(
+                node.htmlSourceLocation,
+                generatedLocation
+            );
+        }
     }
 
     protected walkIfStatementNode(node : IfStatementNode) : void {
@@ -194,13 +242,16 @@ export class TypeScriptGenerator extends SkippingWalker {
         this.writeLine(`};`);
     }
 
-    public generate(node : GeneratorAstNode) : string {
+    public generate(node : GeneratorAstNode) : TypeScriptGeneratorResult {
         this.dispatch(node);
-        return this.output;
+        return {
+            generatedCode: this.output,
+            sourceMap: this.sourceMap
+        };
     }
 }
 
-export function generateTypeScript(node : GeneratorAstNode) : string {
+export function generateTypeScript(node : GeneratorAstNode) : TypeScriptGeneratorResult {
     const generator = new TypeScriptGenerator();
     return generator.generate(node);
 }

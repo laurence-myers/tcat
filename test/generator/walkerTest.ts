@@ -1,7 +1,7 @@
 import * as assert from "assert";
 import {GeneratorAstNode} from "../../src/generator/ast";
-import {TypeScriptGenerator} from "../../src/generator/walker";
-import {arrayIteration, assign, objectIteration, scopedBlock, templateRoot} from "../../src/generator/dsl";
+import {TypeScriptGenerator, TypeScriptGeneratorResult} from "../../src/generator/walker";
+import {arrayIteration, assign, assignTs, objectIteration, scopedBlock, templateRoot} from "../../src/generator/dsl";
 import {NG_REPEAT_SPECIAL_PROPERTIES} from "../../src/parser/attributes";
 import {outdent as outdentOrig} from "outdent";
 import {ngExpr} from "../testUtils";
@@ -10,9 +10,13 @@ const outdent = outdentOrig({ trimTrailingNewline: false });
 
 describe(`Generator walker`, function () {
     describe(`TypeScriptGenerator`, function () {
-        function walk(node : GeneratorAstNode) : string {
+        function walkWithMapping(node : GeneratorAstNode) : TypeScriptGeneratorResult {
             const generator = new TypeScriptGenerator();
             return generator.generate(node);
+        }
+
+        function walk(node : GeneratorAstNode) : string {
+            return walkWithMapping(node).generatedCode;
         }
 
         it(`assigns an expression to a const`, function () {
@@ -215,6 +219,42 @@ describe(`Generator walker`, function () {
                 };
                 `;
             assert.equal(actual, expected);
+        });
+
+        it(`should provide source mappings between the generated and original code`, function () {
+            const output = walkWithMapping(
+                templateRoot([
+                    scopedBlock([], [
+                        assign(ngExpr(`'[a-z][a-zA-Z]'`)),
+                        assignTs(`/^[0-9]+(\\.[0-9]{1,2})?$/`, {
+                            startCol: 8,
+                            startLine: 2,
+                            endCol: 46,
+                            endLine: 2,
+                        }, {
+                            typeAnnotation: 'RegExp'
+                        }),
+                    ], `TemplateScope`)
+                ])
+            );
+
+            const expected : TypeScriptGeneratorResult['sourceMap'] = [
+                {
+                    original: {
+                        startCol: 8,
+                        startLine: 2,
+                        endCol: 46,
+                        endLine: 2
+                    },
+                    generated: {
+                        startCol: 4,
+                        startLine: 4,
+                        endCol: 55,
+                        endLine: 4
+                    }
+                }
+            ];
+            assert.deepStrictEqual(output.sourceMap, expected);
         });
     });
 });
